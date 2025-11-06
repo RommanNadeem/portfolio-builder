@@ -41,6 +41,16 @@ body {
   animation: fadeIn 0.4s ease-out;
 }
 
+/* Hide scrollbar while maintaining scroll functionality */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari, Opera */
+}
+
 /* Marquee Animation */
 @keyframes marquee {
   0% {
@@ -101,4 +111,29 @@ body {
 
 .animation-delay-4000 {
   animation-delay: 4s;
+}
+
+/* Input and Textarea Text Styling */
+input,
+textarea {
+  color: #111827; /* gray-900 - dark text for readability */
+}
+
+/* Placeholder Text Styling */
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af; /* gray-400 */
+  opacity: 1;
+}
+
+input:focus::placeholder,
+textarea:focus::placeholder {
+  color: #d1d5db; /* gray-300 - lighter when focused */
+  opacity: 1;
+}
+
+/* Disabled Input Text */
+input:disabled,
+textarea:disabled {
+  color: #6b7280; /* gray-500 - medium gray for disabled */
 }
