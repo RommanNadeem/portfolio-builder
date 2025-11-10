@@ -6,12 +6,12 @@ import { useAutoSave } from './hooks/useAutoSave';
 import { EditorLayout } from './components/EditorLayout';
 import { NavigationSection } from './sections/navigation';
 import { PersonalSection } from './sections/personal';
-import { CompaniesSection } from './sections/companies';
-import { SocialLinksSection } from './sections/social-links';
-import { ProjectsSection } from './sections/projects';
-import { CareerSection } from './sections/career';
-import { StrengthsSection } from './sections/strengths';
-import { TestimonialsSection } from './sections/testimonials';
+import { CompaniesSection } from './sections/companies-v2';
+import { SocialLinksSection } from './sections/social-links-v2';
+import { ProjectsSection } from './sections/projects-v2';
+import { CareerSection } from './sections/career-v2';
+import { StrengthsSection } from './sections/strengths-v2';
+import { TestimonialsSection } from './sections/testimonials-v2';
 import { FooterSection } from './sections/footer';
 
 export default function EditorPage() {
