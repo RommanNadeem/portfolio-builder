@@ -195,6 +195,7 @@ export default function NotionLikeProjectEditor() {
   const projectId = params?.id as string;
 
   // State
+  const [isLoading, setIsLoading] = useState(true);
   const [flowState, setFlowState] = useState<FlowState>('select-template');
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType | null>(null);
   const [projectData, setProjectData] = useState<ProjectData | null>(null);
@@ -230,52 +231,102 @@ export default function NotionLikeProjectEditor() {
   // Load project data
   useEffect(() => {
     const loadProject = async () => {
+      console.log('[Template Editor] 🔍 Attempting to load project:', projectId);
+      
       // Load from main portfolio data
       const portfolioDataStr = localStorage.getItem('portfolioData');
-      if (portfolioDataStr) {
-        const portfolioData = JSON.parse(portfolioDataStr);
-        const project = portfolioData.projects?.find((p: any) => p.id === projectId);
+      
+      if (!portfolioDataStr) {
+        console.error('[Template Editor] ❌ No portfolioData in localStorage!');
+        return;
+      }
+      
+      const portfolioData = JSON.parse(portfolioDataStr);
+      console.log('[Template Editor] 📊 Portfolio data loaded:', {
+        total_projects: portfolioData.projects?.length || 0,
+        project_ids: portfolioData.projects?.map((p: any) => p.id) || [],
+      });
+      
+      const project = portfolioData.projects?.find((p: any) => p.id === projectId);
+      
+      if (project) {
+        console.log('[Template Editor] ✅ Project found:', {
+          id: project.id,
+          title: project.title,
+          template_type: project.template_type,
+          blocks_count: project.blocks?.length || 0,
+          has_detail_page: project.has_detail_page,
+        });
         
-        if (project) {
-          console.log('[Template Editor] 📦 Loading project:', {
-            id: project.id,
-            title: project.title,
-            template_type: project.template_type,
-            blocks_count: project.blocks?.length || 0
+        // Ensure all required fields exist
+        const normalizedProject = {
+          ...project,
+          tags: project.tags || [],
+          description: project.description || '',
+          thumbnail: project.thumbnail || '',
+          link: project.link || '',
+        };
+        setProjectData(normalizedProject);
+        
+        // Check if has template OR has existing blocks (skip selector if content exists)
+        if (project.template_type || (project.blocks && project.blocks.length > 0)) {
+          const templateToUse = project.template_type || 'blank'; // Fallback to blank if has blocks but no template_type
+          
+          console.log('[Template Editor] ✅ Has template or content, going directly to editing mode:', {
+            template: templateToUse,
+            blocks: project.blocks?.length || 0,
           });
           
-          // Ensure all required fields exist
-          const normalizedProject = {
-            ...project,
-            tags: project.tags || [],
-            description: project.description || '',
-            thumbnail: project.thumbnail || '',
-            link: project.link || '',
-          };
-          setProjectData(normalizedProject);
-          
-          if (project.template_type) {
-            console.log('[Template Editor] ✅ Has template, going to editing mode');
-            setSelectedTemplate(project.template_type);
-            setBlocks(project.blocks || []);
-            setSavedBlockIds(new Set(project.blocks?.map((b: TemplateBlock) => b.id) || []));
-            setFlowState('editing');
-          } else {
-            console.log('[Template Editor] ℹ️ No template, showing selector');
-          }
+          setSelectedTemplate(templateToUse);
+          setBlocks(project.blocks || []);
+          setSavedBlockIds(new Set(project.blocks?.map((b: TemplateBlock) => b.id) || []));
+          setFlowState('editing');
         } else {
-          // New project - shouldn't happen, but handle gracefully
-          setProjectData({
-            id: projectId,
-            title: 'Untitled Project',
-            description: '',
-            thumbnail: '',
-            tags: [],
-            link: '',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          });
+          console.log('[Template Editor] ℹ️ No template or content, showing selector');
+          setFlowState('select-template');
         }
+        setIsLoading(false);
+      } else {
+        console.error('[Template Editor] ❌ Project NOT FOUND in portfolio!', {
+          looking_for: projectId,
+          available_projects: portfolioData.projects?.length || 0,
+        });
+        
+        // Wait a bit and try again (in case of race condition)
+        console.log('[Template Editor] ⏳ Waiting 500ms and retrying...');
+        setTimeout(() => {
+          const retryData = localStorage.getItem('portfolioData');
+          if (retryData) {
+            const retryParsed = JSON.parse(retryData);
+            const retryProject = retryParsed.projects?.find((p: any) => p.id === projectId);
+            
+            if (retryProject) {
+              console.log('[Template Editor] ✅ Found on retry!');
+              setProjectData({
+                ...retryProject,
+                tags: retryProject.tags || [],
+                description: retryProject.description || '',
+                thumbnail: retryProject.thumbnail || '',
+                link: retryProject.link || '',
+              });
+              
+              // Check if has template OR has existing blocks
+              if (retryProject.template_type || (retryProject.blocks && retryProject.blocks.length > 0)) {
+                const templateToUse = retryProject.template_type || 'blank';
+                setSelectedTemplate(templateToUse);
+                setBlocks(retryProject.blocks || []);
+                setSavedBlockIds(new Set(retryProject.blocks?.map((b: TemplateBlock) => b.id) || []));
+                setFlowState('editing');
+              } else {
+                setFlowState('select-template');
+              }
+              setIsLoading(false);
+            } else {
+              console.error('[Template Editor] ❌ Still not found after retry');
+              setIsLoading(false);
+            }
+          }
+        }, 500);
       }
     };
 
@@ -803,8 +854,18 @@ export default function NotionLikeProjectEditor() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Loading State - Prevents flash of template selector */}
+        {isLoading && (
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center">
+              <div className="w-8 h-8 border-4 border-gray-300 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading project...</p>
+            </div>
+          </div>
+        )}
+
         {/* STEP 1: Select Template */}
-        {flowState === 'select-template' && (
+        {!isLoading && flowState === 'select-template' && (
           <div className="animate-in fade-in duration-500">
             <div className="mb-8 text-center">
               <h1 className="text-4xl font-bold text-gray-900 mb-3">
@@ -838,7 +899,7 @@ export default function NotionLikeProjectEditor() {
         )}
 
         {/* STEP 2: Editing */}
-        {flowState === 'editing' && (
+        {!isLoading && flowState === 'editing' && (
           <div className="animate-in fade-in duration-500">
             {/* Main Editor Area - Notion-style document layout */}
             <div className={`${deviceMode === 'mobile' ? 'max-w-md mx-auto' : 'max-w-[960px]'} mx-auto w-full bg-white px-8 py-12 min-h-screen`}>

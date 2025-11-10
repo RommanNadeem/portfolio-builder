@@ -10,6 +10,9 @@ import {
   PortfolioData
 } from './types';
 
+// Debug flag
+const DEBUG_DATABASE = false;
+
 // ============================================
 // PROFILE OPERATIONS
 // ============================================
@@ -314,10 +317,10 @@ export async function saveCompletePortfolio(
   portfolioData: any // Legacy localStorage format
 ): Promise<{ error: string | null }> {
   try {
-    console.log('[Database Debug] saveCompletePortfolio called for user:', userId);
-    console.log('[Database Debug] Full portfolio data:', portfolioData);
-    console.log('[Database Debug] Career highlights in data:', portfolioData.careerHighlights);
-    console.log('[Database Debug] Career highlights count:', portfolioData.careerHighlights?.length || 0);
+    if (DEBUG_DATABASE) console.log('[Database Debug] saveCompletePortfolio called for user:', userId);
+    if (DEBUG_DATABASE) console.log('[Database Debug] Full portfolio data:', portfolioData);
+    if (DEBUG_DATABASE) console.log('[Database Debug] Career highlights in data:', portfolioData.careerHighlights);
+    if (DEBUG_DATABASE) console.log('[Database Debug] Career highlights count:', portfolioData.careerHighlights?.length || 0);
     
     // 1. Save profile FIRST and check for errors
     const profileData = {
@@ -335,17 +338,17 @@ export async function saveCompletePortfolio(
       slider_companies: portfolioData.sliderCompanies
     };
     
-    console.log('[Database Debug] Attempting to save profile:', profileData);
+    if (DEBUG_DATABASE) console.log('[Database Debug] Attempting to save profile:', profileData);
     
     let profileResult;
     try {
       profileResult = await supabase.from('profiles').upsert(profileData);
     } catch (err: any) {
-      console.error('[Database Debug] Exception during profile upsert:', err);
+      if (DEBUG_DATABASE) console.error('[Database Debug] Exception during profile upsert:', err);
       throw new Error('Failed to save profile: ' + err.message);
     }
     
-    console.log('[Database Debug] Profile upsert result:', {
+    if (DEBUG_DATABASE) console.log('[Database Debug] Profile upsert result:', {
       error: profileResult.error,
       errorMessage: profileResult.error?.message,
       errorDetails: profileResult.error?.details,
@@ -357,9 +360,9 @@ export async function saveCompletePortfolio(
     });
     
     if (profileResult.error) {
-      console.error('[Database Debug] Profile upsert failed:', profileResult.error);
-      console.error('[Database Debug] Error keys:', Object.keys(profileResult.error));
-      console.error('[Database Debug] Full error object:', JSON.stringify(profileResult.error, null, 2));
+      if (DEBUG_DATABASE) console.error('[Database Debug] Profile upsert failed:', profileResult.error);
+      if (DEBUG_DATABASE) console.error('[Database Debug] Error keys:', Object.keys(profileResult.error));
+      if (DEBUG_DATABASE) console.error('[Database Debug] Full error object:', JSON.stringify(profileResult.error, null, 2));
       
       // Try to extract any error info
       const errorMsg = profileResult.error.message 
@@ -370,15 +373,15 @@ export async function saveCompletePortfolio(
       throw new Error('Failed to save profile: ' + errorMsg);
     }
     
-    console.log('[Database Debug] Profile saved successfully');
+    if (DEBUG_DATABASE) console.log('[Database Debug] Profile saved successfully');
     
     // 2. Use UPSERT for all tables (handles both insert and update)
     const upserts = [];
     
     // Social links - Use upsert to avoid duplicate key errors
     if (portfolioData.socialLinks?.length > 0) {
-      console.log('[Database Debug] Upserting', portfolioData.socialLinks.length, 'social links');
-      console.log('[Database Debug] Social links data:', portfolioData.socialLinks);
+      if (DEBUG_DATABASE) console.log('[Database Debug] Upserting', portfolioData.socialLinks.length, 'social links');
+      if (DEBUG_DATABASE) console.log('[Database Debug] Social links data:', portfolioData.socialLinks);
       
       // First, delete any links not in the new list
       const newLinkIds = portfolioData.socialLinks.map((link: any) => link.id);
@@ -413,33 +416,33 @@ export async function saveCompletePortfolio(
         };
       });
       
-      console.log('[Database Debug] Attempting to upsert social links:', socialLinksData);
+      if (DEBUG_DATABASE) console.log('[Database Debug] Attempting to upsert social links:', socialLinksData);
       
       const socialLinksUpsert = await supabase.from('social_links').upsert(
         socialLinksData,
         { onConflict: 'id' }
       );
       
-      console.log('[Database Debug] Social links upsert result:', socialLinksUpsert);
+      if (DEBUG_DATABASE) console.log('[Database Debug] Social links upsert result:', socialLinksUpsert);
       if (socialLinksUpsert.error) {
-        console.error('[Database Debug] Social links upsert ERROR:');
+        if (DEBUG_DATABASE) console.error('[Database Debug] Social links upsert ERROR:');
         console.error('  - Message:', socialLinksUpsert.error.message);
         console.error('  - Details:', socialLinksUpsert.error.details);
         console.error('  - Hint:', socialLinksUpsert.error.hint);
         console.error('  - Code:', socialLinksUpsert.error.code);
         console.error('  - Full error:', JSON.stringify(socialLinksUpsert.error, null, 2));
       } else {
-        console.log('[Database Debug] ✅ Social links upserted successfully');
+        if (DEBUG_DATABASE) console.log('[Database Debug] ✅ Social links upserted successfully');
       }
     } else {
       // No links - delete all existing ones
-      console.log('[Database Debug] No social links - deleting all');
+      if (DEBUG_DATABASE) console.log('[Database Debug] No social links - deleting all');
       await supabase.from('social_links').delete().eq('user_id', userId);
     }
     
     // Career highlights - Use upsert
     if (portfolioData.careerHighlights?.length > 0) {
-      console.log('[Database Debug] Upserting', portfolioData.careerHighlights.length, 'career highlights');
+      if (DEBUG_DATABASE) console.log('[Database Debug] Upserting', portfolioData.careerHighlights.length, 'career highlights');
       
       // Delete highlights not in the new list
       const newHighlightIds = portfolioData.careerHighlights.map((h: any) => h.id);
@@ -465,7 +468,7 @@ export async function saveCompletePortfolio(
         
         // Debug: Log what we're trying to save for impacts
         if (h.impacts) {
-          console.log('[Database Debug] Career has impacts to save:', {
+          if (DEBUG_DATABASE) console.log('[Database Debug] Career has impacts to save:', {
             organization: h.organization,
             impactsKeys: Object.keys(h.impacts),
             businessImpacts: h.impacts.business?.length || 0,
@@ -473,7 +476,7 @@ export async function saveCompletePortfolio(
             fullImpacts: h.impacts
           });
         } else {
-          console.log('[Database Debug] Career has NO impacts:', h.organization);
+          if (DEBUG_DATABASE) console.log('[Database Debug] Career has NO impacts:', h.organization);
         }
         
         const careerData = {
@@ -511,7 +514,7 @@ export async function saveCompletePortfolio(
           display_order: index
         };
         
-        console.log('[Database Debug] Prepared career for upsert:', {
+        if (DEBUG_DATABASE) console.log('[Database Debug] Prepared career for upsert:', {
           id: careerData.id,
           organization: careerData.organization,
           hasImpacts: !!careerData.impacts,
@@ -522,26 +525,26 @@ export async function saveCompletePortfolio(
       });
       
       const upsertResult = await supabase.from('career_highlights').upsert(careerHighlightsToUpsert, { onConflict: 'id' });
-      console.log('[Database Debug] Career highlights upsert result:', upsertResult);
+      if (DEBUG_DATABASE) console.log('[Database Debug] Career highlights upsert result:', upsertResult);
       
       if (upsertResult.error) {
-        console.error('[Database Debug] Career highlights upsert ERROR:');
+        if (DEBUG_DATABASE) console.error('[Database Debug] Career highlights upsert ERROR:');
         console.error('  - Message:', upsertResult.error.message);
         console.error('  - Details:', upsertResult.error.details);
         console.error('  - Hint:', upsertResult.error.hint);
         console.error('  - Code:', upsertResult.error.code);
         // Don't throw, just log and continue
       } else {
-        console.log('[Database Debug] ✅ Career highlights upserted successfully');
+        if (DEBUG_DATABASE) console.log('[Database Debug] ✅ Career highlights upserted successfully');
       }
     } else {
-      console.log('[Database Debug] No career highlights - deleting all');
+      if (DEBUG_DATABASE) console.log('[Database Debug] No career highlights - deleting all');
       await supabase.from('career_highlights').delete().eq('user_id', userId);
     }
     
     // Strengths - Use upsert
     if (portfolioData.strengths?.length > 0) {
-      console.log('[Database Debug] Upserting', portfolioData.strengths.length, 'strengths');
+      if (DEBUG_DATABASE) console.log('[Database Debug] Upserting', portfolioData.strengths.length, 'strengths');
       
       const newStrengthIds = portfolioData.strengths.map((s: any) => s.id);
       const { data: existingStrengths } = await supabase.from('strengths').select('id').eq('user_id', userId);
@@ -570,15 +573,15 @@ export async function saveCompletePortfolio(
     
     // Projects - Use upsert
     if (portfolioData.projects?.length > 0) {
-      console.log('[Database Debug] Upserting', portfolioData.projects.length, 'projects');
-      console.log('[Database Debug] Projects data:', portfolioData.projects);
+      if (DEBUG_DATABASE) console.log('[Database Debug] Upserting', portfolioData.projects.length, 'projects');
+      if (DEBUG_DATABASE) console.log('[Database Debug] Projects data:', portfolioData.projects);
       
       const newProjectIds = portfolioData.projects.map((p: any) => p.id);
       const { data: existingProjects } = await supabase.from('projects').select('id').eq('user_id', userId);
       if (existingProjects) {
         const toDelete = existingProjects.map(p => p.id).filter(id => !newProjectIds.includes(id));
         if (toDelete.length > 0) {
-          console.log('[Database Debug] Deleting', toDelete.length, 'old projects');
+          if (DEBUG_DATABASE) console.log('[Database Debug] Deleting', toDelete.length, 'old projects');
           await supabase.from('projects').delete().in('id', toDelete);
         }
       }
@@ -607,17 +610,17 @@ export async function saveCompletePortfolio(
         };
       });
       
-      console.log('[Database Debug] Prepared projects for upsert:', projectsToUpsert);
+      if (DEBUG_DATABASE) console.log('[Database Debug] Prepared projects for upsert:', projectsToUpsert);
       
       const projectsUpsertResult = await supabase.from('projects').upsert(
         projectsToUpsert,
         { onConflict: 'id' }
       );
       
-      console.log('[Database Debug] Projects upsert result:', projectsUpsertResult);
+      if (DEBUG_DATABASE) console.log('[Database Debug] Projects upsert result:', projectsUpsertResult);
       
       if (projectsUpsertResult.error) {
-        console.error('[Database Debug] Projects upsert ERROR:');
+        if (DEBUG_DATABASE) console.error('[Database Debug] Projects upsert ERROR:');
         console.error('  - Message:', projectsUpsertResult.error.message);
         console.error('  - Details:', projectsUpsertResult.error.details);
         console.error('  - Hint:', projectsUpsertResult.error.hint);
@@ -625,16 +628,16 @@ export async function saveCompletePortfolio(
         console.error('  - Full error:', JSON.stringify(projectsUpsertResult.error, null, 2));
         // Don't throw, just log and continue
       } else {
-        console.log('[Database Debug] ✅ Projects upserted successfully with template data');
+        if (DEBUG_DATABASE) console.log('[Database Debug] ✅ Projects upserted successfully with template data');
       }
     } else {
-      console.log('[Database Debug] No projects - deleting all');
+      if (DEBUG_DATABASE) console.log('[Database Debug] No projects - deleting all');
       await supabase.from('projects').delete().eq('user_id', userId);
     }
     
     // Testimonials - Use upsert
     if (portfolioData.testimonials?.length > 0) {
-      console.log('[Database Debug] Upserting', portfolioData.testimonials.length, 'testimonials');
+      if (DEBUG_DATABASE) console.log('[Database Debug] Upserting', portfolioData.testimonials.length, 'testimonials');
       
       const newTestimonialIds = portfolioData.testimonials.map((t: any) => t.id);
       const { data: existingTestimonials } = await supabase.from('testimonials').select('id').eq('user_id', userId);
@@ -661,7 +664,7 @@ export async function saveCompletePortfolio(
     
     // Custom sections - Use upsert
     if (portfolioData.customSections?.length > 0) {
-      console.log('[Database Debug] Upserting', portfolioData.customSections.length, 'custom sections');
+      if (DEBUG_DATABASE) console.log('[Database Debug] Upserting', portfolioData.customSections.length, 'custom sections');
       
       const newSectionIds = portfolioData.customSections.map((cs: any) => cs.id);
       const { data: existingSections } = await supabase.from('custom_sections').select('id').eq('user_id', userId);
@@ -686,11 +689,11 @@ export async function saveCompletePortfolio(
       await supabase.from('custom_sections').delete().eq('user_id', userId);
     }
     
-    console.log('[Database Debug] ✅ All data saved successfully');
+    if (DEBUG_DATABASE) console.log('[Database Debug] ✅ All data saved successfully');
     
     return { error: null };
   } catch (error: any) {
-    console.error('[Database Debug] Save failed:', error);
+    if (DEBUG_DATABASE) console.error('[Database Debug] Save failed:', error);
     return { error: error.message };
   }
 }
@@ -700,8 +703,8 @@ export async function saveCompletePortfolio(
 // (For backward compatibility with existing components)
 // ============================================
 export function convertToLegacyFormat(portfolioData: PortfolioData): any {
-  console.log('[Database Debug] convertToLegacyFormat input:', portfolioData);
-  console.log('[Database Debug] Career highlights from DB:', portfolioData.careerHighlights);
+  if (DEBUG_DATABASE) console.log('[Database Debug] convertToLegacyFormat input:', portfolioData);
+  if (DEBUG_DATABASE) console.log('[Database Debug] Career highlights from DB:', portfolioData.careerHighlights);
   
   const converted = {
     fullName: portfolioData.profile.full_name,
@@ -799,8 +802,8 @@ export function convertToLegacyFormat(portfolioData: PortfolioData): any {
     }))
   };
   
-  console.log('[Database Debug] Converted career highlights:', converted.careerHighlights);
-  console.log('[Database Debug] Converted career highlights count:', converted.careerHighlights?.length || 0);
+  if (DEBUG_DATABASE) console.log('[Database Debug] Converted career highlights:', converted.careerHighlights);
+  if (DEBUG_DATABASE) console.log('[Database Debug] Converted career highlights count:', converted.careerHighlights?.length || 0);
   
   return converted;
 }
@@ -880,63 +883,63 @@ export async function updateCustomSection(id: string, updates: Partial<CustomSec
 
 export async function deleteAllUserData(userId: string): Promise<{ error: string | null }> {
   try {
-    console.log('[Database Debug] Deleting all data for user:', userId);
+    if (DEBUG_DATABASE) console.log('[Database Debug] Deleting all data for user:', userId);
     
     // Delete in order (related records first, then profile)
     // This respects foreign key constraints
     
     // 1. Delete social links
     await supabase.from('social_links').delete().eq('user_id', userId);
-    console.log('[Database Debug] ✅ Social links deleted');
+    if (DEBUG_DATABASE) console.log('[Database Debug] ✅ Social links deleted');
     
     // 2. Delete career highlights
     await supabase.from('career_highlights').delete().eq('user_id', userId);
-    console.log('[Database Debug] ✅ Career highlights deleted');
+    if (DEBUG_DATABASE) console.log('[Database Debug] ✅ Career highlights deleted');
     
     // 3. Delete strengths
     await supabase.from('strengths').delete().eq('user_id', userId);
-    console.log('[Database Debug] ✅ Strengths deleted');
+    if (DEBUG_DATABASE) console.log('[Database Debug] ✅ Strengths deleted');
     
     // 4. Delete projects
     await supabase.from('projects').delete().eq('user_id', userId);
-    console.log('[Database Debug] ✅ Projects deleted');
+    if (DEBUG_DATABASE) console.log('[Database Debug] ✅ Projects deleted');
     
     // 5. Delete testimonials
     await supabase.from('testimonials').delete().eq('user_id', userId);
-    console.log('[Database Debug] ✅ Testimonials deleted');
+    if (DEBUG_DATABASE) console.log('[Database Debug] ✅ Testimonials deleted');
     
     // 6. Delete custom sections
     await supabase.from('custom_sections').delete().eq('user_id', userId);
-    console.log('[Database Debug] ✅ Custom sections deleted');
+    if (DEBUG_DATABASE) console.log('[Database Debug] ✅ Custom sections deleted');
     
     // 7. Delete AI generations
     await supabase.from('ai_generations').delete().eq('user_id', userId);
-    console.log('[Database Debug] ✅ AI generations deleted');
+    if (DEBUG_DATABASE) console.log('[Database Debug] ✅ AI generations deleted');
     
     // 8. Delete AI suggestions
     await supabase.from('ai_suggestions').delete().eq('user_id', userId);
-    console.log('[Database Debug] ✅ AI suggestions deleted');
+    if (DEBUG_DATABASE) console.log('[Database Debug] ✅ AI suggestions deleted');
     
     // 9. Delete file attachments
     await supabase.from('file_attachments').delete().eq('user_id', userId);
-    console.log('[Database Debug] ✅ File attachments deleted');
+    if (DEBUG_DATABASE) console.log('[Database Debug] ✅ File attachments deleted');
     
     // 10. Delete resume parses
     await supabase.from('resume_parses').delete().eq('user_id', userId);
-    console.log('[Database Debug] ✅ Resume parses deleted');
+    if (DEBUG_DATABASE) console.log('[Database Debug] ✅ Resume parses deleted');
     
     // 11. Finally, delete profile
     const { error: profileError } = await supabase.from('profiles').delete().eq('id', userId);
     if (profileError) {
-      console.error('[Database Debug] Profile deletion failed:', profileError);
+      if (DEBUG_DATABASE) console.error('[Database Debug] Profile deletion failed:', profileError);
       throw new Error('Failed to delete profile: ' + profileError.message);
     }
-    console.log('[Database Debug] ✅ Profile deleted');
+    if (DEBUG_DATABASE) console.log('[Database Debug] ✅ Profile deleted');
     
-    console.log('[Database Debug] ✅ All user data deleted successfully');
+    if (DEBUG_DATABASE) console.log('[Database Debug] ✅ All user data deleted successfully');
     return { error: null };
   } catch (error: any) {
-    console.error('[Database Debug] Delete failed:', error);
+    if (DEBUG_DATABASE) console.error('[Database Debug] Delete failed:', error);
     return { error: error.message };
   }
 }

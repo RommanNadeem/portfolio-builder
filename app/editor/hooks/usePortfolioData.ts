@@ -71,12 +71,21 @@ export function usePortfolioData() {
         const { data: portfolioData, error: dbError } = await getCompletePortfolio(user.id);
         
         if (dbError) {
-          console.error('[Editor Debug] Error loading portfolio:', dbError);
-          // Only set error if we don't have cached data
-          if (!cachedData) {
-            setError('Failed to load portfolio: ' + dbError);
-            setLoading(false);
+          console.error('[Editor Debug] ⚠️ Database fetch error:', dbError);
+          console.log('[Editor Debug] 💡 Using cached data from localStorage');
+          
+          // If we have cached data, continue using it (offline mode)
+          if (cachedData) {
+            console.log('[Editor Debug] ✅ Continuing with cached data (offline mode)');
+            // Don't set error, don't change loading state
+            // User can continue working with cached data
+            return;
           }
+          
+          // No cached data and database failed - this is a real error
+          console.error('[Editor Debug] ❌ No cached data available, cannot continue');
+          setError('Failed to load portfolio: ' + dbError);
+          setLoading(false);
           return;
         }
         
@@ -157,14 +166,34 @@ export function usePortfolioData() {
       if (cachedData && isMounted) {
         try {
           const parsed = JSON.parse(cachedData);
-          console.log('[Editor Debug] ⚡ Reloading on window focus', {
+          console.log('[Editor] ✅ Reloading portfolio on window focus', {
             projects: parsed.projects?.length || 0,
-            careerHighlights: parsed.careerHighlights?.length || 0,
-            careerWithAchievements: parsed.careerHighlights?.filter((c: any) => c.achievements?.length > 0).length || 0,
+            careers: parsed.careerHighlights?.length || 0,
           });
+          
+          // Show what changed in projects (for debugging)
+          if (portfolio?.projects && parsed.projects) {
+            const changedProjects = parsed.projects.filter((p: any) => {
+              const old = portfolio.projects.find((op: any) => op.id === p.id);
+              return old && (
+                old.title !== p.title || 
+                old.thumbnail !== p.thumbnail || 
+                old.description !== p.description
+              );
+            });
+            
+            if (changedProjects.length > 0) {
+              console.log('[Editor] 🔄 Updated projects detected:', changedProjects.map((p: any) => ({
+                id: p.id,
+                title: p.title,
+                hasThumbnail: !!p.thumbnail,
+              })));
+            }
+          }
+          
           setPortfolio(parsed);
         } catch (e) {
-          console.error('[Editor Debug] Failed to parse on focus:', e);
+          console.error('[Editor] Failed to parse on focus:', e);
         }
       }
     };
@@ -213,6 +242,28 @@ export function usePortfolioData() {
     setPortfolio(prev => {
       if (!prev) return prev;
       const updated = updater(prev);
+      
+      // ⭐ Check if data actually changed (prevent infinite loops)
+      const prevStr = JSON.stringify(prev);
+      const updatedStr = JSON.stringify(updated);
+      
+      if (prevStr === updatedStr) {
+        console.log('[usePortfolioData] ⏭️ No actual changes, skipping localStorage update');
+        return prev; // Return original reference to prevent re-render
+      }
+      
+      // ⭐ Immediately save to localStorage so detail pages can access the data
+      try {
+        localStorage.setItem('portfolioData', JSON.stringify(updated));
+        console.log('[usePortfolioData] ⚡ Instant localStorage update:', {
+          projects_count: updated.projects?.length || 0,
+          career_count: updated.careerHighlights?.length || 0,
+          timestamp: new Date().toISOString(),
+        });
+      } catch (err) {
+        console.error('[usePortfolioData] ❌ Failed to update localStorage:', err);
+      }
+      
       return updated;
     });
   };

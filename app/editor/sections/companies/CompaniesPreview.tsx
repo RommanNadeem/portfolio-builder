@@ -1,7 +1,5 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-
 interface CompaniesPreviewProps {
   companies: string[];
   viewMode: 'edit' | 'preview';
@@ -9,26 +7,6 @@ interface CompaniesPreviewProps {
 }
 
 export function CompaniesPreview({ companies, viewMode, previewMode }: CompaniesPreviewProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  // Auto-scroll animation
-  useEffect(() => {
-    const scrollContainer = scrollRef.current;
-    if (!scrollContainer) return;
-
-    let scrollPosition = 0;
-    const scroll = () => {
-      scrollPosition += 0.5; // Adjust speed here
-      if (scrollPosition >= scrollContainer.scrollWidth / 2) {
-        scrollPosition = 0;
-      }
-      scrollContainer.scrollLeft = scrollPosition;
-    };
-
-    const intervalId = setInterval(scroll, 30);
-    return () => clearInterval(intervalId);
-  }, [companies]);
-
   if (companies.length === 0 && viewMode === 'preview') {
     return null;
   }
@@ -57,14 +35,12 @@ export function CompaniesPreview({ companies, viewMode, previewMode }: Companies
         Companies and Teams I Have Worked With
       </h2>
 
-      {/* Scrolling Company Slider */}
-      <div className="relative overflow-hidden">
+      {/* Scrolling Company Slider - CSS-based marquee animation */}
+      <div className="marquee-container">
         <div
-          ref={scrollRef}
-          className="flex gap-8 overflow-x-hidden scrollbar-hide"
+          className="marquee-content"
           style={{
-            maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)',
-            WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)',
+            gap: '3rem',
           }}
         >
           {duplicatedCompanies.map((company, index) => (
@@ -79,16 +55,6 @@ export function CompaniesPreview({ companies, viewMode, previewMode }: Companies
           ))}
         </div>
       </div>
-
-      <style jsx>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
     </div>
   );
 }
