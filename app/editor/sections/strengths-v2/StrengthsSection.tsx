@@ -6,6 +6,7 @@
 
 'use client';
 
+import { Plus } from 'lucide-react';
 import { useSectionManager } from '@/app/editor/core/hooks';
 import { ItemList } from '@/app/editor/core/components';
 import { StrengthItem, convertFromLegacy, convertToLegacy, Strength } from './types';
@@ -119,8 +120,8 @@ export function StrengthsSection({
         )}
       />
       
-      {/* Add button */}
-      {strengths.length === 0 && (
+      {/* Add button - Always visible */}
+      {strengths.length === 0 ? (
         <button
           onClick={handleAdd}
           className="w-full flex items-center justify-center gap-2 px-4 py-8 bg-white border-2 border-dashed border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all"
@@ -130,6 +131,14 @@ export function StrengthsSection({
             <p className="font-medium">No strengths yet</p>
             <p className="text-sm">Showcase your skills!</p>
           </div>
+        </button>
+      ) : (
+        <button
+          onClick={handleAdd}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-white border-2 border-dashed border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Add Strength</span>
         </button>
       )}
     </div>

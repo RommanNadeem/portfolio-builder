@@ -85,9 +85,9 @@ export default function CareerEditor() {
   useEffect(() => {
     if (!loading && document && isLoading) {
       // Career always uses career-experience template
-      // Only initialize if NO blocks exist (first time)
-      if (blocks.length === 0 && !templateType) {
-        console.log('[CareerEditor V3] Auto-initializing career template (first time)');
+      // Initialize if blocks are empty (even if template_type is set)
+      if (blocks.length === 0) {
+        console.log('[CareerEditor V3] Auto-initializing career template (blocks empty)');
         initializeTemplate('career-experience');
       } else {
         // Initialize saved blocks from existing data

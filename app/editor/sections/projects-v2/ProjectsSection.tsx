@@ -89,11 +89,18 @@ export function ProjectsSection({
           {projects.map((project) => (
             <div
               key={project.id}
-              className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow group relative"
+              className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow group relative cursor-pointer"
+              onClick={() => {
+                // Navigate to detail page in same mode (preview)
+                if (typeof window !== 'undefined') {
+                  window.location.href = `/detail/project-editor/${project.id}?mode=preview`;
+                }
+              }}
             >
               {/* Quick Edit Icon - Appears on Hover */}
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation(); // Don't trigger card click
                   if (typeof window !== 'undefined') {
                     window.open(`/detail/project-editor/${project.id}?mode=edit`, '_blank');
                   }

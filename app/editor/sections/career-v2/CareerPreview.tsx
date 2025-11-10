@@ -59,13 +59,12 @@ export function CareerPreview({ highlights, viewMode, previewMode, onUpdate }: C
               return (
                 <div
                   key={highlight.id}
-                  className={`bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all group relative ${
+                  className={`bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all group relative cursor-pointer hover:border-blue-300 ${
                     isMobile ? 'p-3' : 'p-6 sm:p-8'
-                  } ${!isEditable ? 'cursor-pointer hover:border-blue-300' : ''}`}
+                  }`}
                   onClick={() => {
-                    if (!isEditable) {
-                      router.push(`/detail/career-editor/${highlight.id}?mode=${viewMode}`);
-                    }
+                    // Navigate to detail page in preview mode
+                    router.push(`/detail/career-editor/${highlight.id}?mode=preview`);
                   }}
                 >
                   {/* Quick Edit Icon - Appears on Hover */}
