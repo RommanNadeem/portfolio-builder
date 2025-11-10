@@ -102,7 +102,7 @@ export function ProjectsSection({
                 onClick={(e) => {
                   e.stopPropagation(); // Don't trigger card click
                   if (typeof window !== 'undefined') {
-                    window.open(`/detail/project-editor/${project.id}?mode=edit`, '_blank');
+                    window.location.href = `/detail/project-editor/${project.id}?mode=edit`;
                   }
                 }}
                 className="absolute top-3 right-3 z-10 p-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-purple-600 hover:text-white border border-gray-200"

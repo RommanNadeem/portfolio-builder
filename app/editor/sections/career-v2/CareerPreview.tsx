@@ -72,7 +72,7 @@ export function CareerPreview({ highlights, viewMode, previewMode, onUpdate }: C
                     onClick={(e) => {
                       e.stopPropagation();
                       if (typeof window !== 'undefined') {
-                        window.open(`/detail/career-editor/${highlight.id}?mode=edit`, '_blank');
+                        window.location.href = `/detail/career-editor/${highlight.id}?mode=edit`;
                       }
                     }}
                     className="absolute top-3 right-3 z-10 p-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-blue-600 hover:text-white border border-gray-200"
