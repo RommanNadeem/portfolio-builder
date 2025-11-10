@@ -88,7 +88,11 @@ export default function CareerEditor() {
       // Initialize if blocks are empty (even if template_type is set)
       if (blocks.length === 0) {
         console.log('[CareerEditor V3] Auto-initializing career template (blocks empty)');
-        initializeTemplate('career-experience');
+        // Small delay to ensure document state is ready
+        setTimeout(() => {
+          initializeTemplate('career-experience');
+          setIsLoading(false);
+        }, 100);
       } else {
         // Initialize saved blocks from existing data
         const saved = new Set<string>();
@@ -98,8 +102,8 @@ export default function CareerEditor() {
           }
         });
         setSavedBlockIds(saved);
+        setIsLoading(false);
       }
-      setIsLoading(false);
     }
   }, [loading, document, isLoading]); // ← Only run when loading state changes
 
@@ -135,13 +139,13 @@ export default function CareerEditor() {
   }, []);
 
   // Loading state
-  if (loading || isLoading) {
+  if (loading || (isLoading && blocks.length === 0)) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
           <div className="text-gray-600 mb-2">Loading career highlight...</div>
-          <div className="text-xs text-gray-400">V3 Architecture</div>
+          <div className="text-xs text-gray-400">Initializing template...</div>
         </div>
       </div>
     );
