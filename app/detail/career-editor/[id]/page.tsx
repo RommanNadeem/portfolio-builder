@@ -81,26 +81,27 @@ export default function CareerEditor() {
     if (mode) setViewMode(mode);
   }, []);
 
-  // Sync UI state with document
+  // Sync UI state with document (run once on load only)
   useEffect(() => {
-    if (!loading && document) {
+    if (!loading && document && isLoading) {
       // Career always uses career-experience template
-      if (!templateType || blocks.length === 0) {
-        console.log('[CareerEditor V3] Auto-initializing career template');
+      // Only initialize if NO blocks exist (first time)
+      if (blocks.length === 0 && !templateType) {
+        console.log('[CareerEditor V3] Auto-initializing career template (first time)');
         initializeTemplate('career-experience');
+      } else {
+        // Initialize saved blocks from existing data
+        const saved = new Set<string>();
+        blocks.forEach((block) => {
+          if (hasBlockContent(block)) {
+            saved.add(block.id);
+          }
+        });
+        setSavedBlockIds(saved);
       }
-
-      // Initialize saved blocks
-      const saved = new Set<string>();
-      blocks.forEach((block) => {
-        if (hasBlockContent(block)) {
-          saved.add(block.id);
-        }
-      });
-      setSavedBlockIds(saved);
       setIsLoading(false);
     }
-  }, [loading, document, blocks, templateType, initializeTemplate]);
+  }, [loading, document, isLoading]); // ← Only run when loading state changes
 
   // Handle block changes
   const handleBlockChange = useCallback((index: number, updatedBlock: TemplateBlock) => {

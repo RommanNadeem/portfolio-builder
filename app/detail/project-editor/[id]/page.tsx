@@ -85,9 +85,9 @@ export default function ProjectEditor() {
     if (mode) setViewMode(mode);
   }, []);
 
-  // Sync UI state with document
+  // Sync UI state with document (only on initial load)
   useEffect(() => {
-    if (!loading && document) {
+    if (!loading && document && isLoading) {
       // Check if we should show template selector or editor
       if (templateType && blocks.length > 0) {
         setFlowState('editing');
@@ -108,7 +108,7 @@ export default function ProjectEditor() {
       setSavedBlockIds(saved);
       setIsLoading(false);
     }
-  }, [loading, document, blocks, templateType]);
+  }, [loading, document]); // ← Run only on initial load, not when blocks change
 
   // Handle template selection
   const handleTemplateSelect = useCallback((template: TemplateType) => {
