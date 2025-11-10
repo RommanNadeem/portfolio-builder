@@ -84,7 +84,50 @@ export interface ParsedResume {
     organization: string
     role: string
     description: string
+    // Legacy field - all bullets combined
     achievements: string[]
+    // NEW: Separated fields
+    responsibilities?: string[]  // Generic duties/tasks
+    key_achievements?: string[]  // Impact-focused with metrics
+    // NEW: Structured impacts
+    impacts?: {
+      business?: Array<{
+        value: string
+        metric: string
+        description: string
+        category: string
+      }>
+      performance?: Array<{
+        value: string
+        metric: string
+        description: string
+        category: string
+      }>
+      growth?: Array<{
+        value: string
+        metric: string
+        description: string
+        category: string
+      }>
+      quality?: Array<{
+        value: string
+        metric: string
+        description: string
+        category: string
+      }>
+      team?: Array<{
+        value: string
+        metric: string
+        description: string
+        category: string
+      }>
+      scale?: Array<{
+        value: string
+        metric: string
+        description: string
+        category: string
+      }>
+    }
     startDate: string
     endDate: string
     current: boolean

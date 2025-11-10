@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, X } from 'lucide-react';
 import EmojiPicker from '../../components/EmojiPicker';
 import { Strength } from './types';
 
@@ -33,10 +33,22 @@ export function StrengthsEditor({
         <div key={strength.id} className="border border-gray-200 rounded-lg p-3 space-y-2 bg-gray-50">
           {/* Icon and Title */}
           <div className="flex items-center gap-2">
-            <EmojiPicker
-              value={strength.icon}
-              onChange={(icon) => onUpdate(strength.id, { icon })}
-            />
+            <div className="relative group">
+              <EmojiPicker
+                value={strength.icon}
+                onChange={(icon) => onUpdate(strength.id, { icon })}
+              />
+              {/* Remove emoji button - appears on hover if emoji exists */}
+              {strength.icon && (
+                <button
+                  onClick={() => onUpdate(strength.id, { icon: '' })}
+                  className="absolute -top-1 -right-1 p-0.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-sm"
+                  title="Remove emoji"
+                >
+                  <X className="w-2.5 h-2.5" />
+                </button>
+              )}
+            </div>
             <input
               value={strength.title}
               onChange={(e) => onUpdate(strength.id, { title: e.target.value })}

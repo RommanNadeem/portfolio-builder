@@ -46,6 +46,18 @@ export function CompaniesSection({ data, onChange, viewMode, previewMode, render
     }));
   };
 
+  const handleUpdateCompany = (oldCompany: string, newCompany: string) => {
+    const currentCompanies = data.sliderCompanies 
+      ? data.sliderCompanies.split(',').map((c: string) => c.trim()).filter((c: string) => c)
+      : [];
+    
+    const updated = currentCompanies.map((c: string) => c === oldCompany ? newCompany : c);
+    onChange(prev => ({
+      ...prev,
+      sliderCompanies: updated.join(', ')
+    }));
+  };
+
   if (renderMode === 'editor') {
     return (
       <div className="mb-4 bg-white border border-gray-200 rounded-lg overflow-hidden">
@@ -76,6 +88,7 @@ export function CompaniesSection({ data, onChange, viewMode, previewMode, render
             companies={companies}
             onAdd={handleAddCompany}
             onRemove={handleRemoveCompany}
+            onUpdate={handleUpdateCompany}
             isExpanded={isExpanded}
           />
         </div>

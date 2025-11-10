@@ -30,6 +30,16 @@ interface OnboardingData {
     role: string;
     description?: string;
     achievements: string[];
+    responsibilities?: string[];
+    key_achievements?: string[];
+    impacts?: any; // Structured impacts from backend
+    // Company grouping metadata
+    companyGroup?: string;
+    companyOccurrence?: number;
+    sameCompanyCount?: number;
+    hasMultipleRolesAtCompany?: boolean;
+    sameCompanyRoles?: string[];
+    companyTenure?: any;
     startDate?: string;
     endDate?: string;
     current?: boolean;
@@ -215,6 +225,16 @@ export default function OnboardingFlowPage() {
           role: h.role,
           description: h.description || '',
           achievements: h.achievements || [],
+          responsibilities: h.responsibilities || undefined,
+          key_achievements: h.key_achievements || undefined,
+          impacts: h.impacts || undefined, // Structured impacts from backend
+          // Company grouping metadata
+          companyGroup: h.companyGroup,
+          companyOccurrence: h.companyOccurrence,
+          sameCompanyCount: h.sameCompanyCount,
+          hasMultipleRolesAtCompany: h.hasMultipleRolesAtCompany,
+          sameCompanyRoles: h.sameCompanyRoles,
+          companyTenure: h.companyTenure,
           startDate: h.startDate,
           endDate: h.endDate,
           current: h.current || false,
@@ -453,6 +473,11 @@ export default function OnboardingFlowPage() {
         : '';
       
       // Combine email/phone with social links
+      // Filter out Email/Phone from socialLinks to avoid duplicates
+      const socialLinksWithoutEmailPhone = data.socialLinks.filter(
+        link => link.platform !== 'Email' && link.platform !== 'Phone'
+      );
+      
       const allSocialLinks = [
         ...(data.email ? [{
           id: crypto.randomUUID(),
@@ -466,7 +491,7 @@ export default function OnboardingFlowPage() {
           url: data.phone,
           icon: 'phone'
         }] : []),
-        ...data.socialLinks,
+        ...socialLinksWithoutEmailPhone,
       ];
       
       const portfolioToSave = {
@@ -535,6 +560,11 @@ export default function OnboardingFlowPage() {
   if (!mounted) return null;
 
   // Combine email/phone with social links for preview
+  // Filter out Email/Phone from socialLinks to avoid duplicates
+  const socialLinksWithoutEmailPhone = data.socialLinks.filter(
+    link => link.platform !== 'Email' && link.platform !== 'Phone'
+  );
+  
   const allLinks = [
     ...(data.email ? [{
       id: 'email-link',
@@ -548,7 +578,7 @@ export default function OnboardingFlowPage() {
       url: data.phone,
       icon: 'phone'
     }] : []),
-    ...data.socialLinks,
+    ...socialLinksWithoutEmailPhone,
   ];
 
   const previewData = {
@@ -830,14 +860,19 @@ export default function OnboardingFlowPage() {
                         {highlight.achievements && highlight.achievements.length > 0 && (
                           <div>
                             <label className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
-                              Achievements
+                              Achievements ({highlight.achievements.length})
                             </label>
                             <ul className="space-y-1">
-                              {highlight.achievements.map((achievement, idx) => (
+                              {highlight.achievements.slice(0, 3).map((achievement, idx) => (
                                 <li key={idx} className="text-xs text-gray-600 pl-3 relative before:content-['•'] before:absolute before:left-0">
                                   {achievement}
                                 </li>
                               ))}
+                              {highlight.achievements.length > 3 && (
+                                <li className="text-xs text-gray-400 italic pl-3">
+                                  +{highlight.achievements.length - 3} more achievement{highlight.achievements.length - 3 > 1 ? 's' : ''}
+                                </li>
+                              )}
                             </ul>
                           </div>
                         )}
@@ -870,13 +905,20 @@ export default function OnboardingFlowPage() {
                             </p>
                           )}
                           {highlight.achievements && highlight.achievements.length > 0 && (
-                            <ul className="space-y-1 mt-2">
-                              {highlight.achievements.map((achievement, idx) => (
-                                <li key={idx} className="text-xs text-gray-600 pl-3 relative before:content-['•'] before:absolute before:left-0">
-                                  {achievement}
-                                </li>
-                              ))}
-                            </ul>
+                            <div className="mt-2">
+                              <ul className="space-y-1">
+                                {highlight.achievements.slice(0, 3).map((achievement, idx) => (
+                                  <li key={idx} className="text-xs text-gray-600 pl-3 relative before:content-['•'] before:absolute before:left-0">
+                                    {achievement}
+                                  </li>
+                                ))}
+                                {highlight.achievements.length > 3 && (
+                                  <li className="text-xs text-gray-400 italic pl-3">
+                                    +{highlight.achievements.length - 3} more
+                                  </li>
+                                )}
+                              </ul>
+                            </div>
                           )}
                         </div>
                         

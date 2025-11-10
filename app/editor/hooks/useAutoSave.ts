@@ -4,22 +4,36 @@ import { PortfolioData } from './usePortfolioData';
 export function useAutoSave(
   portfolio: PortfolioData | null,
   saveFunction: (data: PortfolioData) => Promise<any>,
-  debounceMs: number = 2000
+  debounceMs: number = 500
 ) {
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const previousDataRef = useRef<string>('');
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
     if (!portfolio) return;
 
     const currentData = JSON.stringify(portfolio);
     
+    // On initial mount, just store the data without saving
+    if (isInitialMount.current) {
+      previousDataRef.current = currentData;
+      isInitialMount.current = false;
+      console.log('[useAutoSave] 📌 Initial data loaded, not saving');
+      return;
+    }
+    
     // Skip if data hasn't changed
-    if (currentData === previousDataRef.current) return;
+    if (currentData === previousDataRef.current) {
+      console.log('[useAutoSave] ⏭️ No changes detected, skipping save');
+      return;
+    }
 
+    console.log('[useAutoSave] 🔄 Data changed, saving...');
+    
     // Mark as dirty
     setIsDirty(true);
 
@@ -28,22 +42,22 @@ export function useAutoSave(
       clearTimeout(timeoutRef.current);
     }
 
-    // Set new debounced save
+    // Save quickly after short delay (to batch rapid changes)
     timeoutRef.current = setTimeout(async () => {
-      console.log('[useAutoSave] ⏰ Auto-save triggered after', debounceMs, 'ms');
+      console.log('[useAutoSave] 💾 Saving changes to database...');
       setIsSaving(true);
       try {
         const result = await saveFunction(portfolio);
         if (result?.error) {
-          console.error('[useAutoSave] ❌ Auto-save failed:', result.error);
+          console.error('[useAutoSave] ❌ Save failed:', result.error);
         } else {
-          console.log('[useAutoSave] ✅ Auto-save successful');
+          console.log('[useAutoSave] ✅ Saved successfully');
         }
         setIsDirty(false);
         setLastSaved(new Date());
         previousDataRef.current = currentData;
       } catch (error) {
-        console.error('[useAutoSave] ❌ Auto-save error:', error);
+        console.error('[useAutoSave] ❌ Save error:', error);
       } finally {
         setIsSaving(false);
       }

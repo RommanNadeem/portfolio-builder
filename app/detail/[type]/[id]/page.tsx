@@ -1,39 +1,502 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, memo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { 
-  ArrowLeft, ArrowRight, Plus, Trash2, GripVertical, Type, Image as ImageIcon,
-  Grid3x3, Video, FileText, Link as LinkIcon, Heading1, Heading2, Heading3,
-  Upload, Eye, Pencil, Monitor, Smartphone
+  ArrowLeft, Plus, Check, X, ChevronRight, ChevronDown, ChevronUp,
+  Eye, Pencil, Monitor, Smartphone, CheckCircle2, Link as LinkIcon, Trash2, GripVertical
 } from 'lucide-react';
+import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { TemplateType, TemplateBlock, HeroBlock } from '@/app/editor/templates/types';
+import { TEMPLATE_CONFIGS, getTemplateConfig, createEmptyBlock } from '@/app/editor/templates/configs';
+import { TemplateRenderer } from '@/app/editor/templates/TemplateRenderer';
 
-// Block type definitions
-type BlockType = 'h1' | 'h2' | 'h3' | 'text' | 'image' | 'image-grid' | 'video' | 'embed';
+const COLOR_STYLES: Record<string, { bg: string; text: string; border: string; hoverBg: string }> = {
+  gray: { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200', hoverBg: 'hover:bg-gray-100' },
+  blue: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', hoverBg: 'hover:bg-blue-100' },
+  purple: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', hoverBg: 'hover:bg-purple-100' },
+  pink: { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200', hoverBg: 'hover:bg-pink-100' },
+  green: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', hoverBg: 'hover:bg-green-100' },
+  indigo: { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', hoverBg: 'hover:bg-indigo-100' },
+  slate: { bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-200', hoverBg: 'hover:bg-slate-100' },
+  amber: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', hoverBg: 'hover:bg-amber-100' },
+};
 
-interface Block {
-  id: string;
-  type: BlockType;
-  content: string;
-  metadata?: {
-    url?: string;
-    fileType?: 'pdf' | 'csv' | 'video' | 'figma';
-    images?: string[];
-    gridLayout?: '1x2' | '1x3' | '2x3';
-    width?: number; // Image width in pixels (for resizing)
+const BLOCK_TYPE_OPTIONS = [
+  { type: 'richtext', label: 'Rich Text', icon: '📝', description: 'Long-form content and paragraphs' },
+  { type: 'callout', label: 'Callout', icon: 'ℹ️', description: 'Highlighted information box' },
+  { type: 'bullets', label: 'Bullet List', icon: '•', description: 'Key points and takeaways' },
+  { type: 'steps', label: 'Steps', icon: '1️⃣', description: 'Sequential process or methodology' },
+  { type: 'feature_grid', label: 'Feature Grid', icon: '⚡', description: 'Grid of features or highlights' },
+  { type: 'gallery', label: 'Gallery', icon: '🖼️', description: 'Image grid or carousel' },
+  { type: 'metrics', label: 'Metrics', icon: '📊', description: 'Key numbers and statistics' },
+  { type: 'embed', label: 'Embed', icon: '🎬', description: 'Videos, Figma, or PDFs' },
+];
+
+// Helper function to get icon for block type
+function getBlockIcon(blockType: string): string {
+  const icons: Record<string, string> = {
+    hero: '🎯',
+    richtext: '📝',
+    callout: '💡',
+    bullets: '📋',
+    steps: '🔢',
+    feature_grid: '⚡',
+    gallery: '🖼️',
+    metrics: '📊',
+    embed: '🎬',
   };
+  return icons[blockType] || '📄';
 }
 
-const BLOCK_TYPES = [
-  { type: 'h1' as BlockType, label: 'Heading 1', icon: Heading1, shortcut: '/h1' },
-  { type: 'h2' as BlockType, label: 'Heading 2', icon: Heading2, shortcut: '/h2' },
-  { type: 'h3' as BlockType, label: 'Heading 3', icon: Heading3, shortcut: '/h3' },
-  { type: 'text' as BlockType, label: 'Text', icon: Type, shortcut: '/text' },
-  { type: 'image' as BlockType, label: 'Image', icon: ImageIcon, shortcut: '/image' },
-  { type: 'image-grid' as BlockType, label: 'Image Grid', icon: Grid3x3, shortcut: '/grid' },
-  { type: 'video' as BlockType, label: 'Video', icon: Video, shortcut: '/video' },
-  { type: 'embed' as BlockType, label: 'Embed File', icon: FileText, shortcut: '/embed' },
-];
+// Helper function to get contextual hints for each block type
+function getBlockHint(blockType: string, label?: string): string {
+  const hints: Record<string, string> = {
+    hero: 'Add your project title, subtitle, description, and key details to set the stage',
+    richtext: 'Write detailed paragraphs to explain this section. You can format your text and add emphasis.',
+    callout: 'Highlight important information like key quotes, insights, or objectives in a visually distinct box.',
+    bullets: 'List key points, takeaways, or highlights. Great for summarizing important information.',
+    steps: 'Break down your process into clear, sequential steps. Perfect for showing methodology or workflows.',
+    feature_grid: 'Showcase multiple features, elements, or highlights in a grid layout with icons and descriptions.',
+    gallery: 'Add images, screenshots, or visuals to illustrate your work. Supports both grid and carousel layouts.',
+    metrics: 'Display impactful numbers and statistics that demonstrate results and outcomes.',
+    embed: 'Embed external content like Figma designs, videos, or PDFs directly into your portfolio.',
+  };
+  return hints[blockType] || `Add content for ${label || 'this section'}`;
+}
+
+// Memoized Sortable Section Component to prevent re-renders during typing
+interface SortableSectionProps {
+  block: TemplateBlock;
+  index: number;
+  selectedTemplate: TemplateType | null;
+  expandedSections: Set<number>;
+  editingSectionId: string | null;
+  savedSections: Set<string>;
+  viewMode: 'edit' | 'preview';
+  detailData: any;
+  heroBlock: HeroBlock | undefined;
+  templateBlocks: TemplateBlock[];
+  toggleSection: (index: number) => void;
+  setEditingSectionId: (id: string | null) => void;
+  deleteSection: (index: number) => void;
+  updateHeroField: (field: string, value: string) => void;
+  updateProjectData: (updates: any) => void;
+  saveBlocks: (blocks: TemplateBlock[]) => void;
+  markSectionAsSaved: (id: string) => void;
+}
+
+const SortableSection = memo(({ 
+  block, 
+  index, 
+  selectedTemplate,
+  expandedSections,
+  editingSectionId,
+  savedSections,
+  viewMode,
+  detailData,
+  heroBlock,
+  templateBlocks,
+  toggleSection,
+  setEditingSectionId,
+  deleteSection,
+  updateHeroField,
+  updateProjectData,
+  saveBlocks,
+  markSectionAsSaved,
+}: SortableSectionProps) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ 
+    id: block.id,
+    disabled: index === 0 // Disable dragging for Hero section
+  });
+  
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const sectionConfig = selectedTemplate ? getTemplateConfig(selectedTemplate)?.sections[index] : undefined;
+  const isExpanded = expandedSections.has(index);
+  const isHero = index === 0 && block.type === 'hero';
+  const isEditing = editingSectionId === block.id;
+  const isSaved = savedSections.has(block.id);
+  const [hovering, setHovering] = useState(false);
+
+  // Determine render mode: 
+  // - If editing: show edit mode
+  // - If saved and not editing: show preview mode
+  // - If not saved and not editing: show empty/placeholder
+  const shouldShowEditMode = isEditing;
+  const shouldShowPreviewMode = isSaved && !isEditing && viewMode === 'edit';
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      id={`section-${index}`} 
+      className={`bg-white rounded-lg border ${
+        isSaved ? 'border-green-200 bg-green-50/20' : 'border-gray-200'
+      } overflow-hidden transition-all ${
+        isDragging ? 'ring-2 ring-purple-500 shadow-lg' : 'shadow-sm hover:shadow-md'
+      } ${
+        !isExpanded ? 'hover:border-purple-300 cursor-pointer' : ''
+      }`}
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => setHovering(false)}
+    >
+      {/* Section Header */}
+      <div 
+        className={`flex items-center justify-between px-6 py-3.5 hover:bg-gray-50 transition-colors ${
+          isSaved && !isExpanded ? 'bg-green-50/50' : ''
+        }`}
+        onClick={() => !isExpanded && toggleSection(index)}
+      >
+        <div className="flex items-center gap-3 flex-1">
+          {/* Drag Handle - only show for non-hero sections */}
+          {index !== 0 && (
+            <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
+              <GripVertical className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+            </div>
+          )}
+          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 text-white rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0">
+            {index + 1}
+          </div>
+          <button
+            onClick={() => toggleSection(index)}
+            className="flex-1 text-left"
+          >
+            {/* Show contextual hint based on section state */}
+            {!isSaved ? (
+              <>
+                <h3 className="font-semibold text-gray-900">{sectionConfig?.label || block.type}</h3>
+                <p className="text-sm text-blue-600 font-medium">✨ Click to add {sectionConfig?.description?.toLowerCase() || 'content'}</p>
+              </>
+            ) : !isEditing ? (
+              <>
+                <h3 className="font-medium text-gray-700">{sectionConfig?.label || block.type}</h3>
+                <p className="text-xs text-green-600">✓ {sectionConfig?.description || 'Content added'}</p>
+              </>
+            ) : (
+              <>
+                <h3 className="font-semibold text-gray-900">{sectionConfig?.label || block.type}</h3>
+                <p className="text-xs text-gray-500">{sectionConfig?.description || 'Custom section'}</p>
+              </>
+            )}
+          </button>
+        </div>
+        
+        {/* Action Buttons */}
+        <div className="flex items-center gap-1">
+          {/* Edit Button - Show when saved, not editing, hovering, and in editor view mode */}
+          {isSaved && !isEditing && hovering && isExpanded && viewMode === 'edit' && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditingSectionId(block.id);
+              }}
+              className="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-1"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              Edit
+            </button>
+          )}
+          
+          {/* Delete (only for non-hero sections) */}
+          {index !== 0 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                deleteSection(index);
+              }}
+              className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              title="Delete section"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
+          
+          {/* Expand/Collapse Toggle */}
+          <button
+            onClick={() => toggleSection(index)}
+            className="p-2 text-gray-400 hover:text-gray-700 transition-colors"
+          >
+            {isExpanded ? (
+              <ChevronUp className="w-5 h-5" />
+            ) : (
+              <ChevronDown className="w-5 h-5" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Section Content */}
+      {isExpanded && (
+        <div className="px-6 py-6 border-t border-gray-100">
+          {isHero && heroBlock ? (
+            // Hero section - same workflow as other sections
+            <div className="relative">
+              {isEditing ? (
+                // Edit mode for Hero
+                <>
+                  <div className="space-y-6">
+                    <input
+                      type="text"
+                      value={detailData?.title || ''}
+                      onChange={(e) => updateHeroField('title', e.target.value)}
+                      placeholder="Untitled"
+                      className="w-full text-5xl font-bold text-gray-900 border-0 bg-transparent focus:outline-none placeholder:text-gray-300 px-0 py-0"
+                      style={{ lineHeight: '1.1' }}
+                    />
+
+                    <input
+                      type="text"
+                      value={heroBlock.data?.subtitle || ''}
+                      onChange={(e) => updateHeroField('subtitle', e.target.value)}
+                      placeholder="Add a subtitle..."
+                      className="w-full text-2xl text-gray-600 border-0 bg-transparent focus:outline-none placeholder:text-gray-300 px-0 py-0"
+                    />
+
+                    <textarea
+                      value={detailData?.description || ''}
+                      onChange={(e) => updateHeroField('description', e.target.value)}
+                      placeholder="Add a description..."
+                      rows={3}
+                      className="w-full text-lg text-gray-700 border-0 bg-transparent focus:outline-none placeholder:text-gray-300 resize-none px-0 py-0"
+                    />
+
+                    {/* Hero Image */}
+                    {heroBlock.data?.imageUrl ? (
+                      <div className="relative group">
+                        <img src={heroBlock.data.imageUrl} alt="Hero" className="w-full rounded-lg" />
+                        <button
+                          onClick={() => updateHeroField('imageUrl', '')}
+                          className="absolute top-2 right-2 px-3 py-1 bg-red-500 text-white text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
+                        <input
+                          type="url"
+                          value={heroBlock.data?.imageUrl || ''}
+                          onChange={(e) => updateHeroField('imageUrl', e.target.value)}
+                          placeholder="Paste image URL..."
+                          className="w-full text-sm text-gray-500 text-center border-0 bg-transparent focus:outline-none placeholder:text-gray-400"
+                        />
+                      </div>
+                    )}
+
+                    {/* Metadata Fields */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <input
+                        type="text"
+                        value={detailData?.role || ''}
+                        onChange={(e) => updateHeroField('meta.role', e.target.value)}
+                        placeholder="Your role..."
+                        className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder:text-gray-400"
+                      />
+                      <input
+                        type="url"
+                        value={detailData?.link || ''}
+                        onChange={(e) => updateProjectData({ link: e.target.value })}
+                        placeholder="Project link..."
+                        className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder:text-gray-400"
+                      />
+                    </div>
+
+                    <input
+                      type="text"
+                      value={(detailData?.tags || []).join(', ')}
+                      onChange={(e) => {
+                        const tags = e.target.value.split(',').map(t => t.trim()).filter(t => t);
+                        updateProjectData({ tags });
+                      }}
+                      placeholder="Tags (comma separated)..."
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder:text-gray-400"
+                    />
+                    
+                    {detailData?.tags && detailData.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {detailData.tags.map((tag: string, idx: number) => (
+                          <span key={idx} className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Additional Hero Meta */}
+                    <div className="flex flex-wrap gap-3 text-sm pt-4 border-t border-gray-100">
+                      <input
+                        type="text"
+                        value={heroBlock.data?.meta?.timeline || ''}
+                        onChange={(e) => updateHeroField('meta.timeline', e.target.value)}
+                        placeholder="Timeline..."
+                        className="border-0 border-b border-transparent hover:border-gray-300 focus:border-purple-500 bg-transparent focus:outline-none px-0 py-1 text-sm placeholder:text-gray-400"
+                      />
+                      <span className="text-gray-300">•</span>
+                      <input
+                        type="text"
+                        value={heroBlock.data?.meta?.year || ''}
+                        onChange={(e) => updateHeroField('meta.year', e.target.value)}
+                        placeholder="Year..."
+                        className="border-0 border-b border-transparent hover:border-gray-300 focus:border-purple-500 bg-transparent focus:outline-none px-0 py-1 text-sm placeholder:text-gray-400"
+                      />
+                      <span className="text-gray-300">•</span>
+                      <input
+                        type="text"
+                        value={heroBlock.data?.meta?.team || ''}
+                        onChange={(e) => updateHeroField('meta.team', e.target.value)}
+                        placeholder="Team..."
+                        className="border-0 border-b border-transparent hover:border-gray-300 focus:border-purple-500 bg-transparent focus:outline-none px-0 py-1 text-sm placeholder:text-gray-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Add to Page Button for Hero */}
+                  <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-100">
+                    <button
+                      onClick={() => setEditingSectionId(null)}
+                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => markSectionAsSaved(block.id)}
+                      className="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-lg transition-colors flex items-center gap-2 shadow-md"
+                    >
+                      <Check className="w-4 h-4" />
+                      {isSaved ? 'Update Section' : 'Add to Page'}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                // Preview mode for Hero - show rendered content
+                <div>
+                  {heroBlock.data?.logoUrl && (
+                    <img src={heroBlock.data.logoUrl} alt="Logo" className="h-12 mb-4" />
+                  )}
+                  {detailData?.title && (
+                    <h1 className="text-5xl font-bold text-gray-900 mb-4" style={{ lineHeight: '1.1' }}>
+                      {detailData.title}
+                    </h1>
+                  )}
+                  {heroBlock.data?.subtitle && (
+                    <p className="text-2xl text-gray-600 mb-4">{heroBlock.data.subtitle}</p>
+                  )}
+                  {detailData?.description && (
+                    <p className="text-lg text-gray-700 mb-4">{detailData.description}</p>
+                  )}
+                  {heroBlock.data?.imageUrl && (
+                    <img src={heroBlock.data.imageUrl} alt="Hero" className="w-full rounded-lg mb-4" />
+                  )}
+                  {(detailData?.role || heroBlock.data?.meta?.timeline || heroBlock.data?.meta?.year || heroBlock.data?.meta?.team) && (
+                    <div className="flex flex-wrap gap-3 text-sm text-gray-600 mb-4">
+                      {detailData?.role && <span>{detailData.role}</span>}
+                      {heroBlock.data?.meta?.timeline && (
+                        <>
+                          {detailData?.role && <span className="text-gray-300">•</span>}
+                          <span>{heroBlock.data.meta.timeline}</span>
+                        </>
+                      )}
+                      {heroBlock.data?.meta?.year && (
+                        <>
+                          <span className="text-gray-300">•</span>
+                          <span>{heroBlock.data.meta.year}</span>
+                        </>
+                      )}
+                      {heroBlock.data?.meta?.team && (
+                        <>
+                          <span className="text-gray-300">•</span>
+                          <span>{heroBlock.data.meta.team}</span>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  {detailData?.tags && detailData.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {detailData.tags.map((tag: string, idx: number) => (
+                        <span key={idx} className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : (
+            // Other sections
+            <div className="relative">
+              {!isSaved && !isEditing ? (
+                // Empty state - show helpful hints
+                <div className="text-center py-12 px-6">
+                  <div className="max-w-lg mx-auto">
+                    <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-3xl">{getBlockIcon(block.type)}</span>
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                      {sectionConfig?.description || 'Add Content'}
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-6">
+                      {getBlockHint(block.type, sectionConfig?.label)}
+                    </p>
+                    <button
+                      onClick={() => setEditingSectionId(block.id)}
+                      className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all shadow-md"
+                    >
+                      Start Adding Content
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <TemplateRenderer
+                    blocks={[block]}
+                    onChange={(newBlocks) => {
+                      console.log('[Detail Page] 📝 Block updated:', block.type, 'at index', index);
+                      console.log('[Detail Page] 🔍 New block data:', newBlocks[0]);
+                      const updatedBlocks = [...templateBlocks];
+                      updatedBlocks[index] = newBlocks[0];
+                      console.log('[Detail Page] 💾 Saving all blocks...');
+                      saveBlocks(updatedBlocks);
+                    }}
+                    mode={shouldShowEditMode ? 'edit' : 'preview'}
+                  />
+                  
+                  {/* Add to Page Button - Show when editing (not saved yet or clicked edit) */}
+                  {isEditing && (
+                    <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-100">
+                      <button
+                        onClick={() => setEditingSectionId(null)}
+                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => markSectionAsSaved(block.id)}
+                        className="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-lg transition-colors flex items-center gap-2 shadow-md"
+                      >
+                        <Check className="w-4 h-4" />
+                        {isSaved ? 'Update Section' : 'Add to Page'}
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+});
+
+SortableSection.displayName = 'SortableSection';
 
 export default function DetailPage() {
   const router = useRouter();
@@ -41,71 +504,93 @@ export default function DetailPage() {
   const type = params.type as string;
   const id = params.id as string;
   
-  // Get initial view mode from URL query params
-  const [initialMode, setInitialMode] = useState<'edit' | 'preview'>('edit');
-  
   const [detailData, setDetailData] = useState<any>(null);
-  const [blocks, setBlocks] = useState<Block[]>([]);
-  const [showSlashMenu, setShowSlashMenu] = useState(false);
-  const [slashMenuPosition, setSlashMenuPosition] = useState({ top: 0, left: 0 });
-  const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [templateBlocks, setTemplateBlocks] = useState<TemplateBlock[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType | null>(null);
+  const [expandedTemplate, setExpandedTemplate] = useState<TemplateType | null>(null);
+  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set([0]));
   const [viewMode, setViewMode] = useState<'edit' | 'preview'>('edit');
   const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
-  const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const lastSaveTimeRef = useRef<Date>(new Date());
-  const [resizingBlockId, setResizingBlockId] = useState<string | null>(null);
-  const resizeStartRef = useRef<{ x: number; width: number } | null>(null);
-  const [editingField, setEditingField] = useState<'title' | 'description' | 'tags' | 'link' | null>(null);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [showBlockSelector, setShowBlockSelector] = useState(false);
+  const [editingSectionId, setEditingSectionId] = useState<string | null>(null); // Track which section is being edited
+  const [savedSections, setSavedSections] = useState<Set<string>>(new Set()); // Track which sections have been "saved" to show preview style
 
-  // Check URL params for initial mode
+  const isUsingTemplates = selectedTemplate !== null;
+  
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px movement required to start drag
+      },
+    })
+  );
+  
+  // Calculate completion progress based on saved sections
+  const calculateProgress = () => {
+    if (!isUsingTemplates || templateBlocks.length === 0) return 0;
+    const totalSections = templateBlocks.length;
+    const completedSections = savedSections.size;
+    return totalSections > 0 ? Math.round((completedSections / totalSections) * 100) : 0;
+  };
+
+  const progress = calculateProgress();
+
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const mode = urlParams.get('mode') as 'edit' | 'preview' | null;
     if (mode === 'preview' || mode === 'edit') {
       setViewMode(mode);
-      setInitialMode(mode);
     }
   }, []);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        console.log('[Detail Page] 🔄 Loading data for type:', type, 'id:', id);
-        
-        // STEP 1: Try localStorage first (instant)
     const storedData = localStorage.getItem('portfolioData');
     if (storedData) {
       const data = JSON.parse(storedData);
       let item: any = null;
       
-      if (type === 'highlight') {
-        item = (data.careerHighlights || []).find((h: any) => h.id === id);
-      } else if (type === 'strength') {
-        item = (data.strengths || []).find((s: any) => s.id === id);
-      } else if (type === 'project') {
+          if (type === 'project') {
         item = (data.projects || []).find((p: any) => p.id === id);
       }
       
       if (item) {
-            console.log('[Detail Page] 📦 Loaded from localStorage:', item);
-            console.log('[Detail Page] 📦 Blocks:', item.blocks);
         setDetailData(item);
-            // Load blocks from item or create initial text block
-            if (item.blocks && Array.isArray(item.blocks) && item.blocks.length > 0) {
-              console.log('[Detail Page] ✅ Loading', item.blocks.length, 'blocks from cache');
-              setBlocks(item.blocks);
-      } else {
-              console.log('[Detail Page] ⚠️ No blocks in cache, creating initial block');
-              const initialBlock = { id: crypto.randomUUID(), type: 'text' as BlockType, content: '' };
-              setBlocks([initialBlock]);
+            
+            if (item.template_type) {
+              setSelectedTemplate(item.template_type as TemplateType);
+              if (item.blocks && Array.isArray(item.blocks)) {
+                setTemplateBlocks(item.blocks);
+                // Mark existing blocks with content as "saved"
+                const savedIds = new Set<string>(
+                  (item.blocks as TemplateBlock[])
+                    .filter((block) => {
+                      // Check if block has meaningful content
+                      if (block.type === 'hero') return true;
+                      if (block.type === 'richtext') return block.data?.body?.trim();
+                      if (block.type === 'callout') return block.data?.body?.trim();
+                      if (block.type === 'bullets') return block.data?.bullets?.some((b: string) => b.trim());
+                      if (block.type === 'steps') return block.data?.steps?.some((s: any) => s.title?.trim());
+                      if (block.type === 'feature_grid') return block.data?.items?.some((i: any) => i.title?.trim());
+                      if (block.type === 'gallery') return block.data?.images?.length > 0;
+                      if (block.type === 'metrics') return block.data?.metrics?.some((m: any) => m.value?.trim());
+                      if (block.type === 'embed') return block.data?.url;
+                      return false;
+                    })
+                    .map((block) => block.id)
+                );
+                setSavedSections(savedIds);
+              }
             }
           }
         }
 
-        // STEP 2: Fetch fresh data from Supabase (if project)
+        // Load from Supabase
         if (type === 'project') {
           try {
             const { getCurrentUser } = await import('@/lib/supabase');
@@ -121,33 +606,43 @@ export default function DetailPage() {
                 .single();
 
               if (projectData && !error) {
-                console.log('[Detail Page] 🔄 Fresh data from Supabase:', projectData);
-                
-                // Convert DB format to app format
                 const freshItem = {
                   id: projectData.id,
                   title: projectData.title,
                   description: projectData.description,
-                  thumbnail: projectData.thumbnail_url,
                   tags: projectData.tags || [],
                   link: projectData.link,
-                  pageContent: projectData.page_content,
-                  sections: projectData.sections || [],
+                  role: projectData.role,
+                  template_type: projectData.template_type,
                   blocks: projectData.blocks || []
                 };
 
-                // Update state with fresh data
                 setDetailData(freshItem);
-                if (freshItem.blocks && freshItem.blocks.length > 0) {
-                  console.log('[Detail Page] ✅ Loading', freshItem.blocks.length, 'blocks from Supabase');
-                  setBlocks(freshItem.blocks);
-                } else if (!storedData) {
-                  // Only create initial block if no localStorage data
-                  const initialBlock = { id: crypto.randomUUID(), type: 'text' as BlockType, content: '' };
-                  setBlocks([initialBlock]);
+                
+                if (freshItem.template_type) {
+                  setSelectedTemplate(freshItem.template_type as TemplateType);
+                  setTemplateBlocks(freshItem.blocks);
+                  // Mark existing blocks with content as "saved"
+                  const savedIds = new Set<string>(
+                    (freshItem.blocks as TemplateBlock[])
+                      .filter((block) => {
+                        // Check if block has meaningful content
+                        if (block.type === 'hero') return true;
+                        if (block.type === 'richtext') return block.data?.body?.trim();
+                        if (block.type === 'callout') return block.data?.body?.trim();
+                        if (block.type === 'bullets') return block.data?.bullets?.some((b: string) => b.trim());
+                        if (block.type === 'steps') return block.data?.steps?.some((s: any) => s.title?.trim());
+                        if (block.type === 'feature_grid') return block.data?.items?.some((i: any) => i.title?.trim());
+                        if (block.type === 'gallery') return block.data?.images?.length > 0;
+                        if (block.type === 'metrics') return block.data?.metrics?.some((m: any) => m.value?.trim());
+                        if (block.type === 'embed') return block.data?.url;
+                        return false;
+                      })
+                      .map((block) => block.id)
+                  );
+                  setSavedSections(savedIds);
                 }
 
-                // Update localStorage with fresh data
                 if (storedData) {
                   const data = JSON.parse(storedData);
                   data.projects = (data.projects || []).map((p: any) =>
@@ -158,16 +653,15 @@ export default function DetailPage() {
               }
             }
           } catch (error) {
-            console.warn('[Detail Page] ⚠️ Could not load from Supabase:', error);
+            console.warn('Could not load from Supabase:', error);
           }
         }
         
         if (!storedData) {
-          console.error('[Detail Page] ❌ No localStorage data');
         router.push('/editor');
       }
       } catch (error) {
-        console.error('[Detail Page] ❌ Error loading:', error);
+        console.error('Error loading:', error);
         router.push('/editor');
     }
     };
@@ -175,7 +669,6 @@ export default function DetailPage() {
     loadData();
   }, [type, id, router]);
 
-  // Debounced save to database (Notion-style)
   const debouncedSaveToDatabase = useCallback(async (data: any, itemType: 'metadata' | 'blocks', payload: any) => {
     if (type !== 'project') return;
     
@@ -186,16 +679,20 @@ export default function DetailPage() {
       
       if (user) {
         if (itemType === 'metadata') {
+          console.log('[Detail Page] 💾 Saving metadata to database:', payload);
           const result = await saveProjectMetadata(user.id, id, payload);
           if (result.success) {
-            console.log('[Detail Page] ✅ Metadata synced to Supabase');
-            lastSaveTimeRef.current = new Date();
+            console.log('[Detail Page] ✅ Metadata saved to database');
+          } else {
+            console.error('[Detail Page] ❌ Metadata save failed:', result.error);
           }
         } else {
+          console.log('[Detail Page] 💾 Saving blocks to database. Count:', payload.length);
           const result = await saveProjectBlocks(user.id, id, payload);
           if (result.success) {
-            console.log('[Detail Page] ✅ Blocks synced to Supabase');
-            lastSaveTimeRef.current = new Date();
+            console.log('[Detail Page] ✅ Blocks saved to database');
+          } else {
+            console.error('[Detail Page] ❌ Blocks save failed:', result.error);
           }
         }
       }
@@ -210,396 +707,387 @@ export default function DetailPage() {
     if (storedData && detailData) {
       const data = JSON.parse(storedData);
       
-      // Update the project data
-      if (type === 'highlight') {
-        data.careerHighlights = (data.careerHighlights || []).map((h: any) =>
-          h.id === id ? { ...h, ...updates } : h
-        );
-      } else if (type === 'strength') {
-        data.strengths = (data.strengths || []).map((s: any) =>
-          s.id === id ? { ...s, ...updates } : s
-        );
-      } else if (type === 'project') {
+      if (type === 'project') {
         data.projects = (data.projects || []).map((p: any) =>
           p.id === id ? { ...p, ...updates } : p
         );
       }
       
-      // INSTANT: Save to localStorage (no delay)
       localStorage.setItem('portfolioData', JSON.stringify(data));
       setDetailData((prev: any) => ({ ...prev, ...updates }));
-      console.log('[Detail Page] ⚡ Instant save to localStorage');
       
-      // DEBOUNCED: Save to Supabase after 500ms of no activity
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
       
-      saveTimeoutRef.current = setTimeout(() => {
-        debouncedSaveToDatabase(data, 'metadata', updates);
+      saveTimeoutRef.current = setTimeout(async () => {
+        await debouncedSaveToDatabase(data, 'metadata', updates);
         setSaveStatus('saved');
-      }, 500); // Wait 500ms after last edit (Notion-style)
+      }, 500);
     }
   };
 
-  const saveBlocks = async (newBlocks: Block[]) => {
+  const saveBlocks = async (newBlocks: TemplateBlock[]) => {
     setSaveStatus('saving');
     const storedData = localStorage.getItem('portfolioData');
     if (storedData && detailData) {
       const data = JSON.parse(storedData);
       
-      if (type === 'highlight') {
-        data.careerHighlights = (data.careerHighlights || []).map((h: any) =>
-          h.id === id ? { ...h, blocks: newBlocks } : h
-        );
-      } else if (type === 'strength') {
-        data.strengths = (data.strengths || []).map((s: any) =>
-          s.id === id ? { ...s, blocks: newBlocks } : s
-        );
-      } else if (type === 'project') {
+      if (type === 'project') {
         data.projects = (data.projects || []).map((p: any) =>
           p.id === id ? { ...p, blocks: newBlocks } : p
         );
       }
       
-      // INSTANT: Save to localStorage (no delay)
       localStorage.setItem('portfolioData', JSON.stringify(data));
-      setBlocks(newBlocks);
-      console.log('[Detail Page] ⚡ Instant save to localStorage');
-      console.log('[Detail Page] 💾 Blocks count:', newBlocks.length);
+      setTemplateBlocks(newBlocks);
       
-      // DEBOUNCED: Save to Supabase after 500ms of no activity
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
       
-      saveTimeoutRef.current = setTimeout(() => {
-        debouncedSaveToDatabase(data, 'blocks', newBlocks);
+      saveTimeoutRef.current = setTimeout(async () => {
+        await debouncedSaveToDatabase(data, 'blocks', newBlocks);
         setSaveStatus('saved');
-      }, 500); // Wait 500ms after last edit (Notion-style)
+      }, 500);
     }
   };
 
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  // Image resize handlers (Notion-style)
-  const handleResizeStart = (e: React.MouseEvent, blockId: string, currentWidth: number) => {
-    e.preventDefault();
-    setResizingBlockId(blockId);
-    
-    // If no width set, use the actual image width
-    const actualWidth = currentWidth || (e.currentTarget.parentElement?.offsetWidth || 800);
-    
-    resizeStartRef.current = {
-      x: e.clientX,
-      width: actualWidth
-    };
+  const handleTemplateExpand = (templateType: TemplateType) => {
+    setExpandedTemplate(expandedTemplate === templateType ? null : templateType);
   };
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!resizingBlockId || !resizeStartRef.current) return;
-
-      const deltaX = e.clientX - resizeStartRef.current.x;
-      const newWidth = Math.max(200, Math.min(1200, resizeStartRef.current.width + deltaX));
+  const handleUseTemplate = (templateType: TemplateType) => {
+    setSelectedTemplate(templateType);
+    setExpandedTemplate(null);
+    
+    const config = getTemplateConfig(templateType);
+    if (config && config.sections.length > 0) {
+      const initialBlocks: TemplateBlock[] = [];
       
-      const block = blocks.find(b => b.id === resizingBlockId);
+      config.sections.forEach((section, index) => {
+        const block = createEmptyBlock(section.blockType);
       if (block) {
-        updateBlock(resizingBlockId, {
-          metadata: { ...block.metadata, width: newWidth }
-        });
-      }
-    };
-
-    const handleMouseUp = () => {
-      if (resizingBlockId) {
-        setResizingBlockId(null);
-        resizeStartRef.current = null;
-      }
-    };
-
-    if (resizingBlockId) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [resizingBlockId, blocks]);
-
-  const handleKeyDown = (e: React.KeyboardEvent, blockId: string, blockIndex: number) => {
-    // Detect forward slash
-    if (e.key === '/' && (e.target as HTMLInputElement).value === '') {
-      e.preventDefault();
-      const rect = (e.target as HTMLElement).getBoundingClientRect();
-      setSlashMenuPosition({ top: rect.bottom, left: rect.left });
-      setActiveBlockId(blockId);
-      setShowSlashMenu(true);
-      setSearchTerm('');
-    }
-
-    // Enter key - add new text block
-    if (e.key === 'Enter' && !e.shiftKey) {
-      const block = blocks.find(b => b.id === blockId);
-      // Only create new block if current block has content or is not a text block
-      if (block && (block.content.trim() || block.type !== 'text')) {
-        e.preventDefault();
-        const newBlock: Block = {
-          id: crypto.randomUUID(),
-          type: 'text',
-          content: '',
-        };
-        const newBlocks = [
-          ...blocks.slice(0, blockIndex + 1),
-          newBlock,
-          ...blocks.slice(blockIndex + 1),
-        ];
-        saveBlocks(newBlocks);
-      }
-    }
-
-    // Backspace on empty block - delete it
-    if (e.key === 'Backspace' && (e.target as HTMLInputElement).value === '' && blocks.length > 1) {
-      e.preventDefault();
-      const newBlocks = blocks.filter(b => b.id !== blockId);
-      saveBlocks(newBlocks);
-    }
-  };
-
-  const addBlock = (blockType: BlockType) => {
-    const blockIndex = blocks.findIndex(b => b.id === activeBlockId);
-    const newBlock: Block = {
-      id: crypto.randomUUID(),
-      type: blockType,
-      content: '',
-      metadata: blockType === 'image-grid' ? { images: [] } : {},
-    };
-    
-    // Replace the current block if it's empty, otherwise add after
-    const currentBlock = blocks[blockIndex];
-    if (currentBlock && currentBlock.content === '' && currentBlock.type === 'text') {
-      const newBlocks = blocks.map((b, idx) => idx === blockIndex ? newBlock : b);
-      saveBlocks(newBlocks);
-    } else {
-      const newBlocks = [
-        ...blocks.slice(0, blockIndex + 1),
-        newBlock,
-        ...blocks.slice(blockIndex + 1),
-      ];
-      saveBlocks(newBlocks);
-    }
-    
-    setShowSlashMenu(false);
-    setActiveBlockId(null);
-  };
-
-  const updateBlock = (blockId: string, updates: Partial<Block>) => {
-    const newBlocks = blocks.map(b => 
-      b.id === blockId ? { ...b, ...updates } : b
-    );
-    saveBlocks(newBlocks);
-  };
-
-  const deleteBlock = (blockId: string) => {
-    if (blocks.length === 1) return; // Keep at least one block
-    const newBlocks = blocks.filter(b => b.id !== blockId);
-    saveBlocks(newBlocks);
-  };
-
-  const moveBlock = (blockId: string, direction: 'up' | 'down') => {
-    const index = blocks.findIndex(b => b.id === blockId);
-    if (index === -1) return;
-    
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= blocks.length) return;
-    
-    const newBlocks = [...blocks];
-    [newBlocks[index], newBlocks[newIndex]] = [newBlocks[newIndex], newBlocks[index]];
-    saveBlocks(newBlocks);
-  };
-
-  const handleFileUpload = async (blockId: string, file: File, isGridImage: boolean = false) => {
-    // Convert file to base64
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      
-      if (isGridImage) {
-        const block = blocks.find(b => b.id === blockId);
-        const currentImages = block?.metadata?.images || [];
-        updateBlock(blockId, {
-          metadata: { ...block?.metadata, images: [...currentImages, base64String] }
-        });
-      } else {
-        updateBlock(blockId, {
-          metadata: { url: base64String }
-        });
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleImageGridUpload = async (blockId: string, files: FileList) => {
-    const block = blocks.find(b => b.id === blockId);
-    const currentImages = block?.metadata?.images || [];
-    
-    const newImages: string[] = [];
-    let processed = 0;
-    
-    Array.from(files).forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        newImages.push(reader.result as string);
-        processed++;
-        
-        if (processed === files.length) {
-          updateBlock(blockId, {
-            metadata: { ...block?.metadata, images: [...currentImages, ...newImages] }
-          });
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const handlePaste = async (e: React.ClipboardEvent, blockId: string, isGrid: boolean = false) => {
-    const items = e.clipboardData?.items;
-    if (!items) return;
-
-    const imageItems = Array.from(items).filter(item => item.type.startsWith('image/'));
-    if (imageItems.length === 0) return;
-
-    e.preventDefault();
-
-    if (isGrid) {
-      // Handle paste for image grid
-      const block = blocks.find(b => b.id === blockId);
-      const currentImages = block?.metadata?.images || [];
-      const newImages: string[] = [];
-      let processed = 0;
-
-      imageItems.forEach(item => {
-        const file = item.getAsFile();
-        if (file) {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            newImages.push(reader.result as string);
-            processed++;
-
-            if (processed === imageItems.length) {
-              updateBlock(blockId, {
-                metadata: { ...block?.metadata, images: [...currentImages, ...newImages] }
-              });
-            }
-          };
-          reader.readAsDataURL(file);
+          // If it's the hero section, populate it with existing project data
+          if (index === 0 && block.type === 'hero') {
+            block.data = {
+              ...block.data,
+              title: detailData?.title || '',
+              description: detailData?.description || '',
+              meta: {
+                ...block.data.meta,
+                role: detailData?.role || '',
+              }
+            };
+          }
+          initialBlocks.push(block);
         }
       });
+      
+      setTemplateBlocks(initialBlocks);
+      saveBlocks(initialBlocks);
+      
+      // Start with Hero in edit mode, mark nothing as saved initially
+      if (initialBlocks.length > 0) {
+        setEditingSectionId(initialBlocks[0].id); // Hero starts in edit mode
+        setExpandedSections(new Set([0])); // Expand Hero section
+        setSavedSections(new Set()); // Nothing saved yet
+      }
+    }
+    
+    updateProjectData({ template_type: templateType });
+  };
+
+  const toggleSection = (index: number) => {
+    const newExpanded = new Set(expandedSections);
+    if (newExpanded.has(index)) {
+      newExpanded.delete(index);
     } else {
-      // Handle paste for single image
-      const file = imageItems[0].getAsFile();
-      if (file) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          updateBlock(blockId, {
-            metadata: { url: reader.result as string }
-          });
-        };
-        reader.readAsDataURL(file);
+      newExpanded.add(index);
+    }
+    setExpandedSections(newExpanded);
+  };
+
+  const handlePublish = async () => {
+    setIsPublishing(true);
+    
+    try {
+      await updateProjectData({ published: true, published_at: new Date().toISOString() });
+      alert('🎉 Your project has been published successfully!');
+      setTimeout(() => {
+        router.push(`/editor?mode=${viewMode}`);
+      }, 1000);
+    } catch (error) {
+      console.error('Publish error:', error);
+      alert('Failed to publish. Please try again.');
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+  const updateHeroField = (field: string, value: string) => {
+    console.log('[Detail Page] 📝 Updating hero field:', field, '=', value);
+    const updatedBlocks = [...templateBlocks];
+    const heroBlock = updatedBlocks[0] as HeroBlock;
+    
+    if (field === 'title' || field === 'description') {
+      heroBlock.data = { ...heroBlock.data, [field]: value };
+      updateProjectData({ [field]: value });
+    } else if (field.startsWith('meta.')) {
+      const metaField = field.split('.')[1];
+      heroBlock.data = {
+        ...heroBlock.data,
+        meta: { ...heroBlock.data.meta, [metaField]: value }
+      };
+      if (metaField === 'role') {
+        updateProjectData({ role: value });
+      }
+    } else {
+      // Handle all other fields including subtitle
+      heroBlock.data = { ...heroBlock.data, [field]: value };
+      console.log('[Detail Page] ✏️ Hero block updated with', field, ':', value);
+    }
+    
+    console.log('[Detail Page] 💾 Saving blocks with updated hero data...');
+    saveBlocks(updatedBlocks);
+  };
+
+  // Drag and drop handler
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over || active.id === over.id) return;
+    
+    const oldIndex = templateBlocks.findIndex(b => b.id === active.id);
+    const newIndex = templateBlocks.findIndex(b => b.id === over.id);
+    
+    if (oldIndex === -1 || newIndex === -1) return;
+    
+    const updatedBlocks = [...templateBlocks];
+    const [movedBlock] = updatedBlocks.splice(oldIndex, 1);
+    updatedBlocks.splice(newIndex, 0, movedBlock);
+    
+    saveBlocks(updatedBlocks);
+    
+    // Update expanded sections
+    const newExpanded = new Set<number>();
+    expandedSections.forEach(idx => {
+      if (idx === oldIndex) newExpanded.add(newIndex);
+      else if (idx > oldIndex && idx <= newIndex) newExpanded.add(idx - 1);
+      else if (idx < oldIndex && idx >= newIndex) newExpanded.add(idx + 1);
+      else newExpanded.add(idx);
+    });
+    setExpandedSections(newExpanded);
+  };
+
+  // Add new section
+  const addSection = (blockType: string) => {
+    const newBlock = createEmptyBlock(blockType);
+    if (newBlock) {
+      const updatedBlocks = [...templateBlocks, newBlock];
+      saveBlocks(updatedBlocks);
+      setShowBlockSelector(false);
+      
+      // Expand the newly added section and set it to edit mode (not saved yet)
+      setExpandedSections(new Set([...expandedSections, templateBlocks.length]));
+      setEditingSectionId(newBlock.id);
+    }
+  };
+
+  // Mark section as saved (switches to preview-style render)
+  const markSectionAsSaved = (sectionId: string) => {
+    setSavedSections(prev => new Set([...prev, sectionId]));
+    setEditingSectionId(null);
+    
+    // Automatically open the next unsaved section
+    const currentIndex = templateBlocks.findIndex(b => b.id === sectionId);
+    if (currentIndex !== -1) {
+      // Find the next unsaved section
+      for (let i = currentIndex + 1; i < templateBlocks.length; i++) {
+        if (!savedSections.has(templateBlocks[i].id)) {
+          setExpandedSections(new Set([i]));
+          setEditingSectionId(templateBlocks[i].id);
+          // Scroll to the next section
+          setTimeout(() => {
+            document.getElementById(`section-${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 100);
+          break;
+        }
       }
     }
   };
 
-  const getTitle = () => {
-    if (type === 'highlight') return detailData?.organization || 'Career Highlight';
-    if (type === 'strength') return detailData?.title || 'Strength';
-    if (type === 'project') return detailData?.title || 'Project';
-    return 'Detail';
+  // Delete section
+  const deleteSection = (index: number) => {
+    if (index === 0) {
+      alert('Cannot delete the Hero section');
+      return;
+    }
+    
+    if (confirm('Are you sure you want to delete this section?')) {
+      const updatedBlocks = templateBlocks.filter((_, i) => i !== index);
+      saveBlocks(updatedBlocks);
+      
+      // Update expanded sections
+      const newExpanded = new Set<number>();
+      expandedSections.forEach(idx => {
+        if (idx < index) newExpanded.add(idx);
+        else if (idx > index) newExpanded.add(idx - 1);
+      });
+      setExpandedSections(newExpanded);
+    }
   };
-
-  const filteredBlockTypes = BLOCK_TYPES.filter(bt => 
-    bt.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    bt.shortcut.includes(searchTerm.toLowerCase())
-  );
 
   const isMobile = previewMode === 'mobile';
 
-  // Show content immediately, even while loading
   if (!detailData) {
-    // Show minimal UI while data loads
     return (
-      <div className="min-h-screen bg-white flex flex-col">
-        <div className="border-b border-gray-100 sticky top-0 z-50 bg-white">
-          <div className="max-w-7xl mx-auto px-8 py-4">
-          <div className="flex items-center justify-between">
-              <button
-                onClick={() => router.push(`/editor?mode=${viewMode}`)}
-                className="flex items-center gap-2 text-sm text-gray-600 hover:text-black transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back
-              </button>
-              </div>
-            </div>
-          </div>
-        <div className="flex-1 flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin"></div>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-indigo-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Global Navigation Header */}
-      <div className="border-b border-gray-100 sticky top-0 z-50 bg-white">
-        <div className="max-w-7xl mx-auto px-8 py-4">
+  const heroBlock = templateBlocks[0] as HeroBlock | undefined;
+
+    return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50 flex">
+      {/* Left Sidebar - Progress Checklist */}
+      {viewMode === 'edit' && isUsingTemplates && (
+        <div className="w-80 border-r border-gray-200 bg-white/80 backdrop-blur-sm flex-shrink-0 flex flex-col h-screen overflow-y-auto">
+          <div className="p-6">
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                  {progress}%
+              </div>
+                <div>
+                  <h2 className="text-sm font-bold text-gray-900">Setup Progress</h2>
+                  <p className="text-xs text-gray-500">Complete your project</p>
+            </div>
+          </div>
+
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500"
+                  style={{ width: `${progress}%` }}
+                />
+        </div>
+      </div>
+
+            <div className="space-y-2">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                Template Sections
+              </h3>
+              {getTemplateConfig(selectedTemplate)?.sections.map((section, idx) => {
+                const block = templateBlocks[idx];
+                const isComplete = block && savedSections.has(block.id);
+
+                return (
+                  <div
+                    key={section.id}
+                    className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                      isComplete
+                        ? 'bg-green-50 border-green-300 shadow-sm'
+                        : 'bg-white border-gray-200 hover:border-purple-300 hover:shadow-sm'
+                    }`}
+                    onClick={() => {
+                      setExpandedSections(new Set([idx]));
+                      const element = document.getElementById(`section-${idx}`);
+                      element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }}
+                  >
+                    <div className="flex items-start gap-3">
+                      {isComplete ? (
+                        <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      ) : (
+                        <div className="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0 mt-0.5" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h4 className={`text-sm font-semibold leading-tight ${isComplete ? 'text-gray-900' : 'text-gray-700'}`}>
+                          {section.label}
+                        </h4>
+                        <p className={`text-xs mt-0.5 leading-tight ${isComplete ? 'text-green-600' : 'text-blue-600'}`}>
+                          {isComplete ? '✓ Content added' : `Click to add ${section.description?.toLowerCase()}`}
+                        </p>
+                        {section.required && !isComplete && (
+                          <span className="inline-block mt-1.5 px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-medium">
+                            Required
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+        </div>
+      </div>
+        </div>
+      )}
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Bar with Breadcrumbs */}
+        <div className="bg-white border-b border-gray-200 shadow-sm">
+          <div className="max-w-7xl mx-auto px-6 py-4">
+            {/* Breadcrumbs */}
+            <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
+                <button
+                onClick={() => router.push(`/editor?mode=${viewMode}`)}
+                className="hover:text-gray-900 transition-colors"
+              >
+                Portfolio
+              </button>
+              <ChevronRight className="w-4 h-4" />
+            <button
+                onClick={() => router.push(`/editor?mode=${viewMode}`)}
+                className="hover:text-gray-900 transition-colors"
+                >
+                Projects
+              </button>
+              <ChevronRight className="w-4 h-4" />
+              <span className="text-gray-900 font-medium">{detailData?.title || 'Untitled'}</span>
+          </div>
+
           <div className="flex items-center justify-between">
-            {/* Left - Back Button and Title */}
+              {/* Left - Back + Template Badge */}
             <div className="flex items-center gap-4">
                 <button
-                onClick={() => {
-                  // Pass current view mode back to editor
-                  router.push(`/editor?mode=${viewMode}`);
-                }}
+                  onClick={() => router.push(`/editor?mode=${viewMode}`)}
                 className="flex items-center gap-2 text-sm text-gray-600 hover:text-black transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Back
+                  Back to Projects
                 </button>
-              <div className="border-l border-gray-200 pl-4">
-                <h1 className="text-sm font-medium text-black">{getTitle()}</h1>
-                <p className="text-xs text-gray-400">{blocks.length} block{blocks.length !== 1 ? 's' : ''}</p>
+                
+                {isUsingTemplates && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-full">
+                    <div className="text-sm">{getTemplateConfig(selectedTemplate)?.icon}</div>
+                    <span className="text-xs font-medium text-purple-700">
+                      {getTemplateConfig(selectedTemplate)?.name}
+                    </span>
             </div>
+                )}
             </div>
 
-            {/* Center - Save Status */}
-            <div className="flex items-center gap-2">
+              {/* Right - Save Status + View Toggles */}
+              <div className="flex items-center gap-4">
+                {/* Save Status */}
+                <div className="text-xs">
               {saveStatus === 'saving' ? (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-full">
+                    <span className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 rounded-full">
                   <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                  <span className="text-xs text-blue-700 font-medium">Saving...</span>
-          </div>
+                      <span className="text-blue-700 font-medium">Saving</span>
+                    </span>
         ) : (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 rounded-full">
+                    <span className="flex items-center gap-1 px-3 py-1.5 bg-green-50 rounded-full">
                   <div className="w-2 h-2 bg-green-500 rounded-full" />
-                  <span className="text-xs text-green-700 font-medium">Saved</span>
-                    </div>
+                      <span className="text-green-700 font-medium">Saved</span>
+                    </span>
                   )}
                 </div>
                 
-            {/* Right - View Mode Toggle */}
-            <div className="flex items-center gap-4">
-              {/* Edit/Preview Toggle */}
+                {/* View Toggle */}
               <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
                     <button
                   onClick={() => setViewMode('edit')}
@@ -625,7 +1113,7 @@ export default function DetailPage() {
                     </button>
                 </div>
                 
-              {/* Desktop/Mobile Toggle - Only in preview mode */}
+                {/* Preview Mode Toggle */}
               {viewMode === 'preview' && (
                 <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
                     <button
@@ -635,7 +1123,6 @@ export default function DetailPage() {
                         ? 'bg-white text-gray-900 shadow-sm'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
-                    title="Desktop view"
                   >
                     <Monitor className="w-4 h-4" />
                     </button>
@@ -646,7 +1133,6 @@ export default function DetailPage() {
                         ? 'bg-white text-gray-900 shadow-sm'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
-                    title="Mobile view"
                   >
                     <Smartphone className="w-4 h-4" />
                     </button>
@@ -657,824 +1143,378 @@ export default function DetailPage() {
                 </div>
               </div>
               
-      {/* Main Content */}
-      <div className={`flex-1 min-h-screen ${viewMode === 'preview' ? 'bg-gray-100' : 'bg-white'}`}>
-        <div className={viewMode === 'preview' 
-          ? `min-h-[calc(100vh-80px)] ${isMobile ? 'py-8' : 'py-12'}`
-          : 'max-w-6xl mx-auto px-16 py-12 min-h-[calc(100vh-80px)]'
-        }>
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto">
         {viewMode === 'edit' ? (
-          // Edit Mode - Block Editor
-          <div className="min-h-[600px]">
-            {/* Project Header in Edit Mode - Click to Edit */}
-            <div className="mb-12">
-              {/* Title - Click to edit */}
-              <div className="mb-6 group/title">
-                {editingField === 'title' ? (
-                  <input
-                    type="text"
-                    value={detailData?.title || ''}
-                    onChange={(e) => updateProjectData({ title: e.target.value })}
-                    onBlur={() => setEditingField(null)}
-                    placeholder="Project Title"
-                    autoFocus
-                    className="w-full font-bold text-black bg-transparent border-b-2 border-blue-600 focus:outline-none placeholder:text-gray-300"
-                    style={{ fontSize: '60px', lineHeight: '1.1' }}
-                  />
-                ) : (
-                  <div className="flex items-start gap-2">
-                    <h1 
-                      onClick={() => setEditingField('title')}
-                      className="flex-1 font-bold text-black cursor-text hover:bg-gray-50 rounded px-2 -mx-2 transition-colors"
-                      style={{ fontSize: '60px', lineHeight: '1.1' }}
-                    >
-                      {detailData?.title || 'Untitled Project'}
-                    </h1>
+            <div className="max-w-6xl mx-auto px-8 py-12">
+              {isUsingTemplates ? (
+                // Template Editor with Drag & Drop
+                <DndContext 
+                  sensors={sensors} 
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext 
+                    items={templateBlocks.map(b => b.id)} 
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-6">
+                      {templateBlocks.map((block, index) => (
+                        <SortableSection 
+                          key={block.id} 
+                          block={block} 
+                          index={index}
+                          selectedTemplate={selectedTemplate}
+                          expandedSections={expandedSections}
+                          editingSectionId={editingSectionId}
+                          savedSections={savedSections}
+                          viewMode={viewMode}
+                          detailData={detailData}
+                          heroBlock={heroBlock}
+                          templateBlocks={templateBlocks}
+                          toggleSection={toggleSection}
+                          setEditingSectionId={setEditingSectionId}
+                          deleteSection={deleteSection}
+                          updateHeroField={updateHeroField}
+                          updateProjectData={updateProjectData}
+                          saveBlocks={saveBlocks}
+                          markSectionAsSaved={markSectionAsSaved}
+                        />
+                      ))}
+
+                      {/* Add Section Button */}
+                      <div className="mt-6">
                   <button
-                      onClick={() => setEditingField('title')}
-                      className="p-2 text-gray-400 hover:text-black opacity-0 group-hover/title:opacity-100 transition-opacity"
-                      title="Edit title"
+                          onClick={() => setShowBlockSelector(true)}
+                          className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-white border-2 border-dashed border-gray-300 text-gray-700 font-medium rounded-2xl hover:border-purple-400 hover:bg-purple-50 hover:text-purple-700 transition-all shadow-sm hover:shadow-md"
                     >
-                      <Pencil className="w-4 h-4" />
+                          <Plus className="w-5 h-5" />
+                          Add Section
                   </button>
-                  </div>
-                )}
                 </div>
                 
-              {/* Description - Click to edit */}
-              <div className="mb-6 group/desc">
-                {editingField === 'description' ? (
+                      {/* Publish Section */}
+                      {progress > 0 && (
+                        <div className="mt-12 bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-8 border-2 border-purple-200">
+                        <div className="text-center space-y-4">
+              <h3 className="text-2xl font-bold text-gray-900">
+                {progress === 100 ? '🎉 Ready to Publish!' : `${progress}% Complete - Keep Going!`}
+              </h3>
+              <p className="text-gray-600">
+                {progress === 100 
+                  ? 'Your project looks amazing! Click below to publish and make it visible.'
+                  : `You've completed ${savedSections.size} of ${templateBlocks.length} sections. Add content to the remaining sections to publish.`
+                }
+              </p>
+                            
+                            {progress === 100 && (
+                    <button
+                                onClick={handlePublish}
+                                disabled={isPublishing}
+                                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-lg font-semibold rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50"
+                              >
+                                {isPublishing ? (
+                                  <>
+                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    Publishing...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Check className="w-5 h-5" />
+                                    Publish Project
+                                  </>
+                                )}
+                    </button>
+        )}
+      </div>
+          </div>
+                    )}
+            </div>
+                  </SortableContext>
+                </DndContext>
+              ) : (
+                // Template Selection
+                <div>
+                  {/* Project Info Card */}
+                  <div className="mb-12 bg-white rounded-2xl shadow-sm p-8 border border-gray-200">
+            <input
+              type="text"
+                      value={detailData?.title || ''}
+                      onChange={(e) => updateProjectData({ title: e.target.value })}
+                      placeholder="Project Title"
+                      className="w-full text-5xl font-bold text-gray-900 border-0 bg-transparent focus:outline-none placeholder:text-gray-300 px-0 py-0 mb-6"
+                    />
+
                   <textarea
                     value={detailData?.description || ''}
                     onChange={(e) => updateProjectData({ description: e.target.value })}
-                    onBlur={() => setEditingField(null)}
-                    placeholder="Project description"
-                    rows={3}
-                    autoFocus
-                    className="w-full text-gray-700 bg-transparent border-b-2 border-blue-600 focus:outline-none resize-none placeholder:text-gray-300"
-                    style={{ fontSize: '30px', lineHeight: '1.4' }}
-                  />
-                ) : (
-                  <div className="flex items-start gap-2">
-                    <p 
-                      onClick={() => setEditingField('description')}
-                      className="flex-1 text-gray-700 cursor-text hover:bg-gray-50 rounded px-2 -mx-2 transition-colors"
-                      style={{ fontSize: '30px', lineHeight: '1.4' }}
-                    >
-                      {detailData?.description || 'Click to add description'}
-                    </p>
-                    <button
-                      onClick={() => setEditingField('description')}
-                      className="p-2 text-gray-400 hover:text-black opacity-0 group-hover/desc:opacity-100 transition-opacity"
-                      title="Edit description"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
-              </div>
+                      placeholder="Add a brief description..."
+                      rows={2}
+                      className="w-full text-lg text-gray-700 border-0 bg-transparent focus:outline-none placeholder:text-gray-400 resize-none px-0 py-0 mb-4"
+                    />
 
-              {/* Tags - Click to edit */}
-              <div className="mb-6 group/tags">
-                {editingField === 'tags' ? (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-2">
-                      Tags (comma separated)
-                    </label>
-                    <input
-                      type="text"
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                <input
+                  type="text"
+                        value={detailData?.role || ''}
+                        onChange={(e) => updateProjectData({ role: e.target.value })}
+                        placeholder="Your role..."
+                        className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder:text-gray-400"
+                      />
+            <input
+                  type="url"
+                        value={detailData?.link || ''}
+                        onChange={(e) => updateProjectData({ link: e.target.value })}
+                        placeholder="Project link..."
+                        className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder:text-gray-400"
+                          />
+          </div>
+
+            <input
+                type="text"
                       value={(detailData?.tags || []).join(', ')}
-                      onChange={(e) => {
+                  onChange={(e) => {
                         const tags = e.target.value.split(',').map(t => t.trim()).filter(t => t);
                         updateProjectData({ tags });
                       }}
-                      onBlur={() => setEditingField(null)}
-                      placeholder="React, TypeScript, Design"
-                      autoFocus
-                      className="w-full px-4 py-2 border-2 border-blue-600 rounded-lg focus:outline-none text-sm"
+                      placeholder="Tags (comma separated)..."
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder:text-gray-400"
                     />
-              </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    {detailData?.tags && detailData.tags.length > 0 ? (
-                      <div 
-                        onClick={() => setEditingField('tags')}
-                        className="flex flex-wrap gap-2 flex-1 cursor-pointer hover:bg-gray-50 rounded px-2 py-1 -mx-2 transition-colors"
-                      >
+                    
+                    {detailData?.tags && detailData.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-3">
                         {detailData.tags.map((tag: string, idx: number) => (
-                          <span
-                            key={idx}
-                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
-                          >
+                          <span key={idx} className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium">
                             {tag}
                           </span>
             ))}
-          </div>
-                    ) : (
-                      <div 
-                        onClick={() => setEditingField('tags')}
-                        className="flex-1 text-gray-400 text-sm cursor-pointer hover:bg-gray-50 rounded px-2 py-1 -mx-2 transition-colors"
-                      >
-                        Click to add tags
                       </div>
-                    )}
-                    <button
-                      onClick={() => setEditingField('tags')}
-                      className="p-2 text-gray-400 hover:text-black opacity-0 group-hover/tags:opacity-100 transition-opacity"
-                      title="Edit tags"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-          </div>
         )}
-      </div>
+                          </div>
+                      
+                  {/* Template Grid */}
+                  <div className="text-center mb-12">
+                    <div className="text-6xl mb-4">✨</div>
+                    <h2 className="text-4xl font-bold text-gray-900 mb-3">
+                      Choose a Template
+                    </h2>
+                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                      Select a professional template to structure your project
+                    </p>
+                          </div>
 
-              {/* Link - Click to edit */}
-              <div className="mb-6 group/link">
-                {editingField === 'link' ? (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-2">
-                      Project Link
-                    </label>
-            <input
-                      type="url"
-                      value={detailData?.link || ''}
-                      onChange={(e) => updateProjectData({ link: e.target.value })}
-                      onBlur={() => setEditingField(null)}
-                      placeholder="https://project-link.com"
-                      autoFocus
-                      className="w-full px-4 py-2 border-2 border-blue-600 rounded-lg focus:outline-none text-sm"
-            />
-          </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    {detailData?.link ? (
-                      <a
-                        href={detailData.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="flex-1 inline-flex items-center gap-2 text-base text-blue-600 hover:text-blue-700 transition-colors"
-                      >
-                        <LinkIcon className="w-4 h-4" />
-                        {detailData.link}
-                      </a>
-                    ) : (
-                      <div 
-                        onClick={() => setEditingField('link')}
-                        className="flex-1 text-gray-400 text-sm cursor-pointer hover:bg-gray-50 rounded px-2 py-1 -mx-2 transition-colors"
-                      >
-                        Click to add project link
-          </div>
-                    )}
-                    <button
-                      onClick={() => setEditingField('link')}
-                      className="p-2 text-gray-400 hover:text-black opacity-0 group-hover/link:opacity-100 transition-opacity"
-                      title="Edit link"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-            </div>
-                )}
-          </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {TEMPLATE_CONFIGS.map((template) => {
+                      const colors = COLOR_STYLES[template.color] || COLOR_STYLES.gray;
+                      const isExpanded = expandedTemplate === template.id;
 
-              {/* Separator */}
-              <div className="mt-8 border-b border-gray-200" />
-            </div>
-
-            {/* Blocks */}
-            <div className="space-y-2">
-              {blocks.map((block, index) => (
-            <div
-              key={block.id}
-              className="group relative"
-            >
-              {/* Block Controls - Show on hover */}
-              <div className="absolute -left-12 top-2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1">
-                <button
-                  onClick={() => moveBlock(block.id, 'up')}
-                  disabled={index === 0}
-                  className="p-1 text-gray-400 hover:text-black disabled:opacity-20"
-                  title="Move up"
-                >
-                  <GripVertical className="w-4 h-4" />
-                </button>
-            <button
-                  onClick={() => deleteBlock(block.id)}
-                  className="p-1 text-gray-400 hover:text-red-600"
-                  title="Delete"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-              {/* Block Content */}
-              <div className="min-h-[40px]">
-                {block.type === 'h1' && (
-            <input
-              type="text"
-                    value={block.content}
-                    onChange={(e) => updateBlock(block.id, { content: e.target.value })}
-                    onKeyDown={(e) => handleKeyDown(e, block.id, index)}
-                    placeholder="Heading 1"
-                    className="w-full text-4xl font-bold text-black border-0 focus:outline-none placeholder:text-gray-300"
-                    autoFocus={!block.content}
-                  />
-                )}
-
-                {block.type === 'h2' && (
-                <input
-                  type="text"
-                    value={block.content}
-                    onChange={(e) => updateBlock(block.id, { content: e.target.value })}
-                    onKeyDown={(e) => handleKeyDown(e, block.id, index)}
-                    placeholder="Heading 2"
-                    className="w-full text-3xl font-bold text-black border-0 focus:outline-none placeholder:text-gray-300"
-                    autoFocus={!block.content}
-                  />
-                )}
-
-                {block.type === 'h3' && (
-                <input
-                  type="text"
-                    value={block.content}
-                    onChange={(e) => updateBlock(block.id, { content: e.target.value })}
-                    onKeyDown={(e) => handleKeyDown(e, block.id, index)}
-                    placeholder="Heading 3"
-                    className="w-full text-2xl font-semibold text-black border-0 focus:outline-none placeholder:text-gray-300"
-                    autoFocus={!block.content}
-                  />
-                )}
-
-                {block.type === 'text' && (
-            <textarea
-                    value={block.content}
-                    onChange={(e) => updateBlock(block.id, { content: e.target.value })}
-                    onKeyDown={(e) => handleKeyDown(e, block.id, index)}
-                    placeholder="Type '/' for commands..."
-                    rows={1}
-                    className="w-full text-base text-gray-900 border-0 focus:outline-none resize-none placeholder:text-gray-400"
-                    style={{ minHeight: '28px' }}
-                    autoFocus={!block.content}
-                    onInput={(e) => {
-                      // Auto-resize textarea
-                      const target = e.target as HTMLTextAreaElement;
-                      target.style.height = 'auto';
-                      target.style.height = target.scrollHeight + 'px';
-                    }}
-                  />
-                )}
-
-                {block.type === 'image' && (
-                  <div
-                    onPaste={(e) => handlePaste(e, block.id, false)}
-                    tabIndex={0}
-                    className="outline-none"
-                  >
-                    {block.metadata?.url ? (
-                      <div 
-                        className={`relative group inline-block ${resizingBlockId === block.id ? 'cursor-ew-resize' : ''}`}
-                        style={{ width: block.metadata?.width || '100%' }}
-                      >
-                        {/* Image */}
-                        <img 
-                          src={block.metadata.url} 
-                          alt="Content" 
-                          className="w-full rounded-lg select-none pointer-events-none" 
-                          draggable={false}
-                        />
-                        
-                        {/* Image Management Tools - Show on hover */}
-                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                <button
-                            onClick={() => fileInputRefs.current[block.id]?.click()}
-                            className="px-3 py-1.5 text-xs bg-white/90 backdrop-blur-sm hover:bg-white rounded-lg shadow-sm flex items-center gap-1 transition-colors"
-                            title="Replace image"
-                          >
-                            <Upload className="w-3.5 h-3.5" />
-                            Replace
-                </button>
-            <button
-                            onClick={() => updateBlock(block.id, { metadata: { url: '' } })}
-                            className="px-3 py-1.5 text-xs bg-red-500/90 backdrop-blur-sm hover:bg-red-600 text-white rounded-lg shadow-sm flex items-center gap-1 transition-colors"
-                            title="Remove image"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            Remove
-            </button>
-          </div>
-
-                        {/* Quick Size Buttons - Bottom Center (Notion-style) */}
-                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm p-1">
-                          <button
-                            onClick={() => updateBlock(block.id, { metadata: { ...block.metadata, width: 400 } })}
-                            className="px-2 py-1 text-xs hover:bg-gray-100 rounded transition-colors"
-                            title="Small (400px)"
-                          >
-                            S
-                          </button>
-                          <button
-                            onClick={() => updateBlock(block.id, { metadata: { ...block.metadata, width: 600 } })}
-                            className="px-2 py-1 text-xs hover:bg-gray-100 rounded transition-colors"
-                            title="Medium (600px)"
-                          >
-                            M
-                          </button>
-                          <button
-                            onClick={() => updateBlock(block.id, { metadata: { ...block.metadata, width: 800 } })}
-                            className="px-2 py-1 text-xs hover:bg-gray-100 rounded transition-colors"
-                            title="Large (800px)"
-                          >
-                            L
-                          </button>
-                          <button
-                            onClick={() => updateBlock(block.id, { metadata: { ...block.metadata, width: undefined } })}
-                            className="px-2 py-1 text-xs hover:bg-gray-100 rounded transition-colors"
-                            title="Full width"
-                          >
-                            Full
-                          </button>
-          </div>
-
-                        {/* Resize Handle - Right Edge (Notion-style) */}
+                      return (
                         <div
-                          onMouseDown={(e) => handleResizeStart(e, block.id, block.metadata?.width || 0)}
-                          className="absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize opacity-0 group-hover:opacity-100 transition-opacity"
+                          key={template.id}
+                          className={`bg-white rounded-2xl border-2 transition-all duration-300 overflow-hidden ${
+                            isExpanded 
+                              ? `${colors.border} shadow-2xl ring-4 ring-purple-100 scale-105` 
+                              : `border-gray-200 shadow-sm hover:shadow-xl hover:-translate-y-1`
+                          }`}
                         >
-                          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-blue-500 rounded-full" />
+            <button
+                            onClick={() => handleTemplateExpand(template.id)}
+                            className="w-full p-6 text-left"
+                          >
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="text-4xl">{template.icon}</div>
+                              {isExpanded && (
+                                <X className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+            )}
           </div>
-
-                        {/* Width Indicator (shows while resizing) */}
-                        {resizingBlockId === block.id && (
-                          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 px-2 py-1 bg-black/75 text-white text-xs rounded">
-                            {block.metadata?.width || 0}px
-                          </div>
-                        )}
-                        
-                        {/* Hidden file input */}
-            <input
-                          ref={(el) => { fileInputRefs.current[block.id] = el; }}
-                          type="file"
-                          accept="image/*"
-                  onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleFileUpload(block.id, file);
-                          }}
-                          className="hidden"
-                        />
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">
+                              {template.name}
+                            </h3>
+                            <p className="text-sm text-gray-600 mb-3">
+                              {template.description}
+                            </p>
+                            {template.sections.length > 0 && (
+                              <div className="text-xs text-gray-500">
+                                {template.sections.length} sections
                       </div>
-                    ) : (
-                      // Empty state - Upload prompt
-                      <div className="border-2 border-dashed border-gray-200 rounded-lg p-8">
-                        <div className="text-center space-y-4">
-                          <ImageIcon className="w-12 h-12 text-gray-300 mx-auto" />
-                          <div className="flex items-center gap-3">
-                            <div className="flex-1 h-px bg-gray-200" />
-                            <span className="text-xs text-gray-400">Upload, paste, or enter URL</span>
-                            <div className="flex-1 h-px bg-gray-200" />
-                          </div>
-                          <p className="text-xs text-gray-500">
-                            Tip: Copy an image and paste it here (Ctrl/Cmd + V)
-                          </p>
-                          <div className="flex gap-2">
-                <input
-                  type="url"
-                              value={block.metadata?.url || ''}
-                              onChange={(e) => updateBlock(block.id, { 
-                                metadata: { ...block.metadata, url: e.target.value } 
-                              })}
-                              placeholder="Paste image URL"
-                              className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded focus:border-black focus:outline-none"
-                              autoFocus
-                            />
-                            <button
-                              onClick={() => fileInputRefs.current[block.id]?.click()}
-                              className="px-4 py-2 text-sm bg-black text-white hover:bg-gray-800 rounded transition-colors flex items-center gap-2"
-                            >
-                              <Upload className="w-4 h-4" />
-                              Upload
+                    )}
                             </button>
-                            <input
-                              ref={(el) => { fileInputRefs.current[block.id] = el; }}
-                              type="file"
-                              accept="image/*"
-                  onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) handleFileUpload(block.id, file);
-                              }}
-                              className="hidden"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
 
-                {block.type === 'image-grid' && (
-                  <div
-                    onPaste={(e) => handlePaste(e, block.id, true)}
-                    tabIndex={0}
-                    className="outline-none"
-                  >
-                    {block.metadata?.images && block.metadata.images.length > 0 ? (
-                      // Grid with images
-                      <div>
-                        {/* Grid Layout Selector */}
-                        <div className="mb-4 flex items-center gap-3">
-                          <label className="text-xs font-medium text-gray-600">Grid Layout:</label>
-                          <div className="flex gap-2">
-                            {(['1x2', '1x3', '2x3'] as const).map((layout) => (
-                <button
-                                key={layout}
-                                onClick={() => updateBlock(block.id, {
-                                  metadata: { ...block.metadata, gridLayout: layout }
-                                })}
-                                className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
-                                  (block.metadata?.gridLayout || '2x3') === layout
-                                    ? 'bg-black text-white'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                }`}
-                              >
-                                {layout}
-                </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Image Grid */}
-                        <div className={`grid gap-3 mb-4 ${
-                          block.metadata?.gridLayout === '1x2' ? 'grid-cols-2' :
-                          block.metadata?.gridLayout === '1x3' ? 'grid-cols-3' :
-                          'grid-cols-3' // Default 2x3
-                        }`}>
-                          {block.metadata.images.map((url, idx) => (
-                            <div key={idx} className="relative group aspect-square">
-                              <img src={url} alt={`Grid ${idx + 1}`} className="w-full h-full object-cover rounded-lg" />
-                              {/* Delete button on hover */}
-            <button
-              onClick={() => {
-                                  const newImages = block.metadata!.images!.filter((_, i) => i !== idx);
-                                  updateBlock(block.id, { 
-                                    metadata: { ...block.metadata, images: newImages } 
-                                  });
-                                }}
-                                className="absolute top-2 right-2 p-1.5 bg-red-500/90 backdrop-blur-sm hover:bg-red-600 text-white rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                                title="Remove image"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
-                          ))}
-                        </div>
-                        
-                        {/* Management tools below grid */}
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => fileInputRefs.current[`${block.id}-grid`]?.click()}
-                            className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-2"
-                          >
-                            <Plus className="w-4 h-4" />
-                            Add More Images
-                          </button>
-            <input
-                            ref={(el) => { fileInputRefs.current[`${block.id}-grid`] = el; }}
-                            type="file"
-                            accept="image/*"
-                            multiple
-                  onChange={(e) => {
-                              const files = e.target.files;
-                              if (files && files.length > 0) {
-                                handleImageGridUpload(block.id, files);
-                              }
-                            }}
-                            className="hidden"
-                          />
-              </div>
-                      </div>
-                    ) : (
-                      // Empty state
-                      <div className="border-2 border-dashed border-gray-200 rounded-lg p-8">
-                        <div className="text-center space-y-4">
-                          <Grid3x3 className="w-12 h-12 text-gray-300 mx-auto" />
-                          <p className="text-sm text-gray-500">Upload or paste multiple images to create a grid</p>
-                          <p className="text-xs text-gray-400">
-                            Tip: Copy images and paste them here (Ctrl/Cmd + V)
-                          </p>
-            <button
-                            onClick={() => fileInputRefs.current[`${block.id}-grid`]?.click()}
-                            className="px-4 py-2 text-sm bg-black text-white hover:bg-gray-800 rounded-lg transition-colors flex items-center gap-2 mx-auto"
-                          >
-                            <Upload className="w-4 h-4" />
-                            Upload Images
-            </button>
-                          <input
-                            ref={(el) => { fileInputRefs.current[`${block.id}-grid`] = el; }}
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            onChange={(e) => {
-                              const files = e.target.files;
-                              if (files && files.length > 0) {
-                                handleImageGridUpload(block.id, files);
-                              }
-                            }}
-                            className="hidden"
-                          />
-          </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {block.type === 'video' && (
-                  <div className="border-2 border-dashed border-gray-200 rounded-lg p-8">
-                    <div className="text-center">
-                      <Video className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <input
-              type="url"
-                        value={block.metadata?.url || ''}
-                        onChange={(e) => updateBlock(block.id, { 
-                          metadata: { ...block.metadata, url: e.target.value, fileType: 'video' } 
-                        })}
-                        placeholder="YouTube, Vimeo, or Loom URL"
-                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:border-black focus:outline-none"
-                        autoFocus
-                      />
-                      {block.metadata?.url && (
-                        <div className="mt-4 aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                          <p className="text-sm text-gray-500">Video: {block.metadata.url}</p>
-          </div>
+                          {/* Expanded Content */}
+                          {isExpanded && (
+                            <div className="border-t border-gray-200 p-6 bg-gray-50">
+                              <h4 className="text-sm font-semibold text-gray-900 mb-3">Sections Include:</h4>
+                              <div className="space-y-2 mb-4">
+                                {template.sections.slice(0, 5).map((section) => (
+                                  <div key={section.id} className="flex items-center gap-2 text-sm">
+                                    <div className="w-1.5 h-1.5 bg-purple-500 rounded-full" />
+                                    <span className="text-gray-700">{section.label}</span>
+                                    {section.required && (
+                                      <span className="text-xs text-red-500">(Required)</span>
                       )}
                     </div>
+                ))}
+                                {template.sections.length > 5 && (
+                                  <div className="text-xs text-gray-500 pl-4">
+                                    +{template.sections.length - 5} more sections
                   </div>
                 )}
-
-                {block.type === 'embed' && (
-                  <div className="border-2 border-dashed border-gray-200 rounded-lg p-6">
-          <div className="space-y-3">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-2">File Type</label>
-            <select
-                          value={block.metadata?.fileType || 'pdf'}
-                          onChange={(e) => updateBlock(block.id, { 
-                            metadata: { ...block.metadata, fileType: e.target.value as any } 
-                          })}
-                          className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:border-black focus:outline-none"
-                        >
-                          <option value="pdf">PDF</option>
-                          <option value="csv">CSV</option>
-                          <option value="video">Video</option>
-                          <option value="figma">Figma</option>
-            </select>
           </div>
                       
-                      <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-2">Upload or Link File</label>
-                        <div className="flex gap-2">
-                <input
-                  type="url"
-                            value={block.metadata?.url?.startsWith('data:') ? '' : (block.metadata?.url || '')}
-                            onChange={(e) => updateBlock(block.id, { 
-                              metadata: { ...block.metadata, url: e.target.value } 
-                            })}
-                            placeholder="https://example.com/file.pdf"
-                            className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded focus:border-black focus:outline-none"
-                />
                 <button
-                            onClick={() => fileInputRefs.current[`${block.id}-file`]?.click()}
-                            className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded transition-colors flex items-center gap-2"
-                          >
-                            <Upload className="w-4 h-4" />
-                            Upload
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleUseTemplate(template.id);
+                                }}
+                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all shadow-lg"
+                              >
+                                <Check className="w-5 h-5" />
+                                Use This Template
                 </button>
-            <input
-                            ref={(el) => { fileInputRefs.current[`${block.id}-file`] = el; }}
-                            type="file"
-                            accept=".pdf,.csv,.mp4,.mov,.avi,.fig"
-                  onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleFileUpload(block.id, file);
-                            }}
-                            className="hidden"
-                          />
           </div>
+                    )}
           </div>
-                      
-            <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-2">Caption (optional)</label>
-              <input
-                type="text"
-                          value={block.content}
-                          onChange={(e) => updateBlock(block.id, { content: e.target.value })}
-                          placeholder="e.g., Project Proposal Document"
-                          className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:border-black focus:outline-none"
-              />
+                      );
+                    })}
             </div>
-                      
-                      {block.metadata?.url && (
-                        <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg flex items-center gap-3">
-                          <FileText className="w-6 h-6 text-gray-400" />
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-900">{block.content || 'Embedded File'}</p>
-                            <p className="text-xs text-gray-500 uppercase">{block.metadata.fileType}</p>
-          </div>
-                          <a
-                            href={block.metadata.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-blue-600 hover:text-blue-700"
-                          >
-                            View
-                          </a>
               </div>
             )}
-          </div>
-          </div>
-            )}
-          </div>
-                  </div>
-                ))}
-              </div>
           </div>
         ) : (
-          // Preview Mode - Rendered Content (Read-only)
-          <div className={`bg-white shadow-lg min-h-[800px] select-text ${
-            isMobile 
-              ? 'w-full max-w-md mx-4 rounded-2xl overflow-hidden' 
-              : 'w-full max-w-6xl mx-auto rounded-3xl overflow-hidden'
-          }`}>
-            <div className="px-16 py-12 pointer-events-auto">
-              {/* Project Header - Always shown */}
-              <div className="mb-12">
-                {/* Back Link */}
-                <button
-                  onClick={() => router.push(`/editor?mode=${viewMode}`)}
-                  className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 transition-colors mb-8"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  Back to Portfolio
-                </button>
-
-                {/* Project Title - 60px */}
+            // Preview Mode
+            <div className="bg-gray-100 py-12">
+              <div className={`bg-white shadow-lg mx-auto rounded-3xl overflow-hidden ${
+                isMobile ? 'w-full max-w-md px-8 py-12' : 'w-full max-w-6xl px-16 py-16'
+              }`}>
+                {/* Project Header - Shows Hero section data */}
+                <div className="mb-16">
+                  {/* Logo if present */}
+                  {heroBlock?.data?.logoUrl && (
+                    <img src={heroBlock.data.logoUrl} alt="Logo" className="h-16 mb-6" />
+                  )}
+                  
                 <h1 className="font-bold text-gray-900 mb-6" style={{ fontSize: '60px', lineHeight: '1.1' }}>
-                  {detailData?.title || getTitle()}
+                    {detailData?.title || 'Untitled Project'}
                 </h1>
 
-                {/* Project Description - 30px */}
+                  {heroBlock?.data?.subtitle && (
+                    <p className="text-2xl text-gray-600 mb-6">
+                      {heroBlock.data.subtitle}
+                    </p>
+                  )}
+                  
                 {detailData?.description && (
                   <p className="text-gray-700 mb-6" style={{ fontSize: '30px', lineHeight: '1.4' }}>
                     {detailData.description}
                   </p>
                 )}
 
-                {/* Tags */}
+                  {/* Hero Image if present */}
+                  {heroBlock?.data?.imageUrl && (
+                    <img src={heroBlock.data.imageUrl} alt="Hero" className="w-full rounded-lg mb-8" />
+                  )}
+                  
+                  {/* Meta Information */}
+                  {(detailData?.role || heroBlock?.data?.meta?.timeline || heroBlock?.data?.meta?.year || heroBlock?.data?.meta?.team) && (
+                    <div className="flex flex-wrap gap-3 text-base text-gray-600 mb-6">
+                      {detailData?.role && <span>{detailData.role}</span>}
+                      {heroBlock?.data?.meta?.timeline && (
+                        <>
+                          {detailData?.role && <span className="text-gray-300">•</span>}
+                          <span>{heroBlock.data.meta.timeline}</span>
+                        </>
+                      )}
+                      {heroBlock?.data?.meta?.year && (
+                        <>
+                          <span className="text-gray-300">•</span>
+                          <span>{heroBlock.data.meta.year}</span>
+                        </>
+                      )}
+                      {heroBlock?.data?.meta?.team && (
+                        <>
+                          <span className="text-gray-300">•</span>
+                          <span>{heroBlock.data.meta.team}</span>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  
                 {detailData?.tags && detailData.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-6">
                     {detailData.tags.map((tag: string, idx: number) => (
-                      <span
-                        key={idx}
-                        className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-sm font-medium"
-                      >
+                        <span key={idx} className="px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">
                         {tag}
                       </span>
                 ))}
               </div>
                 )}
 
-                {/* Project Link */}
                 {detailData?.link && (
-                  <a
-                    href={detailData.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-base text-blue-600 hover:text-blue-700 transition-colors"
-                  >
+                    <a href={detailData.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-base text-blue-600 hover:text-blue-700">
                     <LinkIcon className="w-4 h-4" />
                     {detailData.link}
                   </a>
                 )}
 
-                {/* Separator Line */}
-                <div className="mt-8 border-b border-gray-200" />
+                  <div className="border-b border-gray-200 mt-8" />
               </div>
 
-              {/* Blocks Content */}
-              <div className="space-y-6">
-                {blocks.map((block) => (
-                  <div key={block.id}>
-                    {block.type === 'h1' && block.content && (
-                      <h1 className="text-4xl font-bold text-black">{block.content}</h1>
-                    )}
-                    {block.type === 'h2' && block.content && (
-                      <h2 className="text-3xl font-bold text-black">{block.content}</h2>
-                    )}
-                    {block.type === 'h3' && block.content && (
-                      <h3 className="text-2xl font-semibold text-black">{block.content}</h3>
-                    )}
-                    {block.type === 'text' && block.content && (
-                      <p className="text-base text-gray-900 whitespace-pre-wrap">{block.content}</p>
-                    )}
-                    {block.type === 'image' && block.metadata?.url && (
-                      <div className="inline-block" style={{ width: block.metadata?.width || '100%' }}>
-                        <img src={block.metadata.url} alt="Content" className="w-full rounded-lg" />
+                {/* Template Content - Skip Hero block (already in header) */}
+                {isUsingTemplates && templateBlocks.length > 0 ? (
+                  <TemplateRenderer
+                    blocks={templateBlocks.slice(1)}
+                    onChange={(newBlocks) => {
+                      const updatedBlocks = [templateBlocks[0], ...newBlocks];
+                      saveBlocks(updatedBlocks);
+                    }}
+                    mode="preview"
+                  />
+                ) : (
+                  <div className="text-center py-20 text-gray-500">
+                    No content yet. Add a template to get started.
           </div>
                     )}
-                    {block.type === 'image-grid' && block.metadata?.images && block.metadata.images.length > 0 && (
-                      <div className={`grid gap-2 ${
-                        block.metadata?.gridLayout === '1x2' ? 'grid-cols-2' :
-                        block.metadata?.gridLayout === '1x3' ? 'grid-cols-3' :
-                        'grid-cols-3' // Default 2x3
-                      }`}>
-                        {block.metadata.images.map((url: string, idx: number) => (
-                          <img key={idx} src={url} alt={`Grid ${idx + 1}`} className="w-full aspect-square object-cover rounded" />
-                ))}
               </div>
-            )}
-                    {block.type === 'video' && block.metadata?.url && (
-                      <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                        <p className="text-sm text-gray-500">Video: {block.metadata.url}</p>
           </div>
                     )}
-                    {block.type === 'embed' && block.metadata?.url && (
-                      <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg flex items-center gap-3">
-                        <FileText className="w-6 h-6 text-gray-400" />
-                    <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900">{block.content || 'Embedded File'}</p>
-                          <p className="text-xs text-gray-500 uppercase">{block.metadata.fileType}</p>
                     </div>
-                        <a
-                          href={block.metadata.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:text-blue-700"
-                  >
-                          View
-                  </a>
                   </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-          </div>
-              </div>
-        )}
 
-        {/* Add Block Button at Bottom - Edit Mode Only */}
-        {viewMode === 'edit' && (
+      {/* Block Selector Modal */}
+      {showBlockSelector && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-2xl w-full shadow-2xl max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-gray-900">Add a Section</h3>
           <button
-            onClick={() => {
-              const newBlock: Block = { id: crypto.randomUUID(), type: 'text', content: '' };
-              saveBlocks([...blocks, newBlock]);
-            }}
-            className="mt-2 w-full py-2 text-sm text-gray-400 hover:text-black transition-colors flex items-center justify-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Add block
+                onClick={() => setShowBlockSelector(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
           </button>
-            )}
-          </div>
       </div>
 
-      {/* Slash Command Menu - Only in edit mode */}
-      {viewMode === 'edit' && showSlashMenu && (
-        <>
-          <div 
-            className="fixed inset-0 z-40"
-            onClick={() => setShowSlashMenu(false)}
-          />
-          <div 
-            className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-xl w-64"
-            style={{ top: slashMenuPosition.top + 4, left: slashMenuPosition.left }}
-          >
-            <div className="p-2">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search blocks..."
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:border-black focus:outline-none mb-2"
-                autoFocus
-              />
-              <div className="space-y-1 max-h-64 overflow-y-auto">
-                {filteredBlockTypes.map((bt) => (
+            <p className="text-gray-600 mb-6">
+              Choose a block type to add to your project:
+            </p>
+            
+            <div className="grid grid-cols-2 gap-4">
+              {BLOCK_TYPE_OPTIONS.map((option) => (
                   <button
-                    key={bt.type}
-                    onClick={() => addBlock(bt.type)}
-                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-900 hover:bg-gray-50 rounded transition-colors text-left"
-                  >
-                    <bt.icon className="w-4 h-4 text-gray-500" />
-                    <div className="flex-1">
-                      <div className="font-medium">{bt.label}</div>
-                      <div className="text-xs text-gray-400">{bt.shortcut}</div>
-                    </div>
+                  key={option.type}
+                  onClick={() => addSection(option.type)}
+                  className="p-4 bg-gray-50 border-2 border-gray-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all text-left group"
+                >
+                  <div className="text-3xl mb-2">{option.icon}</div>
+                  <h4 className="font-semibold text-gray-900 mb-1">{option.label}</h4>
+                  <p className="text-xs text-gray-600">{option.description}</p>
                   </button>
                 ))}
               </div>
           </div>
               </div>
-        </>
             )}
           </div>
         );
 }
+

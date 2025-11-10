@@ -102,21 +102,36 @@ export function usePortfolioData() {
         if (!parsedData.testimonials) parsedData.testimonials = [];
         if (!parsedData.projects) parsedData.projects = [];
 
-        // Migrate achievements to array format
+        // Migrate achievements to array format (DON'T limit to 3!)
         if (parsedData.careerHighlights) {
           parsedData.careerHighlights = parsedData.careerHighlights.map((highlight: any) => {
             if (typeof highlight.achievements === 'string') {
               const achievementsArray = highlight.achievements
                 .split('\n')
-                .filter((a: string) => a.trim())
-                .slice(0, 3);
+                .filter((a: string) => a.trim());
               return { ...highlight, achievements: achievementsArray };
             }
             if (Array.isArray(highlight.achievements)) {
-              return { ...highlight, achievements: highlight.achievements.slice(0, 3) };
+              return { ...highlight, achievements: highlight.achievements };
             }
             return { ...highlight, achievements: [] };
           });
+        }
+
+        // DON'T overwrite localStorage if database has less data than localStorage
+        if (cachedData) {
+          const cached = JSON.parse(cachedData);
+          const cachedCareerCount = cached.careerHighlights?.length || 0;
+          const dbCareerCount = parsedData.careerHighlights?.length || 0;
+          
+          if (dbCareerCount === 0 && cachedCareerCount > 0) {
+            console.warn('[Editor Debug] ⚠️ Database has no career highlights but localStorage does. Keeping localStorage data to prevent data loss.');
+            // Use localStorage data instead
+            if (!isMounted) return;
+            setPortfolio(cached);
+            setLoading(false);
+            return;
+          }
         }
 
         if (!isMounted) return;
@@ -135,9 +150,30 @@ export function usePortfolioData() {
     };
 
     loadData();
+
+    // Reload when window gains focus (user returns from detail editor)
+    const handleFocus = () => {
+      const cachedData = localStorage.getItem('portfolioData');
+      if (cachedData && isMounted) {
+        try {
+          const parsed = JSON.parse(cachedData);
+          console.log('[Editor Debug] ⚡ Reloading on window focus', {
+            projects: parsed.projects?.length || 0,
+            careerHighlights: parsed.careerHighlights?.length || 0,
+            careerWithAchievements: parsed.careerHighlights?.filter((c: any) => c.achievements?.length > 0).length || 0,
+          });
+          setPortfolio(parsed);
+        } catch (e) {
+          console.error('[Editor Debug] Failed to parse on focus:', e);
+        }
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
     
     return () => {
       isMounted = false;
+      window.removeEventListener('focus', handleFocus);
     };
   }, [router]);
 

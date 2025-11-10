@@ -137,3 +137,61 @@ input:disabled,
 textarea:disabled {
   color: #6b7280; /* gray-500 - medium gray for disabled */
 }
+
+/* ============================================
+   PORTFOLIO BUILDER - DESIGN TOKENS
+   ============================================ */
+
+:root {
+  /* Colors */
+  --accent: #7C3AED;
+  --text: #0F172A;
+  --muted: #6B7280;
+  --divider: #F2F4F7;
+  
+  /* Shadows */
+  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* ============================================
+   UTILITY CLASSES FOR NOTION-STYLE LAYOUT
+   ============================================ */
+
+/* Placeholder styling */
+.placeholder-italic::placeholder {
+  font-style: italic;
+  color: #9ca3af;
+}
+
+/* Hover tint for sections */
+.hover-tint {
+  transition: background-color 150ms;
+}
+
+.hover-tint:hover,
+.hover-tint:focus-within {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Focus underline animation */
+.focus-underline {
+  border-bottom: 1px solid transparent;
+  transition: border-color 150ms;
+}
+
+.focus-underline:hover {
+  border-bottom-color: #e5e7eb; /* gray-200 */
+}
+
+.focus-underline:focus {
+  border-bottom-color: #0F172A; /* gray-900 */
+  outline: none;
+}
+
+/* Section divider */
+.section-divider {
+  height: 1px;
+  background-color: #f3f4f6; /* gray-100 */
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+}

@@ -226,10 +226,30 @@ export default function PortfolioPreview({ data, showPlaceholders = false }: Por
                 const projectDesc = project.description || project.summary || '';
                 const projectImage = project.thumbnail || project.coverUrl;
                 
+                console.log('[PortfolioPreview] Project:', {
+                  id: project.id,
+                  name: projectName,
+                  thumbnail: project.thumbnail,
+                  coverUrl: project.coverUrl,
+                  finalImage: projectImage,
+                  hasImage: !!projectImage
+                });
+                
                 return (
-                  <div key={project.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-                    {projectImage && (
-                      <img src={projectImage} alt={projectName} className="w-full h-48 object-cover" />
+                  <div key={project.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow bg-white">
+                    {projectImage ? (
+                      <img 
+                        src={projectImage} 
+                        alt={projectName} 
+                        className="w-full h-48 object-cover"
+                        onError={(e) => {
+                          console.error('[PortfolioPreview] Image failed to load:', projectImage);
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-48 bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
+                        <span className="text-gray-400 text-sm">No thumbnail</span>
+                      </div>
                     )}
                     <div className="p-6">
                       <h3 className="text-xl font-bold text-gray-900 mb-2">{projectName}</h3>

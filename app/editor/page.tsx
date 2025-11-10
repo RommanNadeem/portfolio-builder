@@ -28,7 +28,7 @@ export default function EditorPage() {
   }, []);
   
   const { portfolio, updatePortfolio, savePortfolio, loading, error } = usePortfolioData();
-  const { isDirty, isSaving, lastSaved, forceSave } = useAutoSave(portfolio, savePortfolio);
+  const { isDirty, isSaving, lastSaved, forceSave } = useAutoSave(portfolio, savePortfolio, 500);
 
   if (loading) {
     return (

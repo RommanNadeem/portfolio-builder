@@ -19,7 +19,19 @@ interface OnboardingData {
     startDate: string;
     endDate: string;
     location: string;
+    // Legacy field
     highlights: string[];
+    // NEW: Separated fields from backend
+    responsibilities?: string[];
+    key_achievements?: string[];
+    impacts?: any; // Structured impacts object
+    // NEW: Company grouping metadata from backend
+    companyGroup?: string;
+    companyOccurrence?: number;
+    sameCompanyCount?: number;
+    hasMultipleRolesAtCompany?: boolean;
+    sameCompanyRoles?: string[];
+    companyTenure?: any;
   }>;
   projects?: any[];
   links?: Array<{
@@ -44,7 +56,13 @@ interface EditorData {
     role: string;
     description: string;
     link: string;
+    // Legacy field
     achievements: string[];
+    // NEW: Separated fields
+    responsibilities?: string[];
+    key_achievements?: string[];
+    impacts?: any; // Structured impacts
+    featured_achievements?: number[];
     startDate: string;
     endDate: string;
     current: boolean;
@@ -96,20 +114,66 @@ export function convertOnboardingToEditor(onboardingData: OnboardingData): Edito
     .join(', ') || '';
 
   // Convert experiences to career highlights
-  const careerHighlights = (onboardingData.experiences || []).map(exp => ({
-    id: exp.id,
-    organization: exp.company,
-    role: exp.title,
-    description: exp.highlights?.[0] || '',
-    link: '',
-    achievements: exp.highlights || [],
-    startDate: exp.startDate,
-    endDate: exp.endDate,
-    current: exp.endDate?.toLowerCase().includes('present') || false,
-    isPageBlock: false,
-    pageContent: '',
-    sections: []
-  }));
+  const careerHighlights = (onboardingData.experiences || []).map(exp => {
+    // Check if backend provided separated fields
+    const hasNewFields = exp.key_achievements || exp.responsibilities;
+    
+    let achievements: string[] = [];
+    let responsibilities: string[] = [];
+    let key_achievements: string[] = [];
+    let featured_achievements: number[] | undefined = undefined;
+    
+    if (hasNewFields) {
+      // Use new separated fields from backend
+      responsibilities = exp.responsibilities || [];
+      key_achievements = exp.key_achievements || [];
+      // Combine for legacy field
+      achievements = [...key_achievements, ...responsibilities];
+      // Feature first 3 key achievements
+      const featuredCount = Math.min(3, key_achievements.length);
+      featured_achievements = featuredCount > 0 
+        ? Array.from({ length: featuredCount }, (_, i) => i)
+        : undefined;
+      
+      console.log('[Onboarding Mapper] Using separated fields - Responsibilities:', responsibilities.length, 'Key Achievements:', key_achievements.length);
+    } else {
+      // Fall back to legacy highlights field
+      achievements = exp.highlights || [];
+      // Feature first 3 from all achievements
+      const featuredCount = Math.min(3, achievements.length);
+      featured_achievements = featuredCount > 0 
+        ? Array.from({ length: featuredCount }, (_, i) => i)
+        : undefined;
+      
+      console.log('[Onboarding Mapper] Using legacy highlights field:', achievements.length);
+    }
+    
+    return {
+      id: exp.id,
+      organization: exp.company,
+      role: exp.title,
+      description: exp.highlights?.[0] || '',
+      link: '',
+      achievements: achievements,
+      responsibilities: responsibilities.length > 0 ? responsibilities : undefined,
+      key_achievements: key_achievements.length > 0 ? key_achievements : undefined,
+      impacts: exp.impacts || undefined, // Pass through structured impacts
+      // NEW: Company grouping metadata
+      companyGroup: exp.companyGroup,
+      companyOccurrence: exp.companyOccurrence,
+      sameCompanyCount: exp.sameCompanyCount,
+      hasMultipleRolesAtCompany: exp.hasMultipleRolesAtCompany,
+      sameCompanyRoles: exp.sameCompanyRoles,
+      companyTenure: exp.companyTenure,
+      featured_achievements: featured_achievements,
+      startDate: exp.startDate,
+      endDate: exp.endDate,
+      current: exp.endDate?.toLowerCase().includes('present') || false,
+      isPageBlock: false,
+      pageContent: '',
+      sections: []
+    };
+  });
 
   // Convert links to socialLinks
   const socialLinks = (onboardingData.links || []).map((link, idx) => ({

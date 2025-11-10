@@ -1,6 +1,6 @@
 'use client';
 
-import { Eye, Pencil, Monitor, Smartphone, Save, LogOut, Settings } from 'lucide-react';
+import { Eye, Pencil, Monitor, Smartphone, Save, LogOut, Settings, LayoutDashboard } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { signOut } from '@/lib/supabase';
 import { ResizablePanes } from './ResizablePanes';
@@ -135,6 +135,16 @@ export function EditorLayout({
               Save Now
             </button>
           )}
+
+          {/* Dashboard */}
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-medium rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg"
+            title="Go to Dashboard"
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            Dashboard
+          </button>
 
           {/* Preview Portfolio */}
           <button

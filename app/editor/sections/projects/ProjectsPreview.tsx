@@ -14,6 +14,14 @@ interface ProjectsPreviewProps {
 export function ProjectsPreview({ projects, viewMode, previewMode, onUpdate }: ProjectsPreviewProps) {
   const router = useRouter();
   
+  // Debug: Log projects data to see if thumbnails are present
+  console.log('[ProjectsPreview] Rendering projects:', projects.map(p => ({
+    id: p.id,
+    title: p.title,
+    thumbnail: p.thumbnail,
+    hasThumbnail: !!p.thumbnail
+  })));
+  
   if (projects.length === 0 && viewMode === 'preview') {
     return null;
   }
@@ -22,14 +30,9 @@ export function ProjectsPreview({ projects, viewMode, previewMode, onUpdate }: P
   const isEditable = viewMode === 'edit' && onUpdate;
 
   const handleCardClick = (projectId: string, e: React.MouseEvent) => {
-    // Navigate based on current view mode
+    // Navigate to the new project editor (pass current viewMode)
     if (!(e.target as HTMLElement).closest('a')) {
-      if (viewMode === 'preview') {
-        router.push(`/detail/project/${projectId}?mode=preview`);
-      } else if (viewMode === 'edit') {
-        // In edit mode, clicking card should also go to edit mode
-        router.push(`/detail/project/${projectId}?mode=edit`);
-      }
+      router.push(`/detail/project-editor/${projectId}?mode=${viewMode}`);
     }
   };
 
@@ -63,12 +66,16 @@ export function ProjectsPreview({ projects, viewMode, previewMode, onUpdate }: P
                     src={project.thumbnail}
                     alt={project.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      console.error('[ProjectsPreview] Image failed to load:', project.thumbnail);
+                      e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23f3f4f6" width="100" height="100"/%3E%3C/svg%3E';
+                    }}
                   />
                 </div>
               ) : (
-                viewMode === 'preview' && (
-                  <div className="aspect-video w-full bg-gradient-to-br from-purple-50 to-blue-50 border-b border-gray-100" />
-                )
+                <div className="aspect-video w-full bg-gradient-to-br from-purple-50 to-blue-50 border-b border-gray-100 flex items-center justify-center">
+                  <span className="text-gray-400 text-sm">No thumbnail</span>
+                </div>
               )}
 
               {/* Content */}
@@ -95,12 +102,12 @@ export function ProjectsPreview({ projects, viewMode, previewMode, onUpdate }: P
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          router.push(`/detail/project/${project.id}?mode=edit`);
+                          router.push(`/detail/project-editor/${project.id}?mode=${viewMode}`);
                         }}
                         className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-600 hover:bg-purple-50 rounded transition-colors"
                       >
                         <FileEdit className="w-3.5 h-3.5" />
-                        Edit
+                        Edit Details
                       </button>
                     </div>
                   )}
@@ -124,7 +131,7 @@ export function ProjectsPreview({ projects, viewMode, previewMode, onUpdate }: P
                 )}
 
                 {/* Tags */}
-                {project.tags.length > 0 && (
+                {project.tags && Array.isArray(project.tags) && project.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-3">
                     {project.tags.map((tag, idx) => (
                       <span

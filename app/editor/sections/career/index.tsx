@@ -30,6 +30,14 @@ export function CareerSection({ data, onChange, viewMode, previewMode, renderMod
     handleUpdate
   );
 
+  // Debug logging
+  console.log('[CareerSection] Rendering with:', {
+    renderMode,
+    viewMode,
+    highlightsCount: highlights.length,
+    rawDataCount: data.careerHighlights?.length || 0,
+  });
+
   const handleAdd = () => {
     addItem({
       organization: '',
@@ -76,6 +84,7 @@ export function CareerSection({ data, onChange, viewMode, previewMode, renderMod
             onDelete={deleteItem}
             onMove={moveItem}
             isExpanded={isExpanded}
+            viewMode={viewMode}
           />
         </div>
       </div>

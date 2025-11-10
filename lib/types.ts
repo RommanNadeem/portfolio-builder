@@ -37,13 +37,37 @@ export interface CareerHighlight {
   role: string;
   description?: string;
   link?: string;
-  achievements: string[];  // JSONB array
+  
+  // Legacy field - kept for backwards compatibility
+  achievements: string[];  // JSONB array - all achievements
+  
+  // NEW: Separate responsibilities and achievements
+  responsibilities?: string[];  // JSONB array - Generic duties/tasks
+  key_achievements?: string[];  // JSONB array - Impact-focused accomplishments with metrics
+  
+  // NEW: Structured impacts from backend
+  impacts?: any;  // JSONB object - Categorized impacts (business, performance, growth, etc.)
+  
+  // NEW: Company grouping metadata
+  company_group?: string;  // Normalized company name for grouping
+  company_occurrence?: number;  // Which occurrence (1, 2, 3)
+  same_company_count?: number;  // Total roles at this company
+  has_multiple_roles_at_company?: boolean;  // Multiple roles flag
+  same_company_roles?: string[];  // JSONB array - Other roles at same company
+  company_tenure?: any;  // JSONB object - Overall tenure info
+  
+  featured_achievements?: number[];  // JSONB array - indices of KEY_ACHIEVEMENTS to show on card
+  achievements_order?: number[];  // JSONB array - custom ordering of achievements
   start_date?: string;
   end_date?: string;
   is_current?: boolean;
   is_page_block?: boolean;
   page_content?: string;
   sections?: any[];  // JSONB array
+  blocks?: any[];  // JSONB array - for template blocks
+  template_type?: string;  // Template type (e.g., 'career-experience')
+  published?: boolean;  // Whether career page is published
+  published_at?: string;  // When career page was published
   display_order?: number;
   created_at?: string;
   updated_at?: string;
@@ -72,7 +96,12 @@ export interface Project {
   tags: string[];  // JSONB array
   page_content?: string;
   link?: string;
+  role?: string;  // User's role in the project
   sections?: any[];  // JSONB array
+  blocks?: any[];  // JSONB array - for template blocks
+  template_type?: string;  // Template type (e.g., 'product-case-study')
+  published?: boolean;  // Whether project is published
+  published_at?: string;  // When project was published
   display_order?: number;
   created_at?: string;
   updated_at?: string;

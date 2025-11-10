@@ -320,11 +320,11 @@ export async function saveCompletePortfolio(
     console.log('[Database Debug] Career highlights count:', portfolioData.careerHighlights?.length || 0);
     
     // 1. Save profile FIRST and check for errors
-    const profileResult = await supabase.from('profiles').upsert({
+    const profileData = {
       id: userId,
       full_name: portfolioData.fullName,
       heading: portfolioData.heading,
-      profession: portfolioData.profession || '',
+      profession: portfolioData.profession || 'Professional', // Default to 'Professional' instead of empty string
       email: portfolioData.email,
       phone: portfolioData.phone,
       tagline: portfolioData.tagline,
@@ -333,11 +333,41 @@ export async function saveCompletePortfolio(
       resume_url: portfolioData.resume,
       companies: portfolioData.companies,
       slider_companies: portfolioData.sliderCompanies
+    };
+    
+    console.log('[Database Debug] Attempting to save profile:', profileData);
+    
+    let profileResult;
+    try {
+      profileResult = await supabase.from('profiles').upsert(profileData);
+    } catch (err: any) {
+      console.error('[Database Debug] Exception during profile upsert:', err);
+      throw new Error('Failed to save profile: ' + err.message);
+    }
+    
+    console.log('[Database Debug] Profile upsert result:', {
+      error: profileResult.error,
+      errorMessage: profileResult.error?.message,
+      errorDetails: profileResult.error?.details,
+      errorHint: profileResult.error?.hint,
+      errorCode: profileResult.error?.code,
+      status: profileResult.status,
+      statusText: profileResult.statusText,
+      data: profileResult.data
     });
     
     if (profileResult.error) {
       console.error('[Database Debug] Profile upsert failed:', profileResult.error);
-      throw new Error('Failed to save profile: ' + profileResult.error.message);
+      console.error('[Database Debug] Error keys:', Object.keys(profileResult.error));
+      console.error('[Database Debug] Full error object:', JSON.stringify(profileResult.error, null, 2));
+      
+      // Try to extract any error info
+      const errorMsg = profileResult.error.message 
+        || profileResult.error.details 
+        || profileResult.error.hint 
+        || 'Unknown database error. Check Supabase logs.';
+      
+      throw new Error('Failed to save profile: ' + errorMsg);
     }
     
     console.log('[Database Debug] Profile saved successfully');
@@ -433,22 +463,62 @@ export async function saveCompletePortfolio(
         const isValidUUID = h.id && h.id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
         const validId = isValidUUID ? h.id : crypto.randomUUID();
         
-        return {
+        // Debug: Log what we're trying to save for impacts
+        if (h.impacts) {
+          console.log('[Database Debug] Career has impacts to save:', {
+            organization: h.organization,
+            impactsKeys: Object.keys(h.impacts),
+            businessImpacts: h.impacts.business?.length || 0,
+            performanceImpacts: h.impacts.performance?.length || 0,
+            fullImpacts: h.impacts
+          });
+        } else {
+          console.log('[Database Debug] Career has NO impacts:', h.organization);
+        }
+        
+        const careerData = {
           id: validId,
           user_id: userId,
           organization: h.organization,
           role: h.role,
           description: h.description || '',
           link: h.link || '',
+          // Legacy field - keep for backwards compatibility
           achievements: h.achievements || [],
+          // NEW: Separated fields
+          responsibilities: h.responsibilities || null,
+          key_achievements: h.key_achievements || null,
+          impacts: h.impacts || null, // Structured impacts object
+          // NEW: Company grouping metadata
+          company_group: h.companyGroup || null,
+          company_occurrence: h.companyOccurrence || null,
+          same_company_count: h.sameCompanyCount || null,
+          has_multiple_roles_at_company: h.hasMultipleRolesAtCompany || null,
+          same_company_roles: h.sameCompanyRoles || null,
+          company_tenure: h.companyTenure || null,
+          featured_achievements: h.featured_achievements || null,
+          achievements_order: h.achievements_order || null,
           start_date: h.startDate,
           end_date: h.endDate,
           is_current: h.current || false,
           is_page_block: h.isPageBlock || false,
           page_content: h.pageContent || '',
           sections: h.sections || [],
+          blocks: h.blocks || null,
+          template_type: h.template_type || null,
+          published: h.published || false,
+          published_at: h.published_at || null,
           display_order: index
         };
+        
+        console.log('[Database Debug] Prepared career for upsert:', {
+          id: careerData.id,
+          organization: careerData.organization,
+          hasImpacts: !!careerData.impacts,
+          impactsValue: careerData.impacts
+        });
+        
+        return careerData;
       });
       
       const upsertResult = await supabase.from('career_highlights').upsert(careerHighlightsToUpsert, { onConflict: 'id' });
@@ -501,17 +571,25 @@ export async function saveCompletePortfolio(
     // Projects - Use upsert
     if (portfolioData.projects?.length > 0) {
       console.log('[Database Debug] Upserting', portfolioData.projects.length, 'projects');
+      console.log('[Database Debug] Projects data:', portfolioData.projects);
       
       const newProjectIds = portfolioData.projects.map((p: any) => p.id);
       const { data: existingProjects } = await supabase.from('projects').select('id').eq('user_id', userId);
       if (existingProjects) {
         const toDelete = existingProjects.map(p => p.id).filter(id => !newProjectIds.includes(id));
-        if (toDelete.length > 0) await supabase.from('projects').delete().in('id', toDelete);
+        if (toDelete.length > 0) {
+          console.log('[Database Debug] Deleting', toDelete.length, 'old projects');
+          await supabase.from('projects').delete().in('id', toDelete);
+        }
       }
       
-      await supabase.from('projects').upsert(
-        portfolioData.projects.map((p: any, index: number) => ({
-          id: p.id,
+      const projectsToUpsert = portfolioData.projects.map((p: any, index: number) => {
+        // Ensure valid UUID
+        const isValidUUID = p.id && p.id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+        const validId = isValidUUID ? p.id : crypto.randomUUID();
+        
+        return {
+          id: validId,
           user_id: userId,
           title: p.title,
           description: p.description,
@@ -519,13 +597,38 @@ export async function saveCompletePortfolio(
           tags: p.tags || [],
           page_content: p.pageContent,
           link: p.link,
+          role: p.role, // User's role in project
           sections: p.sections || [],
-          blocks: p.blocks || [], // Add blocks field for detail page content
+          blocks: p.blocks || [], // Detail page blocks (legacy or template)
+          template_type: p.template_type, // Template type (e.g., 'product-case-study')
+          published: p.published || false, // Published status
+          published_at: p.published_at, // Published timestamp
           display_order: index
-        })),
+        };
+      });
+      
+      console.log('[Database Debug] Prepared projects for upsert:', projectsToUpsert);
+      
+      const projectsUpsertResult = await supabase.from('projects').upsert(
+        projectsToUpsert,
         { onConflict: 'id' }
       );
+      
+      console.log('[Database Debug] Projects upsert result:', projectsUpsertResult);
+      
+      if (projectsUpsertResult.error) {
+        console.error('[Database Debug] Projects upsert ERROR:');
+        console.error('  - Message:', projectsUpsertResult.error.message);
+        console.error('  - Details:', projectsUpsertResult.error.details);
+        console.error('  - Hint:', projectsUpsertResult.error.hint);
+        console.error('  - Code:', projectsUpsertResult.error.code);
+        console.error('  - Full error:', JSON.stringify(projectsUpsertResult.error, null, 2));
+        // Don't throw, just log and continue
+      } else {
+        console.log('[Database Debug] ✅ Projects upserted successfully with template data');
+      }
     } else {
+      console.log('[Database Debug] No projects - deleting all');
       await supabase.from('projects').delete().eq('user_id', userId);
     }
     
@@ -627,12 +730,29 @@ export function convertToLegacyFormat(portfolioData: PortfolioData): any {
       description: h.description,
       link: h.link,
       achievements: h.achievements || [],
+      // NEW: Include all new fields when converting from database
+      responsibilities: h.responsibilities || [],
+      key_achievements: h.key_achievements || [],
+      impacts: h.impacts || undefined,
+      featured_achievements: h.featured_achievements || undefined,
+      achievements_order: h.achievements_order || undefined,
+      // NEW: Company grouping metadata
+      companyGroup: h.company_group,
+      companyOccurrence: h.company_occurrence,
+      sameCompanyCount: h.same_company_count,
+      hasMultipleRolesAtCompany: h.has_multiple_roles_at_company,
+      sameCompanyRoles: h.same_company_roles,
+      companyTenure: h.company_tenure,
       startDate: h.start_date,
       endDate: h.end_date,
       current: h.is_current,
       isPageBlock: h.is_page_block,
       pageContent: h.page_content,
-      sections: h.sections || []
+      sections: h.sections || [],
+      blocks: h.blocks || [],
+      template_type: h.template_type,
+      published: h.published || false,
+      published_at: h.published_at
     })),
     
     strengths: portfolioData.strengths.map(s => ({
@@ -653,8 +773,12 @@ export function convertToLegacyFormat(portfolioData: PortfolioData): any {
       tags: p.tags || [],
       pageContent: p.page_content,
       link: p.link,
+      role: p.role, // User's role
       sections: p.sections || [],
-      blocks: p.blocks || [] // Include blocks for detail page content
+      blocks: p.blocks || [], // Detail page blocks
+      template_type: p.template_type, // Template type
+      published: p.published || false, // Published status
+      published_at: p.published_at // Published timestamp
     })),
     
     testimonials: portfolioData.testimonials.map(t => ({

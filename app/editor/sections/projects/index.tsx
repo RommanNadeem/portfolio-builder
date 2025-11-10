@@ -76,6 +76,7 @@ export function ProjectsSection({ data, onChange, viewMode, previewMode, renderM
             onDelete={deleteItem}
             onMove={moveItem}
             isExpanded={isExpanded}
+            viewMode={viewMode}
           />
         </div>
       </div>
