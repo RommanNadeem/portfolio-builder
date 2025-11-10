@@ -27,7 +27,7 @@ export default function EditorPage() {
     }
   }, []);
   
-  const { portfolio, updatePortfolio, savePortfolio, loading, error } = usePortfolioData();
+  const { portfolio, updatePortfolio, savePortfolio, loading, error, currentUserId } = usePortfolioData();
   const { isDirty, isSaving, lastSaved, forceSave } = useAutoSave(portfolio, savePortfolio, 500);
 
   if (loading) {
@@ -107,6 +107,7 @@ export default function EditorPage() {
         viewMode={viewMode}
         previewMode={previewMode}
         renderMode="editor"
+        userId={currentUserId}
       />
       
       <ProjectsSection
@@ -115,6 +116,7 @@ export default function EditorPage() {
         viewMode={viewMode}
         previewMode={previewMode}
         renderMode="editor"
+        userId={currentUserId}
       />
       
       <StrengthsSection
@@ -123,6 +125,7 @@ export default function EditorPage() {
         viewMode={viewMode}
         previewMode={previewMode}
         renderMode="editor"
+        userId={currentUserId}
       />
       
       <TestimonialsSection
@@ -131,6 +134,7 @@ export default function EditorPage() {
         viewMode={viewMode}
         previewMode={previewMode}
         renderMode="editor"
+        userId={currentUserId}
       />
       
       <FooterSection
@@ -183,6 +187,7 @@ export default function EditorPage() {
         viewMode={viewMode}
         previewMode={previewMode}
         renderMode="preview"
+        userId={currentUserId}
       />
       
       <ProjectsSection
@@ -191,6 +196,7 @@ export default function EditorPage() {
         viewMode={viewMode}
         previewMode={previewMode}
         renderMode="preview"
+        userId={currentUserId}
       />
       
       <StrengthsSection
@@ -199,6 +205,7 @@ export default function EditorPage() {
         viewMode={viewMode}
         previewMode={previewMode}
         renderMode="preview"
+        userId={currentUserId}
       />
       
       <TestimonialsSection
@@ -207,6 +214,7 @@ export default function EditorPage() {
         viewMode={viewMode}
         previewMode={previewMode}
         renderMode="preview"
+        userId={currentUserId}
       />
       
       <FooterSection
