@@ -39,18 +39,18 @@ interface PortfolioPreviewProps {
 
 export function PortfolioPreview({ data, focusSection = null }: PortfolioPreviewProps) {
   // Refs for each section
-  const imageRef = useRef<HTMLDivElement>(null);
-  const headingRef = useRef<HTMLDivElement>(null);
-  const taglineRef = useRef<HTMLDivElement>(null);
-  const aboutRef = useRef<HTMLDivElement>(null);
-  const careerRef = useRef<HTMLDivElement>(null);
-  const linksRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLDivElement | null>(null);
+  const headingRef = useRef<HTMLDivElement | null>(null);
+  const taglineRef = useRef<HTMLDivElement | null>(null);
+  const aboutRef = useRef<HTMLDivElement | null>(null);
+  const careerRef = useRef<HTMLDivElement | null>(null);
+  const linksRef = useRef<HTMLDivElement | null>(null);
 
   // Scroll to focused section
   useEffect(() => {
     if (!focusSection) return;
 
-    let targetRef: React.RefObject<HTMLDivElement> | null = null;
+    let targetRef: React.RefObject<HTMLDivElement | null> | null = null;
 
     switch (focusSection) {
       case 'image':

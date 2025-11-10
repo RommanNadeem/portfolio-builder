@@ -150,7 +150,7 @@ export function convertToLegacy(item: CareerItem): CareerHighlight {
     blocks: item.blocks,
     template_type: item.template_type,
     published: item.published,
-    published_at: item.published_at,
+    published_at: item.published_at || undefined,
   };
 }
 

@@ -14,7 +14,7 @@ interface PersistenceOptions {
 export function useTemplatePersistence(options: PersistenceOptions) {
   const { entityType, entityId, storageKey, onSave, autoSaveDelay = 2500 } = options;
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
-  const saveTimeoutRef = useRef<NodeJS.Timeout>();
+  const saveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const saveToLocalStorage = useCallback((data: any, blocks: TemplateBlock[], templateType: string | null) => {
     setSaveStatus('saving');
@@ -42,7 +42,7 @@ export function useTemplatePersistence(options: PersistenceOptions) {
       hasHero: !!heroBlock,
       heroType: heroBlock?.type,
       metaFields: heroBlock?.data?.meta ? Object.keys(heroBlock.data.meta) : [],
-      website: heroBlock?.data?.meta?.Website
+      website: (heroBlock?.data?.meta as any)?.Website
     });
     
     // Build updated entity preserving ALL existing fields
@@ -68,7 +68,7 @@ export function useTemplatePersistence(options: PersistenceOptions) {
       console.log('[Persistence] Syncing career hero data:', {
         title: heroBlock.data.title,
         subtitle: heroBlock.data.subtitle,
-        metaWebsite: heroBlock.data.meta?.Website,
+        metaWebsite: (heroBlock.data.meta as any)?.Website,
         currentLink: currentEntity.link
       });
       
@@ -77,9 +77,9 @@ export function useTemplatePersistence(options: PersistenceOptions) {
       if (heroBlock.data.description) updatedEntity.description = heroBlock.data.description;
       
       // Sync company website from hero meta to career highlight link
-      if (heroBlock.data.meta?.Website) {
-        updatedEntity.link = heroBlock.data.meta.Website;
-        console.log('[Persistence] ✅ Synced company website to career card:', heroBlock.data.meta.Website);
+      if ((heroBlock.data.meta as any)?.Website) {
+        updatedEntity.link = (heroBlock.data.meta as any).Website;
+        console.log('[Persistence] ✅ Synced company website to career card:', (heroBlock.data.meta as any).Website);
       } else {
         console.log('[Persistence] ⚠️ No website in hero meta to sync');
       }
@@ -111,7 +111,7 @@ export function useTemplatePersistence(options: PersistenceOptions) {
         link: updatedEntity.link || '(empty)',
         hasBlocks: !!updatedEntity.blocks,
         blocksCount: updatedEntity.blocks?.length || 0,
-        heroWebsite: updatedEntity.blocks?.[0]?.data?.meta?.Website || '(none in blocks)'
+        heroWebsite: (updatedEntity.blocks?.[0]?.data?.meta as any)?.Website || '(none in blocks)'
       });
     }
     

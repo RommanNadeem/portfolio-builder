@@ -382,11 +382,11 @@ export class EntityDocumentManager {
         metric.description || ''
       );
       
-      if (!impacts[category]) {
-        impacts[category] = [];
+      if (!impacts[category as keyof CareerImpacts]) {
+        (impacts as any)[category] = [];
       }
       
-      impacts[category]!.push({
+      (impacts as any)[category]!.push({
         value: metric.value || '',
         metric: metric.label || '',
         description: metric.description || '',

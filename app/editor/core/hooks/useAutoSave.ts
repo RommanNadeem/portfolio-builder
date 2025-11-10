@@ -103,8 +103,8 @@ export function useAutoSave<T>({
       clearTimeout(saveTimeoutRef.current);
     }
 
-    // Set unsaved status immediately
-    setSaveStatus('unsaved');
+    // Set saving status immediately
+    setSaveStatus('saving');
 
     // Schedule save
     saveTimeoutRef.current = setTimeout(() => {

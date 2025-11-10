@@ -110,11 +110,10 @@ export function HeroBlock({ block, onChange, mode, entityType }: HeroBlockProps)
               {data.meta.year && <span>📅 {data.meta.year}</span>}
               {data.meta.team && <span>👥 {data.meta.team}</span>}
               {data.meta.timeline && <span>⏱️ {data.meta.timeline}</span>}
-              {data.meta.Timeline && <span>⏱️ {data.meta.Timeline}</span>}
               {data.meta.role && <span>🎯 {data.meta.role}</span>}
-              {data.meta.Website && (
+              {(data.meta as any).Website && (
                 <a
-                  href={data.meta.Website}
+                  href={(data.meta as any).Website}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors"
@@ -190,11 +189,11 @@ export function HeroBlock({ block, onChange, mode, entityType }: HeroBlockProps)
           </label>
           <input
             type="url"
-            value={data.meta?.Website || ''}
+            value={(data.meta as any)?.Website || ''}
             onChange={(e) => {
               const newWebsite = e.target.value;
               console.log('[HeroBlock] Website field changed:', {
-                oldValue: data.meta?.Website,
+                oldValue: (data.meta as any)?.Website,
                 newValue: newWebsite,
                 fullMeta: { ...data.meta, Website: newWebsite }
               });
@@ -202,7 +201,7 @@ export function HeroBlock({ block, onChange, mode, entityType }: HeroBlockProps)
                 ...block, 
                 data: { 
                   ...data, 
-                  meta: { ...data.meta, Website: newWebsite } 
+                  meta: { ...data.meta, Website: newWebsite } as any
                 } 
               });
             }}

@@ -205,7 +205,7 @@ export default function OnboardingFlowPage() {
         `Building great products`
       ];
 
-      const whoAreYou = aboutData?.whoAreYou || parsed.whoAreYou || `I'm a ${parsed.profession} who builds impactful products.`;
+      const whoAreYou = (aboutData as any)?.whoAreYou || parsed.whoAreYou || `I'm a ${parsed.profession} who builds impactful products.`;
 
       setData(prev => ({
         ...prev,
@@ -456,7 +456,7 @@ export default function OnboardingFlowPage() {
 
       track({
         kind: 'signup_completed',
-        payload: { source: data.source }
+        payload: { source: data.source } as any
       });
 
       // 2. Save portfolio data to Supabase
@@ -540,7 +540,7 @@ export default function OnboardingFlowPage() {
           hasData: true,
           source: data.source
         }
-      });
+      } as any);
 
       // 4. Navigate directly to editor (bypassing dashboard)
       console.log('[Signup Debug] Redirecting to editor');

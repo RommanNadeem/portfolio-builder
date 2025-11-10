@@ -52,7 +52,7 @@ export function PersonalPreview({ data, socialLinks = [], viewMode, previewMode 
               {data.profileImage ? (
                 <img 
                   src={data.profileImage} 
-                  alt={data.fullName}
+                  alt={(data as any).fullName || data.heading}
                   className="w-full h-full object-cover"
                 />
               ) : (

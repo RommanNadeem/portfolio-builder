@@ -19,7 +19,7 @@ export { NotionStyleSection } from './NotionStyleSection';
 export { useTemplateState } from './hooks/useTemplateState';
 export { useTemplatePersistence } from './hooks/useTemplatePersistence';
 
-// Blocks
-export * from './blocks';
-export * from './blocks/BlockSuggestions';
+// Blocks (components only, types are from ./types)
+export { HeroBlock, CalloutBlock, RichTextBlock, BulletsBlock, StepsBlock, FeatureGridBlock, GalleryBlock, MetricsBlock, EmbedBlock } from './blocks';
+export { ImagePlaceholder, GalleryPlaceholder, LogoPlaceholder } from './blocks/ImagePlaceholder';
 

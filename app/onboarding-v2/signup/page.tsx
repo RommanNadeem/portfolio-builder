@@ -80,7 +80,7 @@ export default function OnboardingSignupPage() {
       track({
         kind: 'signup_completed',
         payload: { source: portfolioData?.source }
-      });
+      } as any);
 
       // 2. Save portfolio data to Supabase
       if (portfolioData && authData.user) {
@@ -114,7 +114,7 @@ export default function OnboardingSignupPage() {
           hasData: !!portfolioData,
           source: portfolioData?.source
         }
-      });
+      } as any);
 
       // 5. Navigate directly to editor (bypassing dashboard)
       console.log('[Signup Debug] Redirecting to editor');

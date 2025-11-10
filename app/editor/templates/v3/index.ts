@@ -18,6 +18,5 @@ export {
 export type { TemplateInitializer } from './adapters/EntityToTemplateAdapter';
 
 // Hooks
-export { useEntityDocument } from './hooks/useEntityDocument';
-export type { UseEntityDocumentOptions, UseEntityDocumentReturn } from './hooks/useEntityDocument';
+export { useTemplateEditor } from './hooks/useTemplateEditor';
 

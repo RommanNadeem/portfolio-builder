@@ -8,7 +8,6 @@
 import { ProjectItem, CareerItem } from '@/app/editor/core/types';
 
 // Re-export template types for convenience
-export type { BlockInstance, BlockPlugin } from '../../../templates/types';
 export type { TemplateType, TemplateBlock } from '../../../templates/types';
 
 /**
