@@ -88,13 +88,26 @@ export default function ProjectEditor() {
   // Sync UI state with document (only on initial load)
   useEffect(() => {
     if (!loading && document && isLoading) {
+      console.log('[ProjectEditor V3] Determining flow state:', {
+        templateType,
+        blocksLength: blocks.length,
+        hasBlocks: blocks.length > 0,
+        entityTemplateType: (document.entity_data as any).template_type,
+      });
+
       // Check if we should show template selector or editor
-      if (templateType && blocks.length > 0) {
+      if (blocks.length > 0) {
+        // Has blocks - go to editing mode
+        console.log('[ProjectEditor V3] Has blocks, showing editor');
         setFlowState('editing');
-      } else if (blocks.length > 0) {
-        // Has blocks but no template_type - use blank
+      } else if (templateType) {
+        // Has template_type but no blocks - initialize
+        console.log('[ProjectEditor V3] Has template_type, initializing blocks');
+        initializeTemplate(templateType);
         setFlowState('editing');
       } else {
+        // No blocks and no template - show selector
+        console.log('[ProjectEditor V3] No blocks or template, showing selector');
         setFlowState('select-template');
       }
 

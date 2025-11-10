@@ -125,8 +125,10 @@ export function useTemplateEditor(
   }, [document, autoSave, autoSaveDelay]);
 
   // Set template type
-  const setTemplateType = useCallback((template: TemplateType) => {
+  const setTemplateType = useCallback(async (template: TemplateType) => {
     if (!document) return;
+
+    console.log('[useTemplateEditor] Setting template type:', template);
 
     setDocument(prev => {
       if (!prev) return prev;
@@ -138,7 +140,13 @@ export function useTemplateEditor(
         },
       };
     });
-  }, [document]);
+
+    // Save immediately to persist template_type
+    setSaveStatus('saving');
+    setTimeout(async () => {
+      await save();
+    }, 500);
+  }, [document, save]);
 
   // Initialize template
   const initializeTemplate = useCallback((template: TemplateType) => {
@@ -151,6 +159,11 @@ export function useTemplateEditor(
       document.entity_data,
       template
     );
+
+    console.log('[useTemplateEditor] Template initialized:', {
+      template,
+      blocksCreated: initializedBlocks.length,
+    });
 
     setDocument(prev => {
       if (!prev) return prev;
@@ -165,10 +178,12 @@ export function useTemplateEditor(
     });
 
     // Save immediately after initialization
-    if (autoSave) {
-      setTimeout(() => save(), 500);
-    }
-  }, [document, entityType, autoSave]);
+    setSaveStatus('saving');
+    setTimeout(async () => {
+      await save();
+      console.log('[useTemplateEditor] ✅ Template initialization saved');
+    }, 500);
+  }, [document, entityType, save]);
 
   // Save function
   const save = useCallback(async () => {
