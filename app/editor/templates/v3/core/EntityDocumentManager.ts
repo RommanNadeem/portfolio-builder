@@ -132,6 +132,18 @@ export class EntityDocumentManager {
       
       this.log(`✅ Saved to localStorage successfully`);
       
+      // 🔔 Dispatch custom event to notify portfolio page to reload
+      // Note: StorageEvent only fires in OTHER tabs, so we use a custom event
+      window.dispatchEvent(new CustomEvent('portfolio-updated', {
+        detail: {
+          entityType: document.entity_type,
+          entityId: document.id,
+          timestamp: new Date().toISOString()
+        }
+      }));
+      
+      this.log(`🔔 Portfolio update event dispatched`);
+      
       // 5. Update document sync state
       document.sync_state.is_synced = true;
       document.sync_state.pending_changes = [];

@@ -200,9 +200,32 @@ export function usePortfolioData() {
 
     window.addEventListener('focus', handleFocus);
     
+    // 🔔 Listen for portfolio updates from template editor (same tab)
+    const handlePortfolioUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      console.log('[usePortfolioData] 🔔 Portfolio update event received:', customEvent.detail);
+      
+      const cachedData = localStorage.getItem('portfolioData');
+      if (cachedData && isMounted) {
+        try {
+          const parsed = JSON.parse(cachedData);
+          console.log('[usePortfolioData] ✅ Reloading portfolio after template save', {
+            projects: parsed.projects?.length || 0,
+            careers: parsed.careerHighlights?.length || 0,
+          });
+          setPortfolio(parsed);
+        } catch (err) {
+          console.error('[usePortfolioData] Failed to parse after update:', err);
+        }
+      }
+    };
+    
+    window.addEventListener('portfolio-updated', handlePortfolioUpdate);
+    
     return () => {
       isMounted = false;
       window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('portfolio-updated', handlePortfolioUpdate);
     };
   }, [router]);
 
