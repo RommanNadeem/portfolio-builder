@@ -120,8 +120,15 @@ export class EntityDocumentManager {
       // 3. Replace entity in portfolio
       portfolioData[storageKey][index] = syncedEntity;
       
-      // 4. Save to localStorage (instant)
+      // 4. Save to localStorage (instant) - try both keys
       localStorage.setItem('portfolioData', JSON.stringify(portfolioData));
+      
+      // Also update user-specific key if it exists
+      const keys = Object.keys(localStorage);
+      const userPortfolioKey = keys.find(k => k.startsWith('portfolio-'));
+      if (userPortfolioKey) {
+        localStorage.setItem(userPortfolioKey, JSON.stringify(portfolioData));
+      }
       
       this.log(`✅ Saved to localStorage successfully`);
       
@@ -471,8 +478,20 @@ export class EntityDocumentManager {
    * Load portfolio data from localStorage
    */
   private loadPortfolioData(): any {
-    const data = localStorage.getItem('portfolioData');
+    // Try both possible keys
+    let data = localStorage.getItem('portfolioData');
+    
     if (!data) {
+      // Fallback to portfolio-${userId} pattern
+      const keys = Object.keys(localStorage);
+      const portfolioKey = keys.find(k => k.startsWith('portfolio-'));
+      if (portfolioKey) {
+        data = localStorage.getItem(portfolioKey);
+      }
+    }
+    
+    if (!data) {
+      console.warn('[V3] No portfolio data found, will retry...');
       throw new Error('No portfolio data found in localStorage');
     }
     
