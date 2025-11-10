@@ -95,6 +95,32 @@ export function useTemplateEditor(
   const blocks = document?.template.blocks || [];
   const templateType = (document?.template.template_type as TemplateType) || null;
 
+  // Save function (define first so other callbacks can use it)
+  const save = useCallback(async () => {
+    if (!document) return;
+
+    try {
+      setSaveStatus('saving');
+      console.log('[useTemplateEditor] 💾 Saving document...');
+
+      const result: SyncResult = await entityDocumentManager.saveToPortfolio(document);
+
+      if (result.success) {
+        setSaveStatus('saved');
+        setLastSaved(new Date().toLocaleTimeString());
+        console.log('[useTemplateEditor] ✅ Saved successfully');
+        onSaveSuccess?.();
+      } else {
+        throw new Error(result.error || 'Save failed');
+      }
+    } catch (err: any) {
+      console.error('[useTemplateEditor] ❌ Save failed:', err);
+      setSaveStatus('error');
+      setError(err.message || 'Save failed');
+      onSaveError?.(err.message || 'Save failed');
+    }
+  }, [document, entityType, onSaveSuccess, onSaveError]);
+
   // Update blocks
   const updateBlocks = useCallback((newBlocks: TemplateBlock[]) => {
     if (!document) return;
@@ -122,7 +148,7 @@ export function useTemplateEditor(
         await save();
       }, autoSaveDelay);
     }
-  }, [document, autoSave, autoSaveDelay]);
+  }, [document, autoSave, autoSaveDelay, save]);
 
   // Set template type
   const setTemplateType = useCallback(async (template: TemplateType) => {
@@ -184,32 +210,6 @@ export function useTemplateEditor(
       console.log('[useTemplateEditor] ✅ Template initialization saved');
     }, 500);
   }, [document, entityType, save]);
-
-  // Save function
-  const save = useCallback(async () => {
-    if (!document) return;
-
-    try {
-      setSaveStatus('saving');
-      console.log('[useTemplateEditor] 💾 Saving document...');
-
-      const result: SyncResult = await entityDocumentManager.saveToPortfolio(document);
-
-      if (result.success) {
-        setSaveStatus('saved');
-        setLastSaved(new Date().toLocaleTimeString());
-        console.log('[useTemplateEditor] ✅ Saved successfully');
-        onSaveSuccess?.();
-      } else {
-        throw new Error(result.error || 'Save failed');
-      }
-    } catch (err: any) {
-      console.error('[useTemplateEditor] ❌ Save failed:', err);
-      setSaveStatus('error');
-      setError(err.message || 'Save failed');
-      onSaveError?.(err.message || 'Save failed');
-    }
-  }, [document, entityType, onSaveSuccess, onSaveError]);
 
   // Cleanup
   useEffect(() => {
