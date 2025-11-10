@@ -33,7 +33,7 @@ interface UseTemplateEditorReturn {
   // Actions
   updateBlocks: (newBlocks: TemplateBlock[]) => void;
   setTemplateType: (template: TemplateType) => void;
-  initializeTemplate: (template: TemplateType) => void;
+  initializeTemplate: (template: TemplateType) => Promise<void>;
   save: () => Promise<void>;
 }
 
@@ -175,7 +175,7 @@ export function useTemplateEditor(
   }, [document, save]);
 
   // Initialize template
-  const initializeTemplate = useCallback((template: TemplateType) => {
+  const initializeTemplate = useCallback(async (template: TemplateType) => {
     if (!document) return;
 
     console.log('[useTemplateEditor] Initializing template:', template);
@@ -191,25 +191,39 @@ export function useTemplateEditor(
       blocksCreated: initializedBlocks.length,
     });
 
-    setDocument(prev => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        template: {
-          ...prev.template,
-          template_type: template,
-          blocks: initializedBlocks,
-        },
-      };
-    });
+    // Create updated document
+    const updatedDoc = {
+      ...document,
+      template: {
+        ...document.template,
+        template_type: template,
+        blocks: initializedBlocks,
+      },
+    };
 
-    // Save immediately after initialization
+    // Update state
+    setDocument(updatedDoc);
+
+    // Save immediately to database
     setSaveStatus('saving');
-    setTimeout(async () => {
-      await save();
-      console.log('[useTemplateEditor] ✅ Template initialization saved');
-    }, 500);
-  }, [document, entityType, save]);
+    
+    try {
+      const result = await entityDocumentManager.saveToPortfolio(updatedDoc);
+      
+      if (result.success) {
+        setSaveStatus('saved');
+        setLastSaved(new Date().toLocaleTimeString());
+        console.log('[useTemplateEditor] ✅ Template initialization saved to database');
+        onSaveSuccess?.();
+      } else {
+        throw new Error(result.error || 'Save failed');
+      }
+    } catch (err: any) {
+      console.error('[useTemplateEditor] ❌ Template save failed:', err);
+      setSaveStatus('error');
+      onSaveError?.(err.message || 'Save failed');
+    }
+  }, [document, entityType, onSaveSuccess, onSaveError]);
 
   // Cleanup
   useEffect(() => {

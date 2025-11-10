@@ -104,8 +104,8 @@ export default function ProjectEditor() {
         // Has template_type but no blocks - initialize
         console.log('[ProjectEditor V3] Has template_type, initializing blocks');
         initializeTemplate(templateType);
-        setFlowState('editing');
-      } else {
+            setFlowState('editing');
+          } else {
         // No blocks and no template - show selector
         console.log('[ProjectEditor V3] No blocks or template, showing selector');
         setFlowState('select-template');
@@ -124,12 +124,18 @@ export default function ProjectEditor() {
   }, [loading, document]); // ← Run only on initial load, not when blocks change
 
   // Handle template selection
-  const handleTemplateSelect = useCallback((template: TemplateType) => {
+  const handleTemplateSelect = useCallback(async (template: TemplateType) => {
     console.log('[ProjectEditor V3] Template selected:', template);
-    setTemplateType(template);
-    initializeTemplate(template);
+    
+    // Initialize template (this will save it)
+    await initializeTemplate(template);
+    
+    // Switch to editing mode
     setFlowState('editing');
-  }, [setTemplateType, initializeTemplate]);
+    setViewMode('edit'); // ← Force edit mode, not preview
+    
+    console.log('[ProjectEditor V3] ✅ Switched to editing mode');
+  }, [initializeTemplate]);
 
   // Handle block changes
   const handleBlockChange = useCallback((index: number, updatedBlock: TemplateBlock) => {
@@ -155,7 +161,7 @@ export default function ProjectEditor() {
       const newSet = new Set(prev);
       if (newSet.has(index)) {
         newSet.delete(index);
-      } else {
+    } else {
         newSet.add(index);
       }
       return newSet;
@@ -200,10 +206,10 @@ export default function ProjectEditor() {
 
   // Template Selector
   if (flowState === 'select-template') {
-    return (
+  return (
       <div className="min-h-screen bg-gray-50">
         <header className="bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="max-w-7xl mx-auto px-6 py-4">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => router.push('/editor?mode=edit')}
@@ -250,7 +256,7 @@ export default function ProjectEditor() {
 
       <TemplateEditorContent
         blocks={blocks}
-        viewMode={viewMode}
+                          viewMode={viewMode}
         deviceMode={deviceMode}
         expandedSections={expandedSections}
         savedBlockIds={savedBlockIds}
