@@ -149,7 +149,45 @@ export class EntityDocumentManager {
       
       this.log(`🔔 Portfolio update event dispatched`);
       
-      // 5. Update document sync state
+      // 5. 🔥 CRITICAL: Save to database immediately!
+      // Don't rely on event handlers - we might be on a different page
+      try {
+        this.log(`💾 Attempting to save to database...`);
+        
+        // Get current user from Supabase auth
+        const { supabase } = await import('@/lib/supabase');
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          const userId = user.id;
+          this.log(`👤 User ID from Supabase auth:`, userId);
+          
+          // Import and call saveCompletePortfolio
+          const { saveCompletePortfolio } = await import('@/lib/database');
+          
+          this.log(`📤 Calling saveCompletePortfolio with:`, {
+            userId,
+            projects_count: portfolioData.projects?.length || 0,
+            project_has_template_type: portfolioData.projects?.[0]?.template_type,
+          });
+          
+          const dbResult = await saveCompletePortfolio(userId, portfolioData);
+          
+          if (dbResult.error) {
+            this.log(`❌ Database save failed:`, dbResult.error);
+          } else {
+            this.log(`✅ Saved to database successfully!`);
+          }
+        } else {
+          this.log(`⚠️ No authenticated user, skipping database save`);
+        }
+      } catch (dbError: any) {
+        this.log(`❌ Database save error:`, dbError.message);
+        console.error('[EntityDocumentManager] Database save stack:', dbError);
+        // Don't fail the whole operation if database save fails
+      }
+      
+      // 6. Update document sync state
       document.sync_state.is_synced = true;
       document.sync_state.pending_changes = [];
       document.template.last_synced = new Date().toISOString();
