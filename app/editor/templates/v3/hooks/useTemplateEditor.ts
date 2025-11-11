@@ -102,6 +102,13 @@ export function useTemplateEditor(
     try {
       setSaveStatus('saving');
       console.log('[useTemplateEditor] 💾 Saving document...');
+      console.log('[useTemplateEditor] 📊 Document state:', {
+        id: document.id,
+        entityType: document.entity_type,
+        template_type: document.template.template_type,
+        blocks_count: document.template.blocks.length,
+        entity_template_type: (document.entity_data as any).template_type,
+      });
 
       const result: SyncResult = await entityDocumentManager.saveToPortfolio(document);
 
@@ -109,6 +116,11 @@ export function useTemplateEditor(
         setSaveStatus('saved');
         setLastSaved(new Date().toLocaleTimeString());
         console.log('[useTemplateEditor] ✅ Saved successfully');
+        console.log('[useTemplateEditor] 📦 Updated entity:', {
+          template_type: result.updated_entity?.template_type,
+          has_blocks: !!result.updated_entity?.blocks,
+          blocks_count: result.updated_entity?.blocks?.length || 0,
+        });
         onSaveSuccess?.();
       } else {
         throw new Error(result.error || 'Save failed');
@@ -154,22 +166,30 @@ export function useTemplateEditor(
   const setTemplateType = useCallback(async (template: TemplateType) => {
     if (!document) return;
 
-    console.log('[useTemplateEditor] Setting template type:', template);
+    console.log('[useTemplateEditor] 🎨 Setting template type:', template);
+    console.log('[useTemplateEditor] 📄 Document before:', {
+      id: document.id,
+      entityType: document.entity_type,
+      currentTemplateType: document.template.template_type,
+    });
 
     setDocument(prev => {
       if (!prev) return prev;
-      return {
+      const updated = {
         ...prev,
         template: {
           ...prev.template,
           template_type: template,
         },
       };
+      console.log('[useTemplateEditor] ✅ Document updated with template_type:', updated.template.template_type);
+      return updated;
     });
 
     // Save immediately to persist template_type
     setSaveStatus('saving');
     setTimeout(async () => {
+      console.log('[useTemplateEditor] 💾 Saving template_type to database...');
       await save();
     }, 500);
   }, [document, save]);

@@ -87,12 +87,14 @@ export class EntityDocumentManager {
    */
   async saveToPortfolio(document: EntityDocument): Promise<SyncResult> {
     try {
-      this.log(`Saving ${document.entity_type} to portfolio:`, document.id);
+      this.log(`💾 Saving ${document.entity_type} to portfolio:`, document.id);
+      this.log(`📄 Document template_type:`, document.template.template_type);
+      this.log(`📦 Document blocks:`, document.template.blocks.length);
       
       // 1. Sync template data back to entity
       const syncedEntity = this.syncTemplateToEntity(document);
       
-      this.log(`Synced entity data:`, {
+      this.log(`✅ Synced entity data:`, {
         title: syncedEntity.title || syncedEntity.organization,
         template_type: syncedEntity.template_type,
         blocks_count: syncedEntity.blocks?.length || 0,
@@ -120,8 +122,11 @@ export class EntityDocumentManager {
       // 3. Replace entity in portfolio
       portfolioData[storageKey][index] = syncedEntity;
       
+      this.log(`🔄 Updated ${storageKey}[${index}] with template_type:`, syncedEntity.template_type);
+      
       // 4. Save to localStorage (instant) - try both keys
       localStorage.setItem('portfolioData', JSON.stringify(portfolioData));
+      this.log(`💾 Saved to localStorage with template_type:`, syncedEntity.template_type);
       
       // Also update user-specific key if it exists
       const keys = Object.keys(localStorage);
