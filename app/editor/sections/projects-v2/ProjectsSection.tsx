@@ -6,8 +6,10 @@
 
 'use client';
 
-import { Plus, FileEdit } from 'lucide-react';
-import { useSectionManager } from '@/app/editor/core/hooks';
+import { useMemo, useCallback } from 'react';
+import { Plus, FileEdit, Briefcase } from 'lucide-react';
+import { useSectionManagerControlled } from '@/app/editor/core/hooks';
+import { ItemList } from '@/app/editor/core/components';
 import { ProjectItem, convertFromLegacy, convertToLegacy, Project } from './types';
 import { ProjectCard } from './ProjectCard';
 
@@ -29,40 +31,33 @@ export function ProjectsSection({
   userId,
 }: ProjectsSectionProps) {
   
-  // Convert legacy data to new format
-  const legacyProjects = data.projects || [];
-  const initialData: ProjectItem[] = legacyProjects.map((p: Project) => 
-    convertFromLegacy(p)
-  );
+  // Convert legacy data to new format (memoized)
+  const projects = useMemo(() => {
+    const legacyProjects = data.projects || [];
+    return legacyProjects.map((p: Project) => convertFromLegacy(p));
+  }, [data.projects]);
 
-  // Use shared hook for state management (both editor and preview)
+  // Handle changes - update parent immediately
+  const handleProjectsChange = useCallback((newProjects: ProjectItem[]) => {
+    const legacy = newProjects.map(convertToLegacy);
+    onChange(prev => ({
+      ...prev,
+      projects: legacy,
+    }));
+  }, [onChange]);
+
+  // Use controlled hook
   const {
-    items: projects,
+    items: currentProjects,
     add,
     update,
     remove,
     reorder,
     reorderByIndex,
-    saveStatus,
     itemCount,
-    save: forceSave,
-  } = useSectionManager<ProjectItem>({
-    initialData,
-    onSave: async (items) => {
-      // Convert back to legacy format for compatibility
-      const legacy = items.map(convertToLegacy);
-      
-      // Update parent state IMMEDIATELY (not debounced)
-      onChange(prev => ({
-        ...prev,
-        projects: legacy,
-      }));
-      
-      console.log('[ProjectsSection] 💾 Synced to parent:', items.length);
-    },
-    autoSave: true,
-    autoSaveDelay: 100, // ← Very short delay for instant sync
-    localStorageKey: `projects-${userId}`,
+  } = useSectionManagerControlled<ProjectItem>({
+    items: projects,
+    onChange: handleProjectsChange,
   });
 
   const handleAdd = () => {
@@ -82,14 +77,29 @@ export function ProjectsSection({
 
   // In preview renderMode, render the projects grid
   if (renderMode === 'preview' || viewMode === 'preview') {
+    const isMobile = previewMode === 'mobile';
+    
     return (
-      <div className="py-12">
-        <h2 className="text-3xl font-bold text-center mb-12">Projects</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-          {projects.map((project) => (
+      <div id="projects" className={`w-full ${isMobile ? 'mb-6' : 'mb-12 sm:mb-16 lg:mb-20'}`}>
+        {/* Section Header */}
+        <div className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-8'}`}>
+          <div className={`rounded-lg bg-purple-100 flex items-center justify-center ${
+            isMobile ? 'w-6 h-6' : 'w-8 h-8'
+          }`}>
+            <Briefcase className={isMobile ? 'w-3.5 h-3.5 text-purple-600' : 'w-5 h-5 text-purple-600'} />
+          </div>
+          <h2 className={`font-bold text-gray-900 ${
+            isMobile ? 'text-lg' : 'text-3xl'
+          }`}>Projects</h2>
+        </div>
+        
+        <div className={`grid gap-4 max-w-7xl mx-auto ${
+          isMobile ? 'grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-3 gap-6'
+        }`}>
+          {currentProjects.map((project) => (
             <div
               key={project.id}
-              className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow group relative cursor-pointer"
+              className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow group relative cursor-pointer"
               onClick={() => {
                 // Navigate to detail page in same mode (preview)
                 if (typeof window !== 'undefined') {
@@ -105,10 +115,12 @@ export function ProjectsSection({
                     window.location.href = `/detail/project-editor/${project.id}?mode=edit`;
                   }
                 }}
-                className="absolute top-3 right-3 z-10 p-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-purple-600 hover:text-white border border-gray-200"
+                className={`absolute z-10 bg-white backdrop-blur-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-all text-gray-700 hover:bg-purple-600 hover:text-white border border-gray-300 ${
+                  isMobile ? 'top-2 right-2 p-1.5' : 'top-3 right-3 p-2'
+                }`}
                 title="Edit project"
               >
-                <FileEdit className="w-4 h-4" />
+                <FileEdit className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
               </button>
               
               {/* Thumbnail */}
@@ -116,7 +128,7 @@ export function ProjectsSection({
                 <img
                   src={project.thumbnail}
                   alt={project.title}
-                  className="w-full h-48 object-cover"
+                  className={`w-full object-cover ${isMobile ? 'h-40' : 'h-48'}`}
                   onError={(e) => {
                     console.error('[ProjectsSection] 🖼️ Image load failed:', project.thumbnail);
                     (e.target as HTMLImageElement).style.display = 'none';
@@ -126,23 +138,31 @@ export function ProjectsSection({
                   }}
                 />
               ) : (
-                <div className="w-full h-48 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
-                  <span className="text-6xl">💼</span>
+                <div className={`w-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center ${
+                  isMobile ? 'h-40' : 'h-48'
+                }`}>
+                  <span className={isMobile ? 'text-4xl' : 'text-6xl'}>💼</span>
                 </div>
               )}
               
               {/* Content */}
-              <div className="p-6">
-                <h3 className="font-semibold text-lg text-gray-900 mb-2">{project.title}</h3>
-                <p className="text-sm text-gray-600 mb-4 line-clamp-2">{project.description}</p>
+              <div className={isMobile ? 'p-4' : 'p-6'}>
+                <h3 className={`font-semibold text-gray-900 ${
+                  isMobile ? 'text-sm mb-2' : 'text-base mb-2'
+                }`}>{project.title}</h3>
+                <p className={`text-gray-600 line-clamp-2 ${
+                  isMobile ? 'text-xs mb-3' : 'text-sm mb-4'
+                }`}>{project.description}</p>
                 
                 {/* Tags */}
                 {project.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
+                  <div className={`flex flex-wrap ${isMobile ? 'gap-1.5' : 'gap-2'}`}>
                     {project.tags.map((tag, idx) => (
                       <span
                         key={idx}
-                        className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full"
+                        className={`bg-blue-100 text-blue-700 rounded-full ${
+                          isMobile ? 'px-2 py-0.5 text-xs' : 'px-2 py-1 text-xs'
+                        }`}
                       >
                         {tag}
                       </span>
@@ -160,25 +180,28 @@ export function ProjectsSection({
   // Editor mode - render content only (wrapper handles header)
   return (
     <div className="space-y-3">
-      {projects.map((project, index) => (
-        <ProjectCard
-          key={project.id}
-          project={project}
-          index={index}
-          totalCount={projects.length}
-          onUpdate={update}
-          onDelete={remove}
-          onMoveUp={index > 0 ? () => reorder(project.id, 'up') : undefined}
-          onMoveDown={index < projects.length - 1 ? () => reorder(project.id, 'down') : undefined}
-          onSave={forceSave}
-          viewMode={viewMode}
-        />
-      ))}
+      {/* Drag-and-drop list */}
+      <ItemList
+        items={currentProjects}
+        onReorder={reorderByIndex}
+        renderItem={(project, index) => (
+          <ProjectCard
+            project={project}
+            index={index}
+            totalCount={currentProjects.length}
+            onUpdate={update}
+            onDelete={remove}
+            onMoveUp={index > 0 ? () => reorder(project.id, 'up') : undefined}
+            onMoveDown={index < currentProjects.length - 1 ? () => reorder(project.id, 'down') : undefined}
+            viewMode={viewMode}
+          />
+        )}
+      />
       
       {/* Add button */}
       <button
         onClick={handleAdd}
-        className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-white border-2 border-dashed border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all"
+        className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-white border-2 border-dashed border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all"
       >
         <Plus className="w-4 h-4" />
         <span>Add Project</span>

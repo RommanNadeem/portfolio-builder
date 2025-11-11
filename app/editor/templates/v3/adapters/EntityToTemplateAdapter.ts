@@ -181,7 +181,7 @@ export class CareerTemplateInitializer implements TemplateInitializer {
       blocks[2] = {
         ...blocks[2],
         data: {
-          title: 'Responsibilities',
+          title: '',  // No default title - let user add if needed
           bullets: entity.responsibilities || entity.achievements || [''],
         },
       };
@@ -194,7 +194,7 @@ export class CareerTemplateInitializer implements TemplateInitializer {
       blocks[3] = {
         ...blocks[3],
         data: {
-          title: 'Key Achievements',
+          title: '',  // No default title - let user add if needed
           bullets: entity.key_achievements || entity.achievements || [''],
         },
       };
@@ -218,26 +218,43 @@ export class CareerTemplateInitializer implements TemplateInitializer {
   }
   
   private prefillHeroBlock(block: any, entity: CareerItem): any {
-    const timeline = entity.current
-      ? `${entity.start_date} - Present`
-      : `${entity.start_date} - ${entity.end_date}`;
+    console.log('[CareerInitializer] Prefilling hero block with entity data:', {
+      organization: entity.organization,
+      role: entity.role,
+      start_date: entity.start_date,
+      end_date: entity.end_date,
+      current: entity.current,
+      link: entity.link,
+    });
     
-    return {
+    const prefilledBlock = {
       ...block,
       data: {
         title: entity.organization || '',
-        subtitle: entity.role || '',
+        subtitle: '',  // Keep subtitle empty for career templates
         description: entity.description || '',
         imageUrl: '',
         logoUrl: '',
         meta: {
-          Timeline: timeline,
+          role: entity.role || '',  // Role goes in meta, not subtitle
+          startDate: entity.start_date || '',
+          endDate: entity.current ? 'Present' : (entity.end_date || ''),
           ...(entity.location && { Location: entity.location }),
           ...(entity.employment_type && { Type: entity.employment_type }),
           ...(entity.link && { Website: entity.link }),
         },
       },
     };
+    
+    console.log('[CareerInitializer] Hero block prefilled:', {
+      title: prefilledBlock.data.title,
+      role: prefilledBlock.data.meta.role,
+      startDate: prefilledBlock.data.meta.startDate,
+      endDate: prefilledBlock.data.meta.endDate,
+      Website: prefilledBlock.data.meta.Website,
+    });
+    
+    return prefilledBlock;
   }
   
   private prefillContextBlock(block: any, entity: CareerItem): any {
@@ -265,8 +282,8 @@ export class CareerTemplateInitializer implements TemplateInitializer {
     return {
       ...block,
       data: {
-        title: 'Company Context',
-        body: contextBody.trim() || 'Add context about the company, team, and your role...',
+        title: '',  // No default title - let user add if needed
+        body: contextBody.trim() || '',
         variant: 'info',
       },
     };
@@ -292,7 +309,7 @@ export class CareerTemplateInitializer implements TemplateInitializer {
     return {
       ...block,
       data: {
-        title: 'Impact & Results',
+        title: '',  // No default title - let user add if needed
         metrics: metrics.length > 0 ? metrics : [{ label: '', value: '', description: '' }],
       },
     };

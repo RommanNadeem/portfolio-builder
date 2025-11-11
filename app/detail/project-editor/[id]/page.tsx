@@ -61,6 +61,7 @@ export default function ProjectEditor() {
     updateBlocks,
     setTemplateType,
     initializeTemplate,
+    save: forceSave,
   } = useTemplateEditor({
     entityId: projectId,
     entityType: 'project',
@@ -259,7 +260,7 @@ export default function ProjectEditor() {
 
       <TemplateEditorContent
         blocks={blocks}
-                          viewMode={viewMode}
+        viewMode={viewMode}
         deviceMode={deviceMode}
         expandedSections={expandedSections}
         savedBlockIds={savedBlockIds}
@@ -267,6 +268,8 @@ export default function ProjectEditor() {
         onBlockChange={handleBlockChange}
         onBlockDelete={handleBlockDelete}
         onToggleSection={handleToggleSection}
+        onSave={forceSave}
+        entityType="project"
       />
     </div>
   );

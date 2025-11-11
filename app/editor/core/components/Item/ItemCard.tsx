@@ -92,7 +92,7 @@ export function ItemCard({
         {onMoveUp && canMoveUp && (
           <button
             onClick={onMoveUp}
-            className="p-1.5 bg-white border border-gray-200 rounded hover:bg-gray-50 hover:border-gray-300 transition-colors"
+            className="p-1.5 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors"
             title="Move up"
           >
             <ChevronUp className="w-4 h-4 text-gray-600" />
@@ -102,7 +102,7 @@ export function ItemCard({
         {onMoveDown && canMoveDown && (
           <button
             onClick={onMoveDown}
-            className="p-1.5 bg-white border border-gray-200 rounded hover:bg-gray-50 hover:border-gray-300 transition-colors"
+            className="p-1.5 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors"
             title="Move down"
           >
             <ChevronDown className="w-4 h-4 text-gray-600" />
@@ -113,7 +113,7 @@ export function ItemCard({
         {onEdit && (
           <button
             onClick={onEdit}
-            className="p-1.5 bg-white border border-gray-200 rounded hover:bg-gray-50 hover:border-gray-300 transition-colors"
+            className="p-1.5 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors"
             title="Edit"
           >
             <Edit2 className="w-4 h-4 text-blue-600" />
@@ -124,7 +124,7 @@ export function ItemCard({
         {onOpenDetail && (
           <button
             onClick={onOpenDetail}
-            className="p-1.5 bg-white border border-gray-200 rounded hover:bg-gray-50 hover:border-gray-300 transition-colors"
+            className="p-1.5 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors"
             title="Open detail page"
           >
             <ExternalLink className="w-4 h-4 text-blue-600" />
@@ -135,7 +135,7 @@ export function ItemCard({
         {onDelete && (
           <button
             onClick={onDelete}
-            className="p-1.5 bg-white border border-gray-200 rounded hover:bg-red-50 hover:border-red-300 transition-colors"
+            className="p-1.5 bg-white border border-gray-200 rounded-lg hover:bg-red-50 hover:border-red-300 transition-colors"
             title="Delete"
           >
             <Trash2 className="w-4 h-4 text-red-600" />

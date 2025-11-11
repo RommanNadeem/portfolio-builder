@@ -6,8 +6,10 @@
 
 'use client';
 
+import { useMemo, useCallback } from 'react';
 import { Plus } from 'lucide-react';
-import { useSectionManager } from '@/app/editor/core/hooks';
+import { useSectionManagerControlled } from '@/app/editor/core/hooks';
+import { ItemList } from '@/app/editor/core/components';
 import { CareerItem, convertFromLegacy, convertToLegacy, CareerHighlight } from './types';
 import { CareerCard } from './CareerCard';
 import { CareerPreview } from './CareerPreview';
@@ -30,40 +32,33 @@ export function CareerSection({
   userId,
 }: CareerSectionProps) {
   
-  // Convert legacy data to new format
-  const legacyHighlights = data.careerHighlights || [];
-  const initialData: CareerItem[] = legacyHighlights.map((h: CareerHighlight) => 
-    convertFromLegacy(h)
-  );
+  // Convert legacy data to new format (memoized)
+  const highlights = useMemo(() => {
+    const legacyHighlights = data.careerHighlights || [];
+    return legacyHighlights.map((h: CareerHighlight) => convertFromLegacy(h));
+  }, [data.careerHighlights]);
 
-  // Use shared hook for state management
+  // Handle changes - update parent immediately
+  const handleCareerChange = useCallback((newHighlights: CareerItem[]) => {
+    const legacy = newHighlights.map(convertToLegacy);
+    onChange(prev => ({
+      ...prev,
+      careerHighlights: legacy,
+    }));
+  }, [onChange]);
+
+  // Use controlled hook
   const {
-    items: highlights,
+    items: currentHighlights,
     add,
     update,
     remove,
     reorder,
     reorderByIndex,
-    saveStatus,
     itemCount,
-    save: forceSave,
-  } = useSectionManager<CareerItem>({
-    initialData,
-    onSave: async (items) => {
-      // Convert back to legacy format for compatibility
-      const legacy = items.map(convertToLegacy);
-      
-      // Update parent state IMMEDIATELY for live sync
-      onChange(prev => ({
-        ...prev,
-        careerHighlights: legacy,
-      }));
-      
-      console.log('[CareerSection] 💾 Synced to parent:', items.length);
-    },
-    autoSave: true,
-    autoSaveDelay: 100, // ← Very short delay for instant sync across UI
-    localStorageKey: `career-${userId}`,
+  } = useSectionManagerControlled<CareerItem>({
+    items: highlights,
+    onChange: handleCareerChange,
   });
 
   const handleAdd = () => {
@@ -104,25 +99,28 @@ export function CareerSection({
   // Editor mode - render content only (wrapper handles header)
   return (
     <div className="space-y-3">
-      {highlights.map((career, index) => (
-        <CareerCard
-          key={career.id}
-          career={career}
-          index={index}
-          totalCount={highlights.length}
-          onUpdate={update}
-          onDelete={remove}
-          onMoveUp={index > 0 ? () => reorder(career.id, 'up') : undefined}
-          onMoveDown={index < highlights.length - 1 ? () => reorder(career.id, 'down') : undefined}
-          onSave={forceSave}
-          viewMode={viewMode}
-        />
-      ))}
+      {/* Drag-and-drop list */}
+      <ItemList
+        items={currentHighlights}
+        onReorder={reorderByIndex}
+        renderItem={(career, index) => (
+          <CareerCard
+            career={career}
+            index={index}
+            totalCount={currentHighlights.length}
+            onUpdate={update}
+            onDelete={remove}
+            onMoveUp={index > 0 ? () => reorder(career.id, 'up') : undefined}
+            onMoveDown={index < currentHighlights.length - 1 ? () => reorder(career.id, 'down') : undefined}
+            viewMode={viewMode}
+          />
+        )}
+      />
       
       {/* Add button */}
       <button
         onClick={handleAdd}
-        className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-white border-2 border-dashed border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all"
+        className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-white border-2 border-dashed border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all"
       >
         <Plus className="w-4 h-4" />
         <span>Add Career Highlight</span>

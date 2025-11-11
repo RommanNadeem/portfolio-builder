@@ -258,6 +258,8 @@ export class EntityDocumentManager {
         title: heroData.title,
         subtitle: heroData.subtitle,
         hasImage: !!heroData.imageUrl,
+        imageUrl: heroData.imageUrl,
+        imageUrlLength: heroData.imageUrl?.length || 0,
         hasMeta: !!heroData.meta,
       });
       
@@ -331,6 +333,7 @@ export class EntityDocumentManager {
       this.log(`Hero block data:`, {
         title: heroData.title,
         subtitle: heroData.subtitle,
+        role: heroData.meta?.role,
         hasMeta: !!heroData.meta,
       });
       
@@ -338,16 +341,32 @@ export class EntityDocumentManager {
         updated.organization = heroData.title;
       }
       
-      if (heroData.subtitle) {
-        updated.role = heroData.subtitle;
+      // Role comes from meta.role (new field), not subtitle
+      if (heroData.meta?.role) {
+        updated.role = heroData.meta.role;
       }
       
       if (heroData.description) {
         updated.description = heroData.description;
       }
       
-      // Extract dates from meta
-      if (heroData.meta?.Timeline) {
+      // Extract dates from meta (new format)
+      if (heroData.meta?.startDate) {
+        updated.start_date = heroData.meta.startDate;
+      }
+      
+      if (heroData.meta?.endDate) {
+        if (heroData.meta.endDate.toLowerCase() === 'present') {
+          updated.current = true;
+          updated.end_date = '';
+        } else {
+          updated.current = false;
+          updated.end_date = heroData.meta.endDate;
+        }
+      }
+      
+      // Fallback to old Timeline format if new format not present
+      if (!heroData.meta?.startDate && heroData.meta?.Timeline) {
         const timeline = heroData.meta.Timeline;
         const parts = timeline.split('-').map((s: string) => s.trim());
         

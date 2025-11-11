@@ -22,21 +22,21 @@ export interface SocialLink {
 }
 
 /**
- * Available platforms with their icons
+ * Available platforms with their icons (using lucide-react icons)
  */
 export const AVAILABLE_PLATFORMS = [
-  { platform: 'LinkedIn', icon: 'linkedin' },
-  { platform: 'GitHub', icon: 'github' },
-  { platform: 'Twitter', icon: 'twitter' },
-  { platform: 'Instagram', icon: 'instagram' },
-  { platform: 'Website', icon: 'globe' },
-  { platform: 'Behance', icon: 'behance' },
-  { platform: 'Dribbble', icon: 'dribbble' },
-  { platform: 'Medium', icon: 'medium' },
-  { platform: 'YouTube', icon: 'youtube' },
-  { platform: 'Schedule a Call', icon: 'calendar' },
-  { platform: 'Email', icon: 'mail' },
-  { platform: 'Phone', icon: 'phone' },
+  { platform: 'LinkedIn', icon: 'linkedin' },      // Linkedin icon
+  { platform: 'GitHub', icon: 'github' },          // Github icon
+  { platform: 'Twitter', icon: 'twitter' },        // Twitter icon
+  { platform: 'Instagram', icon: 'instagram' },    // Instagram icon
+  { platform: 'YouTube', icon: 'youtube' },        // Youtube icon
+  { platform: 'Dribbble', icon: 'dribbble' },      // Dribbble icon
+  { platform: 'Behance', icon: 'behance' },        // Palette icon
+  { platform: 'Medium', icon: 'medium' },          // Edit3 icon (pen)
+  { platform: 'Website', icon: 'globe' },          // Globe icon
+  { platform: 'Email', icon: 'mail' },             // Mail icon
+  { platform: 'Phone', icon: 'phone' },            // Phone icon
+  { platform: 'Schedule a Call', icon: 'calendar' }, // Calendar icon
 ] as const;
 
 /**

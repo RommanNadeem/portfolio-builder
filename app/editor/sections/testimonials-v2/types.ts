@@ -11,7 +11,7 @@ export interface TestimonialItem extends BaseItem {
   content: string;   // Changed from 'testimonial' to match core types
   avatar?: string | null;
   linkedinUrl?: string;
-  relationship: string; // NEW - "Manager", "Colleague", "Client"
+  relationship?: string; // Optional - "Manager", "Colleague", "Client"
 }
 
 /**
@@ -44,7 +44,6 @@ export function convertFromLegacy(legacy: Testimonial): TestimonialItem {
     content: legacy.testimonial,
     avatar: null,
     linkedinUrl: legacy.linkedinUrl,
-    relationship: '', // Default empty, user can fill
     created_at: now,
     updated_at: now,
     order_index: 0,

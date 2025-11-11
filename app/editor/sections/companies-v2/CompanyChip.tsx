@@ -2,12 +2,15 @@
  * CompanyChip Component (V2)
  * 
  * Chip component for displaying and editing a single company name.
+ * Now with drag-and-drop support.
  */
 
 'use client';
 
 import { useState } from 'react';
-import { Edit2, Check, X } from 'lucide-react';
+import { Edit2, Check, X, GripVertical } from 'lucide-react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { CompanyItem } from './types';
 
 interface CompanyChipProps {
@@ -23,6 +26,16 @@ export function CompanyChip({
 }: CompanyChipProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(company.name);
+
+  // Drag-and-drop functionality
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: company.id });
 
   const handleSave = () => {
     if (editValue.trim() && editValue !== company.name) {
@@ -44,15 +57,33 @@ export function CompanyChip({
     }
   };
 
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
   if (isEditing) {
     return (
-      <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-blue-50 border-2 border-blue-500 ring-2 ring-blue-100 transition-all">
+      <div 
+        ref={setNodeRef}
+        style={style}
+        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-blue-50 border-2 border-blue-500 ring-2 ring-blue-100 transition-all"
+      >
+        <button
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
+          title="Drag to reorder"
+        >
+          <GripVertical className="w-3 h-3" />
+        </button>
         <input
           type="text"
           value={editValue}
           onChange={(e) => setEditValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="bg-white border-none outline-none focus:ring-0 px-2 py-0.5 text-sm font-medium min-w-[120px] rounded"
+          className="bg-white border-none outline-none focus:ring-0 px-2 py-0.5 text-sm font-medium min-w-[120px] rounded-lg"
           autoFocus
           placeholder="Company name"
         />
@@ -75,7 +106,19 @@ export function CompanyChip({
   }
 
   return (
-    <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-gray-50 border border-gray-300 hover:border-gray-400 hover:shadow-sm transition-all">
+    <div 
+      ref={setNodeRef}
+      style={style}
+      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-gray-50 border border-gray-300 hover:border-gray-400 hover:shadow-sm transition-all"
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
+        title="Drag to reorder"
+      >
+        <GripVertical className="w-3 h-3" />
+      </button>
       <span className="text-gray-700">{company.name}</span>
       <button
         onClick={() => setIsEditing(true)}

@@ -26,10 +26,19 @@ export function NavigationPreview({ portfolioData, previewMode }: NavigationPrev
     }
   };
 
+  const handleCtaClick = () => {
+    const ctaUrl = portfolioData?.navigation?.ctaUrl;
+    if (ctaUrl && ctaUrl.trim()) {
+      window.open(ctaUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      handleScrollTo('overview');
+    }
+  };
+
   if (isMobile) {
     // Mobile: Horizontal scroll menu
     return (
-      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 w-full">
         <div className="overflow-x-auto hide-scrollbar">
           <div className="flex items-center gap-1 px-4 py-3 min-w-max">
             {visibleSections.map((section) => (
@@ -49,8 +58,8 @@ export function NavigationPreview({ portfolioData, previewMode }: NavigationPrev
 
   // Desktop: Full navigation bar
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto px-6 py-4">
+    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 w-full">
+      <div className="w-full px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Navigation Links */}
           <div className="flex items-center gap-6">
@@ -67,7 +76,7 @@ export function NavigationPreview({ portfolioData, previewMode }: NavigationPrev
 
           {/* CTA Button */}
           <button 
-            onClick={() => handleScrollTo('overview')}
+            onClick={handleCtaClick}
             className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-all"
           >
             Get in Touch

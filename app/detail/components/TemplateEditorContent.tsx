@@ -23,6 +23,7 @@ interface SortableSectionProps {
   onToggle: () => void;
   onChange: (block: TemplateBlock) => void;
   onDelete: () => void;
+  onSave?: () => Promise<void>;
 }
 
 function SortableSection({
@@ -34,7 +35,9 @@ function SortableSection({
   onToggle,
   onChange,
   onDelete,
-}: SortableSectionProps) {
+  onSave,
+  entityType,
+}: SortableSectionProps & { entityType?: 'project' | 'career' }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ 
     id: block.id,
     disabled: index === 0 // Hero can't be dragged
@@ -61,6 +64,7 @@ function SortableSection({
           blocks={[block]}
           onChange={(blocks) => onChange(blocks[0])}
           mode="preview"
+          entityType={entityType}
         />
       </div>
     );
@@ -124,6 +128,8 @@ function SortableSection({
           blocks={[block]}
           onChange={(blocks) => onChange(blocks[0])}
           mode="edit"
+          onSave={onSave}
+          entityType={entityType}
         />
       </div>
     </section>
@@ -140,6 +146,8 @@ interface TemplateEditorContentProps {
   onBlockChange: (index: number, block: TemplateBlock) => void;
   onBlockDelete: (index: number) => void;
   onToggleSection: (index: number) => void;
+  onSave?: () => Promise<void>; // Force immediate save (for image uploads)
+  entityType?: 'project' | 'career'; // Entity type for template customization
 }
 
 export function TemplateEditorContent({
@@ -152,6 +160,8 @@ export function TemplateEditorContent({
   onBlockChange,
   onBlockDelete,
   onToggleSection,
+  onSave,
+  entityType,
 }: TemplateEditorContentProps) {
   const [showSlashMenu, setShowSlashMenu] = useState(false);
 
@@ -204,6 +214,8 @@ export function TemplateEditorContent({
               onToggle={() => onToggleSection(index)}
               onChange={(updatedBlock) => onBlockChange(index, updatedBlock)}
               onDelete={() => onBlockDelete(index)}
+              onSave={onSave}
+              entityType={entityType}
             />
           ))}
         </SortableContext>

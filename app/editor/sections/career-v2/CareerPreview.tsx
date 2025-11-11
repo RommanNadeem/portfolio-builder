@@ -32,16 +32,16 @@ export function CareerPreview({ highlights, viewMode, previewMode, onUpdate }: C
   const isEditable = viewMode === 'edit' && onUpdate;
 
   return (
-    <div id="experience" className={`w-full ${isMobile ? 'px-4 mb-6' : 'px-4 sm:px-6 lg:px-8 mb-12 sm:mb-16 lg:mb-20'}`}>
+    <div id="experience" className={`w-full ${isMobile ? 'mb-6' : 'mb-12 sm:mb-16 lg:mb-20'}`}>
       {/* Section Header */}
-      <div className={`flex items-center gap-2 ${isMobile ? 'mb-3' : 'mb-6 sm:mb-8'}`}>
+      <div className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-8'}`}>
         <div className={`rounded-lg bg-blue-100 flex items-center justify-center ${
-          isMobile ? 'w-5 h-5' : 'w-7 h-7 sm:w-8 sm:h-8'
+          isMobile ? 'w-6 h-6' : 'w-8 h-8'
         }`}>
-          <Award className={isMobile ? 'w-3 h-3 text-blue-600' : 'w-4 h-4 sm:w-5 sm:h-5 text-blue-600'} />
+          <Award className={isMobile ? 'w-3.5 h-3.5 text-blue-600' : 'w-5 h-5 text-blue-600'} />
         </div>
         <h2 className={`font-bold text-gray-900 ${
-          isMobile ? 'text-base' : 'text-2xl sm:text-3xl'
+          isMobile ? 'text-lg' : 'text-3xl'
         }`}>Career Highlights</h2>
       </div>
 
@@ -75,22 +75,19 @@ export function CareerPreview({ highlights, viewMode, previewMode, onUpdate }: C
                         window.location.href = `/detail/career-editor/${highlight.id}?mode=edit`;
                       }
                     }}
-                    className="absolute top-3 right-3 z-10 p-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-blue-600 hover:text-white border border-gray-200"
+                    className="absolute top-3 right-3 z-10 p-2 bg-white backdrop-blur-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-all text-gray-700 hover:bg-blue-600 hover:text-white border border-gray-300"
                     title="Edit career highlight"
                   >
                     <FileEdit className="w-4 h-4" />
                   </button>
                   
-                  {/* Header with role and organization */}
-                  <div className={`flex items-start justify-between ${isMobile ? 'mb-2' : 'mb-4'}`}>
+                  {/* Header with organization and role */}
+                  <div className={`flex items-start justify-between ${isMobile ? 'mb-2' : 'mb-3'}`}>
                     <div>
-                      <h3 className={`font-bold text-gray-900 ${isMobile ? 'text-sm' : 'text-lg sm:text-xl'}`}>
-                        {highlight.role}
-                      </h3>
                       <div className="flex items-center gap-2">
-                        <p className={`text-blue-600 font-medium ${isMobile ? 'text-xs mt-0.5' : 'text-sm sm:text-base mt-1'}`}>
+                        <h3 className={`font-semibold text-gray-900 ${isMobile ? 'text-sm' : 'text-lg'}`}>
                           {highlight.organization}
-                        </p>
+                        </h3>
                         {highlight.link && (
                           <a
                             href={highlight.link}
@@ -104,6 +101,9 @@ export function CareerPreview({ highlights, viewMode, previewMode, onUpdate }: C
                           </a>
                         )}
                       </div>
+                      <p className={`text-blue-600 font-medium ${isMobile ? 'text-xs mt-0.5' : 'text-sm mt-1'}`}>
+                        {highlight.role}
+                      </p>
                     </div>
                     <div className="text-right">
                       <div className={`text-gray-600 font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>
@@ -121,18 +121,18 @@ export function CareerPreview({ highlights, viewMode, previewMode, onUpdate }: C
 
                   {/* Description */}
                   {highlight.description && (
-                    <p className={`text-gray-600 ${isMobile ? 'text-xs mb-2' : 'text-sm sm:text-base mb-4'}`}>
+                    <p className={`text-gray-600 ${isMobile ? 'text-xs mb-2' : 'text-sm mb-3'}`}>
                       {highlight.description}
                     </p>
                   )}
 
                   {/* Featured Achievements */}
                   {featuredAchievements.length > 0 && (
-                    <ul className={`space-y-2 ${isMobile ? 'mt-2' : 'mt-4'}`}>
+                    <ul className={`space-y-1.5 ${isMobile ? 'mt-2' : 'mt-3'}`}>
                       {featuredAchievements.map((achievement, idx) => (
                         <li
                           key={idx}
-                          className={`flex items-start gap-2 ${isMobile ? 'text-xs' : 'text-sm'} text-gray-700`}
+                          className={`flex items-start gap-2 text-gray-700 ${isMobile ? 'text-xs' : 'text-sm'}`}
                         >
                           <span className={`flex-shrink-0 ${isMobile ? 'text-xs mt-0.5' : 'text-base mt-0.5'} text-blue-500`}>
                             ✓

@@ -40,12 +40,12 @@ export function PersonalPreview({ data, socialLinks = [], viewMode, previewMode 
   return (
     <div id="overview" className="w-full bg-white">
       {/* Profile Image, Heading, Tagline, Social Links - Constrained Width */}
-      <div className={`w-full ${isMobile ? 'px-4 py-8 pb-8' : 'px-4 sm:px-6 lg:px-8 pb-12'}`}>
-        <div className={`max-w-6xl mx-auto flex ${isMobile ? 'flex-col items-center text-center gap-6' : 'items-start gap-8 sm:gap-12'}`}>
+      <div className={`w-full ${isMobile ? 'py-8 pb-8' : 'pb-12'}`}>
+        <div className={`max-w-6xl mx-auto flex ${isMobile ? 'items-start gap-4' : 'items-start gap-8 sm:gap-12'}`}>
           {/* Profile Image */}
           <div className="relative flex-shrink-0">
             <div className={`rounded-full border-2 border-blue-200 bg-gray-100 flex items-center justify-center overflow-hidden ${
-              isMobile ? 'w-32 h-32' : ''
+              isMobile ? 'w-20 h-20' : ''
             }`}
             style={!isMobile ? { width: '136px', height: '136px' } : {}}
             >
@@ -56,7 +56,7 @@ export function PersonalPreview({ data, socialLinks = [], viewMode, previewMode 
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <User className={`text-gray-400 ${isMobile ? 'w-16 h-16' : 'w-20 h-20'}`} />
+                <User className={`text-gray-400 ${isMobile ? 'w-10 h-10' : 'w-20 h-20'}`} />
               )}
             </div>
           </div>
@@ -66,9 +66,11 @@ export function PersonalPreview({ data, socialLinks = [], viewMode, previewMode 
             {/* Main Heading - Blue/Purple Gradient */}
             {data.heading && (
               <h1 className={`font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent ${
-                isMobile ? 'text-3xl mb-4' : 'mb-4'
+                isMobile ? 'text-2xl mb-3' : 'text-5xl mb-4'
               }`}
-              style={!isMobile ? { fontSize: '56px', lineHeight: '1.1' } : {}}
+              style={{
+                lineHeight: isMobile ? '1.2' : '1.1',
+              }}
               >
                 {data.heading}
               </h1>
@@ -78,29 +80,26 @@ export function PersonalPreview({ data, socialLinks = [], viewMode, previewMode 
             {data.tagline && (
               <div className={`${isMobile ? 'mb-4' : 'mb-6'}`}>
                 {/* Tagline Text */}
-                <p className={`text-gray-900 leading-relaxed font-medium ${isMobile ? 'text-sm mb-2' : 'mb-2'}`}
-                style={!isMobile ? { fontSize: '22px' } : {}}
-                >
+                <p className={`text-gray-700 leading-relaxed ${isMobile ? 'text-base mb-2' : 'text-xl mb-3'}`}>
                   {data.tagline}
                 </p>
                 {/* Gradient Line Below Tagline */}
-                <div className="w-16 h-1 bg-gradient-to-r from-blue-500 to-purple-500" />
+                <div className={`${isMobile ? 'w-12 h-0.5' : 'w-16 h-1'} bg-gradient-to-r from-blue-500 to-purple-500`} />
               </div>
             )}
 
             {/* Contact Pills Row - Below Tagline */}
             {socialLinks.length > 0 && (
-              <div className={`flex flex-wrap gap-2 ${isMobile ? 'justify-center' : ''}`}>
+              <div className={`flex flex-wrap gap-2`}>
                 {socialLinks.map((link) => (
                   <a
                     key={link.id}
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-full text-gray-700 bg-white hover:bg-gray-50 transition-colors shadow-sm ${
-                      isMobile ? 'text-xs' : ''
+                    className={`inline-flex items-center gap-2 border border-gray-300 rounded-full text-gray-700 bg-white hover:bg-gray-50 transition-colors shadow-sm ${
+                      isMobile ? 'text-xs px-3 py-1.5' : 'text-sm px-4 py-2'
                     }`}
-                    style={!isMobile ? { fontSize: '15px' } : {}}
                   >
                     {getIcon(link.icon)}
                     <span>{link.platform}</span>
@@ -114,11 +113,11 @@ export function PersonalPreview({ data, socialLinks = [], viewMode, previewMode 
 
       {/* About Section - Full Width */}
       {data.whoAreYou && (
-        <div className={`w-full ${isMobile ? 'px-4 pb-8' : 'px-4 sm:px-6 lg:px-8 pb-12'}`}>
+        <div className={`w-full ${isMobile ? 'pb-8' : 'pb-12'}`}>
           <div className={`bg-gray-50 rounded-2xl ${isMobile ? 'px-6 py-8' : 'px-12 py-10'}`}>
             <div className="max-w-6xl mx-auto">
-              <p className={`text-gray-700 leading-relaxed ${isMobile ? 'text-sm' : 'text-lg'}`}
-              style={!isMobile ? { lineHeight: '1.8' } : {}}
+              <p className={`text-gray-700 ${isMobile ? 'text-sm leading-relaxed' : 'text-base leading-relaxed'}`}
+              style={{ lineHeight: isMobile ? '1.6' : '1.7' }}
               >
                 {data.whoAreYou}
               </p>

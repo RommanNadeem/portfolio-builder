@@ -101,7 +101,7 @@ export function PersonalEditor({ data, onChange, isExpanded }: PersonalEditorPro
           value={data.heading || ''}
           onChange={(e) => onChange({ heading: e.target.value })}
           placeholder="Hi, I'm Sarah — Product Designer crafting delightful experiences"
-          className="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 placeholder:text-gray-500"
+          className="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 placeholder:text-gray-600"
         />
         <p className="mt-1 text-xs text-gray-500">This will be your main headline with gradient effect</p>
       </div>
@@ -114,7 +114,7 @@ export function PersonalEditor({ data, onChange, isExpanded }: PersonalEditorPro
           onChange={(e) => onChange({ tagline: e.target.value })}
           placeholder="I help startups turn 0 → 1 ideas into products that users love, combining design thinking with technical execution."
           rows={2}
-          className="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none placeholder:text-gray-500"
+          className="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none placeholder:text-gray-600"
         />
         <p className="mt-1 text-xs text-gray-500">Your value proposition — appears with purple-blue gradient line</p>
       </div>
@@ -127,7 +127,7 @@ export function PersonalEditor({ data, onChange, isExpanded }: PersonalEditorPro
           onChange={(e) => onChange({ whoAreYou: e.target.value })}
           placeholder="Share more about your background, what drives you, or what makes you unique. This appears below your tagline as additional context."
           rows={3}
-          className="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none placeholder:text-gray-500"
+          className="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none placeholder:text-gray-600"
         />
       </div>
     </div>

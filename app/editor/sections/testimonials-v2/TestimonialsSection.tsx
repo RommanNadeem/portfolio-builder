@@ -1,13 +1,15 @@
 /**
- * TestimonialsSection Component (V2 - Using Core Architecture)
+ * TestimonialsSection Component (Controlled Version)
  * 
- * Testimonials section built with the unified core architecture.
- * Demonstrates the pattern that all sections should follow.
+ * Fully controlled component with no internal state.
+ * Real-time sync between editor and preview.
  */
 
 'use client';
 
-import { useSectionManager } from '@/app/editor/core/hooks';
+import { useMemo, useCallback } from 'react';
+import { Plus, MessageSquare, Linkedin } from 'lucide-react';
+import { useSectionManagerControlled } from '@/app/editor/core/hooks';
 import { ItemList } from '@/app/editor/core/components';
 import { TestimonialItem, convertFromLegacy, convertToLegacy, Testimonial } from './types';
 import { TestimonialCard } from './TestimonialCard';
@@ -30,40 +32,33 @@ export function TestimonialsSection({
   userId,
 }: TestimonialsSectionProps) {
   
-  // Convert legacy data to new format
-  const legacyTestimonials = data.testimonials || [];
-  const initialData: TestimonialItem[] = legacyTestimonials.map((t: Testimonial) => 
-    convertFromLegacy(t)
-  );
+  // Convert legacy data to new format (memoized)
+  const testimonials = useMemo(() => {
+    const legacyTestimonials = data.testimonials || [];
+    return legacyTestimonials.map((t: Testimonial) => convertFromLegacy(t));
+  }, [data.testimonials]);
 
-  // Use shared hook for state management
+  // Handle changes - update parent immediately
+  const handleTestimonialsChange = useCallback((newTestimonials: TestimonialItem[]) => {
+    const legacy = newTestimonials.map(convertToLegacy);
+    onChange(prev => ({
+      ...prev,
+      testimonials: legacy,
+    }));
+  }, [onChange]);
+
+  // Use controlled hook
   const {
-    items: testimonials,
+    items: currentTestimonials,
     add,
     update,
     remove,
     reorder,
     reorderByIndex,
-    saveStatus,
     itemCount,
-  } = useSectionManager<TestimonialItem>({
-    initialData,
-    onSave: async (items) => {
-      // Convert back to legacy format for compatibility
-      const legacy = items.map(convertToLegacy);
-      
-      // Update parent state
-      onChange(prev => ({
-        ...prev,
-        testimonials: legacy,
-      }));
-      
-      // TODO: Save to database when implemented
-      console.log('[TestimonialsSection] 💾 Saved testimonials:', items.length);
-    },
-    autoSave: true,
-    autoSaveDelay: 100, // Instant sync for live preview
-    localStorageKey: `testimonials-${userId}`,
+  } = useSectionManagerControlled<TestimonialItem>({
+    items: testimonials,
+    onChange: handleTestimonialsChange,
   });
 
   const handleAdd = () => {
@@ -75,34 +70,82 @@ export function TestimonialsSection({
       content: '',
       avatar: null,
       linkedinUrl: '',
-      relationship: '',
     });
   };
 
   // In preview renderMode, render the preview component
   if (renderMode === 'preview' || viewMode === 'preview') {
-    // TODO: Create TestimonialsPreview component
+    // Filter out empty testimonials (name and content required)
+    const validTestimonials = currentTestimonials.filter(t => 
+      t.name.trim().length > 0 && t.content.trim().length > 0
+    );
+    
+    if (validTestimonials.length === 0) {
+      return null; // Don't show empty section
+    }
+
+    const isMobile = previewMode === 'mobile';
+    
     return (
-      <div className="py-12">
-        <h2 className="text-3xl font-bold text-center mb-12">Testimonials</h2>
-        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-          {testimonials.map((testimonial) => (
+      <div id="testimonials" className={`w-full ${isMobile ? 'mb-6' : 'mb-12 sm:mb-16 lg:mb-20'}`}>
+        {/* Section Header */}
+        <div className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-8'}`}>
+          <div className={`rounded-lg bg-blue-100 flex items-center justify-center ${
+            isMobile ? 'w-6 h-6' : 'w-8 h-8'
+          }`}>
+            <MessageSquare className={isMobile ? 'w-3.5 h-3.5 text-blue-600' : 'w-5 h-5 text-blue-600'} />
+          </div>
+          <h2 className={`font-bold text-gray-900 ${
+            isMobile ? 'text-lg' : 'text-3xl'
+          }`}>Testimonials</h2>
+        </div>
+        
+        <div className={`grid gap-4 max-w-4xl mx-auto ${
+          isMobile ? 'grid-cols-1' : 'md:grid-cols-2 gap-6'
+        }`}>
+          {validTestimonials.map((testimonial) => (
             <div
               key={testimonial.id}
-              className="bg-white p-6 rounded-lg shadow-sm border border-gray-200"
+              className={`bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all ${
+                isMobile ? 'p-4' : 'p-6 sm:p-8'
+              }`}
             >
-              <p className="text-gray-700 italic mb-4">&ldquo;{testimonial.content}&rdquo;</p>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold">
-                  {testimonial.name.charAt(0)}
+              <p className={`text-gray-700 italic leading-relaxed ${
+                isMobile ? 'text-xs mb-3' : 'text-sm mb-4'
+              }`}>&ldquo;{testimonial.content}&rdquo;</p>
+              <div className={`flex items-center justify-between ${isMobile ? 'gap-2' : 'gap-3'}`}>
+                <div className="flex items-center gap-3">
+                  <div className={`bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold ${
+                    isMobile ? 'w-9 h-9 text-xs' : 'w-11 h-11 text-sm'
+                  }`}>
+                    {testimonial.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className={`font-semibold text-gray-900 ${
+                      isMobile ? 'text-xs' : 'text-sm'
+                    }`}>{testimonial.name}</p>
+                    <p className={`text-gray-600 ${
+                      isMobile ? 'text-xs' : 'text-xs'
+                    }`}>
+                      {testimonial.role}
+                      {testimonial.company && ` @ ${testimonial.company}`}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                  <p className="text-sm text-gray-600">
-                    {testimonial.role}
-                    {testimonial.company && ` @ ${testimonial.company}`}
-                  </p>
-                </div>
+                {/* LinkedIn Icon */}
+                {testimonial.linkedinUrl && (
+                  <a
+                    href={testimonial.linkedinUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`flex-shrink-0 p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all ${
+                      isMobile ? '' : ''
+                    }`}
+                    title="View LinkedIn Profile"
+                  >
+                    <Linkedin className={isMobile ? 'w-4 h-4' : 'w-5 h-5'} />
+                  </a>
+                )}
               </div>
             </div>
           ))}
@@ -115,7 +158,7 @@ export function TestimonialsSection({
   return (
     <div className="space-y-3">
       <ItemList
-        items={testimonials}
+        items={currentTestimonials}
         onReorder={reorderByIndex}
         renderItem={(testimonial, index) => (
           <TestimonialCard
@@ -125,22 +168,30 @@ export function TestimonialsSection({
             onMoveUp={() => reorder(testimonial.id, 'up')}
             onMoveDown={() => reorder(testimonial.id, 'down')}
             canMoveUp={index > 0}
-            canMoveDown={index < testimonials.length - 1}
+            canMoveDown={index < currentTestimonials.length - 1}
           />
         )}
       />
       
-      {/* Add button */}
-      {testimonials.length === 0 && (
+      {/* Add button - Always visible */}
+      {currentTestimonials.length === 0 ? (
         <button
           onClick={handleAdd}
-          className="w-full flex items-center justify-center gap-2 px-4 py-8 bg-white border-2 border-dashed border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all"
+          className="w-full flex items-center justify-center gap-2 px-4 py-8 bg-white border-2 border-dashed border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all"
         >
           <span className="text-3xl mb-2">💬</span>
           <div className="text-center">
             <p className="font-medium">No testimonials yet</p>
             <p className="text-sm">Add your first one!</p>
           </div>
+        </button>
+      ) : (
+        <button
+          onClick={handleAdd}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-white border-2 border-dashed border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Add Testimonial</span>
         </button>
       )}
     </div>

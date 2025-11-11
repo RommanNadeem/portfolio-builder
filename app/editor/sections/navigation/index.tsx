@@ -42,7 +42,11 @@ export function NavigationSection({ data, onChange, viewMode, previewMode, rende
 
         {/* Content */}
         <div className="px-4 pb-4">
-          <NavigationEditor isExpanded={isExpanded} />
+          <NavigationEditor 
+            isExpanded={isExpanded}
+            data={data}
+            onChange={onChange}
+          />
         </div>
       </div>
     );

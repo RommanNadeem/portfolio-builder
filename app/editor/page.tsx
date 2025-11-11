@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { usePortfolioData } from './hooks/usePortfolioData';
 import { useAutoSave } from './hooks/useAutoSave';
 import { EditorLayout } from './components/EditorLayout';
+import { SortableSections } from './components/SortableSections';
+import { DraggableSection } from './components/DraggableSection';
+import { SectionOrderBanner } from './components/SectionOrderBanner';
 import { NavigationSection } from './sections/navigation';
 import { PersonalSection } from './sections/personal';
 import { CompaniesSection } from './sections/companies-v2';
@@ -13,6 +16,9 @@ import { CareerSection } from './sections/career-v2';
 import { StrengthsSection } from './sections/strengths-v2';
 import { TestimonialsSection } from './sections/testimonials-v2';
 import { FooterSection } from './sections/footer';
+
+// Default section order
+const DEFAULT_SECTION_ORDER = ['career', 'projects', 'strengths', 'testimonials'];
 
 export default function EditorPage() {
   const [viewMode, setViewMode] = useState<'edit' | 'preview'>('edit');
@@ -28,7 +34,64 @@ export default function EditorPage() {
   }, []);
   
   const { portfolio, updatePortfolio, savePortfolio, loading, error, currentUserId } = usePortfolioData();
-  const { isDirty, isSaving, lastSaved, forceSave } = useAutoSave(portfolio, savePortfolio, 500);
+  const { isDirty, isSaving, lastSaved } = useAutoSave(portfolio, savePortfolio, 500);
+
+  // Get section order from portfolio data or use default
+  const sectionOrder = portfolio?.sectionOrder || DEFAULT_SECTION_ORDER;
+
+  // Handle section reordering
+  const handleSectionReorder = (newOrder: string[]) => {
+    updatePortfolio((prev) => ({
+      ...prev,
+      sectionOrder: newOrder,
+    }));
+  };
+
+  // Section component map
+  const getSectionComponent = (sectionId: string, renderMode: 'editor' | 'preview') => {
+    const commonProps = {
+      data: portfolio,
+      onChange: updatePortfolio,
+      viewMode,
+      previewMode,
+      renderMode,
+      userId: currentUserId,
+    };
+
+    switch (sectionId) {
+      case 'career':
+        return <CareerSection key={sectionId} {...commonProps} />;
+      case 'projects':
+        return <ProjectsSection key={sectionId} {...commonProps} />;
+      case 'strengths':
+        return <StrengthsSection key={sectionId} {...commonProps} />;
+      case 'testimonials':
+        return <TestimonialsSection key={sectionId} {...commonProps} />;
+      default:
+        return null;
+    }
+  };
+
+  // Render sortable sections for editor
+  const renderSortableSections = () => {
+    const sections = sectionOrder.map((sectionId) => ({
+      id: sectionId,
+      component: (
+        <DraggableSection key={sectionId} id={sectionId}>
+          {getSectionComponent(sectionId, 'editor')}
+        </DraggableSection>
+      ),
+    }));
+
+    return <SortableSections sections={sections} onReorder={handleSectionReorder} />;
+  };
+
+  // Render sections for preview (in order, no drag and drop)
+  const renderPreviewSections = () => {
+    return sectionOrder.map((sectionId) => (
+      <div key={sectionId}>{getSectionComponent(sectionId, 'preview')}</div>
+    ));
+  };
 
   if (loading) {
     return (
@@ -69,6 +132,7 @@ export default function EditorPage() {
 
   const editorPanel = (
     <>
+      {/* Fixed sections at top */}
       <NavigationSection
         data={portfolio}
         onChange={updatePortfolio}
@@ -99,44 +163,16 @@ export default function EditorPage() {
         viewMode={viewMode}
         previewMode={previewMode}
         renderMode="editor"
-      />
-      
-      <CareerSection
-        data={portfolio}
-        onChange={updatePortfolio}
-        viewMode={viewMode}
-        previewMode={previewMode}
-        renderMode="editor"
         userId={currentUserId}
       />
+
+      {/* Banner to inform users about drag and drop */}
+      <SectionOrderBanner />
+
+      {/* Sortable sections */}
+      {renderSortableSections()}
       
-      <ProjectsSection
-        data={portfolio}
-        onChange={updatePortfolio}
-        viewMode={viewMode}
-        previewMode={previewMode}
-        renderMode="editor"
-        userId={currentUserId}
-      />
-      
-      <StrengthsSection
-        data={portfolio}
-        onChange={updatePortfolio}
-        viewMode={viewMode}
-        previewMode={previewMode}
-        renderMode="editor"
-        userId={currentUserId}
-      />
-      
-      <TestimonialsSection
-        data={portfolio}
-        onChange={updatePortfolio}
-        viewMode={viewMode}
-        previewMode={previewMode}
-        renderMode="editor"
-        userId={currentUserId}
-      />
-      
+      {/* Fixed section at bottom */}
       <FooterSection
         data={portfolio}
         onChange={updatePortfolio}
@@ -149,6 +185,7 @@ export default function EditorPage() {
 
   const previewPanel = (
     <>
+      {/* Navigation - Full Width */}
       <NavigationSection
         data={portfolio}
         onChange={updatePortfolio}
@@ -157,6 +194,7 @@ export default function EditorPage() {
         renderMode="preview"
       />
       
+      {/* Companies Slider - Full Width */}
       <CompaniesSection
         data={portfolio}
         onChange={updatePortfolio}
@@ -165,58 +203,21 @@ export default function EditorPage() {
         renderMode="preview"
       />
       
-      <PersonalSection
-        data={portfolio}
-        onChange={updatePortfolio}
-        viewMode={viewMode}
-        previewMode={previewMode}
-        renderMode="preview"
-      />
+      {/* Content sections with padding */}
+      <div className={previewMode === 'mobile' ? 'px-6' : 'px-16'}>
+        <PersonalSection
+          data={portfolio}
+          onChange={updatePortfolio}
+          viewMode={viewMode}
+          previewMode={previewMode}
+          renderMode="preview"
+        />
+
+        {/* Sections in custom order */}
+        {renderPreviewSections()}
+      </div>
       
-      <SocialLinksSection
-        data={portfolio}
-        onChange={updatePortfolio}
-        viewMode={viewMode}
-        previewMode={previewMode}
-        renderMode="preview"
-      />
-      
-      <CareerSection
-        data={portfolio}
-        onChange={updatePortfolio}
-        viewMode={viewMode}
-        previewMode={previewMode}
-        renderMode="preview"
-        userId={currentUserId}
-      />
-      
-      <ProjectsSection
-        data={portfolio}
-        onChange={updatePortfolio}
-        viewMode={viewMode}
-        previewMode={previewMode}
-        renderMode="preview"
-        userId={currentUserId}
-      />
-      
-      <StrengthsSection
-        data={portfolio}
-        onChange={updatePortfolio}
-        viewMode={viewMode}
-        previewMode={previewMode}
-        renderMode="preview"
-        userId={currentUserId}
-      />
-      
-      <TestimonialsSection
-        data={portfolio}
-        onChange={updatePortfolio}
-        viewMode={viewMode}
-        previewMode={previewMode}
-        renderMode="preview"
-        userId={currentUserId}
-      />
-      
+      {/* Footer - Full Width */}
       <FooterSection
         data={portfolio}
         onChange={updatePortfolio}
@@ -236,7 +237,6 @@ export default function EditorPage() {
       isDirty={isDirty}
       isSaving={isSaving}
       lastSaved={lastSaved}
-      onForceSave={forceSave}
       editorPanel={editorPanel}
       previewPanel={previewPanel}
     />

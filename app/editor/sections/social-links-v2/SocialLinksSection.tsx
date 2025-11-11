@@ -1,14 +1,29 @@
 /**
- * SocialLinksSection Component (V2 - Using Core Architecture)
+ * SocialLinksSection Component (Controlled Version)
  * 
- * Social links section built with the unified core architecture.
+ * Fully controlled component with no internal state.
+ * Parent component is the single source of truth.
+ * Real-time sync between editor and preview.
  */
 
 'use client';
 
-import { useState } from 'react';
-import { Linkedin, Github, Twitter, Instagram, Globe, Calendar } from 'lucide-react';
-import { useSectionManager } from '@/app/editor/core/hooks';
+import { useMemo, useCallback } from 'react';
+import { 
+  Linkedin, 
+  Github, 
+  Twitter, 
+  Instagram, 
+  Globe, 
+  Calendar, 
+  Mail, 
+  Phone,
+  Youtube,
+  Palette,
+  Dribbble as DribbbleIcon,
+  Edit3,
+} from 'lucide-react';
+import { useSectionManagerControlled } from '@/app/editor/core/hooks';
 import { ItemList } from '@/app/editor/core/components';
 import { SocialLinkItem, convertFromLegacy, convertToLegacy, SocialLink, AVAILABLE_PLATFORMS } from './types';
 import { SocialLinkCard } from './SocialLinkCard';
@@ -30,70 +45,105 @@ export function SocialLinksSection({
   renderMode = 'editor',
   userId,
 }: SocialLinksSectionProps) {
-  const [showPlatformSelector, setShowPlatformSelector] = useState(false);
-  
-  // Convert legacy data to new format
-  const legacyLinks = data.socialLinks || [];
-  const initialData: SocialLinkItem[] = legacyLinks.map((l: SocialLink) => 
-    convertFromLegacy(l)
-  );
+  // Convert legacy data to new format (memoized)
+  const links = useMemo(() => {
+    const legacyLinks = data.socialLinks || [];
+    return legacyLinks.map((l: SocialLink) => convertFromLegacy(l));
+  }, [data.socialLinks]);
 
-  // Use shared hook for state management
+  // Handle changes - update parent immediately
+  const handleLinksChange = useCallback((newLinks: SocialLinkItem[]) => {
+    const legacy = newLinks.map(convertToLegacy);
+    
+    console.log('[SocialLinksSection] 🔄 Updating parent state:', {
+      prev: data.socialLinks?.length || 0,
+      new: legacy.length,
+    });
+    
+    // Update parent immediately - no delay, no auto-save
+    onChange(prev => ({
+      ...prev,
+      socialLinks: legacy,
+    }));
+  }, [onChange, data.socialLinks]);
+
+  // Use controlled hook
   const {
-    items: links,
+    items: currentLinks,
     add,
     update,
     remove,
     reorder,
     reorderByIndex,
-    saveStatus,
     itemCount,
-  } = useSectionManager<SocialLinkItem>({
-    initialData,
-    onSave: async (items) => {
-      // Convert back to legacy format for compatibility
-      const legacy = items.map(convertToLegacy);
-      
-      // Update parent state
-      onChange(prev => ({
-        ...prev,
-        socialLinks: legacy,
-      }));
-      
-      console.log('[SocialLinksSection] 💾 Saved social links:', items.length);
-    },
-    autoSave: true,
-    autoSaveDelay: 100, // Instant sync for live preview
-    localStorageKey: `social-links-${userId}`,
+  } = useSectionManagerControlled<SocialLinkItem>({
+    items: links,
+    onChange: handleLinksChange,
   });
+
+  // Get platforms that haven't been added yet
+  const addedPlatforms = useMemo(() => 
+    new Set(currentLinks.map(link => link.platform.toLowerCase())),
+    [currentLinks]
+  );
+  
+  const availablePlatforms = useMemo(() => 
+    AVAILABLE_PLATFORMS.filter(p => !addedPlatforms.has(p.platform.toLowerCase())),
+    [addedPlatforms]
+  );
 
   const handleAddPlatform = (platform: string, icon: string) => {
     add({
       platform,
       icon,
       url: '',
-      username: undefined,
     });
-    setShowPlatformSelector(false);
+  };
+
+  // Helper to get icon component for editor
+  const getIcon = (iconName: string) => {
+    const className = "w-4 h-4";
+    switch (iconName) {
+      case 'linkedin': return <Linkedin className={className} />;
+      case 'github': return <Github className={className} />;
+      case 'twitter': return <Twitter className={className} />;
+      case 'instagram': return <Instagram className={className} />;
+      case 'globe': return <Globe className={className} />;
+      case 'calendar': return <Calendar className={className} />;
+      case 'mail': return <Mail className={className} />;
+      case 'phone': return <Phone className={className} />;
+      case 'youtube': return <Youtube className={className} />;
+      case 'behance': return <Palette className={className} />;
+      case 'dribbble': return <DribbbleIcon className={className} />;
+      case 'medium': return <Edit3 className={className} />;
+      default: return <Globe className={className} />;
+    }
   };
 
   // In preview renderMode, render the links
   if (renderMode === 'preview' || viewMode === 'preview') {
-    const getIcon = (iconName: string) => {
+    const getPreviewIcon = (iconName: string) => {
+      const className = "w-5 h-5";
       switch (iconName) {
-        case 'linkedin': return <Linkedin className="w-5 h-5" />;
-        case 'github': return <Github className="w-5 h-5" />;
-        case 'twitter': return <Twitter className="w-5 h-5" />;
-        case 'instagram': return <Instagram className="w-5 h-5" />;
-        case 'globe': return <Globe className="w-5 h-5" />;
-        case 'calendar': return <Calendar className="w-5 h-5" />;
-        default: return <Globe className="w-5 h-5" />;
+        case 'linkedin': return <Linkedin className={className} />;
+        case 'github': return <Github className={className} />;
+        case 'twitter': return <Twitter className={className} />;
+        case 'instagram': return <Instagram className={className} />;
+        case 'globe': return <Globe className={className} />;
+        case 'calendar': return <Calendar className={className} />;
+        case 'mail': return <Mail className={className} />;
+        case 'phone': return <Phone className={className} />;
+        case 'youtube': return <Youtube className={className} />;
+        case 'behance': return <Palette className={className} />;
+        case 'dribbble': return <DribbbleIcon className={className} />;
+        case 'medium': return <Edit3 className={className} />;
+        default: return <Globe className={className} />;
       }
     };
 
     return (
       <div className="flex justify-center gap-4 py-8">
-        {links.map((link) => (
+        {currentLinks.map((link) => (
           <a
             key={link.id}
             href={link.url}
@@ -102,7 +152,7 @@ export function SocialLinksSection({
             className="p-3 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow text-gray-700 hover:text-purple-600"
             title={link.platform}
           >
-            {getIcon(link.icon)}
+            {getPreviewIcon(link.icon)}
           </a>
         ))}
       </div>
@@ -112,64 +162,57 @@ export function SocialLinksSection({
   // Editor mode - render content only (wrapper handles header)
   return (
     <div className="space-y-4">
-      {/* Platform selector modal */}
-      {showPlatformSelector && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">Choose Platform</h3>
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              {AVAILABLE_PLATFORMS.map(({ platform, icon }) => (
-                <button
-                  key={platform}
-                  onClick={() => handleAddPlatform(platform, icon)}
-                  className="flex items-center gap-3 px-4 py-3 border border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors text-left"
-                >
-                  <span className="text-2xl">{icon === 'linkedin' ? '💼' : icon === 'github' ? '💻' : icon === 'twitter' ? '🐦' : '🔗'}</span>
-                  <span className="font-medium text-sm">{platform}</span>
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => setShowPlatformSelector(false)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
+      {/* Active Links - Drag and Drop */}
+      {currentLinks.length > 0 && (
+        <div className="space-y-2">
+          <ItemList
+            items={currentLinks}
+            onReorder={reorderByIndex}
+            renderItem={(link, index) => (
+              <SocialLinkCard
+                link={link}
+                onUpdate={update}
+                onDelete={remove}
+                onMoveUp={() => reorder(link.id, 'up')}
+                onMoveDown={() => reorder(link.id, 'down')}
+                canMoveUp={index > 0}
+                canMoveDown={index < currentLinks.length - 1}
+              />
+            )}
+          />
+        </div>
+      )}
+
+      {/* Available Platforms - Show inline */}
+      {availablePlatforms.length > 0 && (
+        <div className="space-y-2">
+          <div className="text-xs font-medium text-gray-500 px-1">
+            {currentLinks.length > 0 ? 'Add More:' : 'Available Platforms:'}
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {availablePlatforms.map(({ platform, icon }) => (
+              <button
+                key={platform}
+                onClick={() => handleAddPlatform(platform, icon)}
+                className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors text-left group"
+              >
+                <div className="w-8 h-8 bg-gray-50 rounded-md flex items-center justify-center text-gray-600 group-hover:bg-purple-100 group-hover:text-purple-700 transition-colors flex-shrink-0">
+                  {getIcon(icon)}
+                </div>
+                <span className="font-medium text-xs text-gray-700 group-hover:text-purple-700">{platform}</span>
+              </button>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Links list */}
-      {links.length > 0 ? (
-        <ItemList
-          items={links}
-          onReorder={reorderByIndex}
-          renderItem={(link, index) => (
-            <SocialLinkCard
-              link={link}
-              onUpdate={update}
-              onDelete={remove}
-              onMoveUp={() => reorder(link.id, 'up')}
-              onMoveDown={() => reorder(link.id, 'down')}
-              canMoveUp={index > 0}
-              canMoveDown={index < links.length - 1}
-            />
-          )}
-        />
-      ) : (
-        <div className="text-center py-8 text-gray-500">
-          <p className="mb-2">No social links yet</p>
-          <p className="text-sm">Add your first link!</p>
+      {/* Empty state - only show if no links at all */}
+      {currentLinks.length === 0 && availablePlatforms.length === 0 && (
+        <div className="text-center py-8 text-gray-600">
+          <p className="mb-2 font-medium">All platforms added!</p>
+          <p className="text-sm text-gray-500">You can edit or remove existing links</p>
         </div>
       )}
-
-      {/* Add button */}
-      <button
-        onClick={() => setShowPlatformSelector(true)}
-        className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-white border-2 border-dashed border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all"
-      >
-        <span>+ Add Link</span>
-      </button>
     </div>
   );
 }

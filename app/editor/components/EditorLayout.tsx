@@ -1,6 +1,6 @@
 'use client';
 
-import { Eye, Pencil, Monitor, Smartphone, Save, LogOut, Settings, LayoutDashboard } from 'lucide-react';
+import { Eye, Pencil, Monitor, Smartphone, LogOut, Settings, LayoutDashboard } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { signOut } from '@/lib/supabase';
 import { ResizablePanes } from './ResizablePanes';
@@ -15,7 +15,6 @@ interface EditorLayoutProps {
   isDirty: boolean;
   isSaving: boolean;
   lastSaved: Date | null;
-  onForceSave: () => void;
 }
 
 export function EditorLayout({
@@ -28,7 +27,6 @@ export function EditorLayout({
   isDirty,
   isSaving,
   lastSaved,
-  onForceSave,
 }: EditorLayoutProps) {
   const router = useRouter();
 
@@ -124,18 +122,6 @@ export function EditorLayout({
             </div>
           )}
 
-          {/* Force Save Button */}
-          {isDirty && (
-            <button
-              onClick={onForceSave}
-              disabled={isSaving}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-            >
-              <Save className="w-4 h-4" />
-              Save Now
-            </button>
-          )}
-
           {/* Dashboard */}
           <button
             onClick={() => router.push('/dashboard')}
@@ -216,7 +202,7 @@ export function EditorLayout({
               <div className={`bg-white shadow-lg ${
                 previewMode === 'mobile' 
                   ? 'w-full max-w-md mx-4 rounded-2xl overflow-hidden' 
-                  : 'w-full max-w-6xl mx-auto rounded-3xl overflow-hidden px-16'
+                  : 'w-full max-w-6xl mx-auto rounded-3xl overflow-hidden'
               }`}>
                 {previewPanel}
               </div>
@@ -230,7 +216,7 @@ export function EditorLayout({
             <div className={`bg-white shadow-lg ${
               previewMode === 'mobile' 
                 ? 'w-full max-w-md mx-4 rounded-2xl overflow-hidden' 
-                : 'w-full max-w-6xl mx-auto rounded-3xl overflow-hidden px-16'
+                : 'w-full max-w-6xl mx-auto rounded-3xl overflow-hidden'
             }`}>
               {previewPanel}
             </div>

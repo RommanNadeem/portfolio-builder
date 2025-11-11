@@ -335,7 +335,11 @@ export async function saveCompletePortfolio(
       profile_image_url: portfolioData.profileImage,
       resume_url: portfolioData.resume,
       companies: portfolioData.companies,
-      slider_companies: portfolioData.sliderCompanies
+      slider_companies: portfolioData.sliderCompanies,
+      section_order: portfolioData.sectionOrder || ['career', 'projects', 'strengths', 'testimonials'],
+      navigation: portfolioData.navigation || null,
+      footer_text: portfolioData.footerText || null,
+      footer_signature: portfolioData.footerSignature || null
     };
     
     if (DEBUG_DATABASE) console.log('[Database Debug] Attempting to save profile:', profileData);
@@ -616,8 +620,10 @@ export async function saveCompletePortfolio(
             title: upsertData.title,
             template_type: upsertData.template_type,
             blocks_count: upsertData.blocks.length,
+            thumbnail_url: upsertData.thumbnail_url,
             has_template_type: !!upsertData.template_type,
             has_blocks: upsertData.blocks.length > 0,
+            has_thumbnail: !!upsertData.thumbnail_url,
           });
         }
         
@@ -732,6 +738,10 @@ export function convertToLegacyFormat(portfolioData: PortfolioData): any {
     resume: portfolioData.profile.resume_url,
     companies: portfolioData.profile.companies,
     sliderCompanies: portfolioData.profile.slider_companies,
+    sectionOrder: portfolioData.profile.section_order || ['career', 'projects', 'strengths', 'testimonials'],
+    navigation: portfolioData.profile.navigation || undefined,
+    footerText: portfolioData.profile.footer_text || undefined,
+    footerSignature: portfolioData.profile.footer_signature || undefined,
     
     socialLinks: portfolioData.socialLinks.map(link => ({
       id: link.id,
@@ -782,21 +792,35 @@ export function convertToLegacyFormat(portfolioData: PortfolioData): any {
       sections: s.sections || []
     })),
     
-    projects: portfolioData.projects.map(p => ({
-      id: p.id,
-      title: p.title,
-      description: p.description,
-      thumbnail: p.thumbnail_url,
-      tags: p.tags || [],
-      pageContent: p.page_content,
-      link: p.link,
-      role: p.role, // User's role
-      sections: p.sections || [],
-      blocks: p.blocks || [], // Detail page blocks
-      template_type: p.template_type, // Template type
-      published: p.published || false, // Published status
-      published_at: p.published_at // Published timestamp
-    })),
+    projects: portfolioData.projects.map((p, idx) => {
+      const converted = {
+        id: p.id,
+        title: p.title,
+        description: p.description,
+        thumbnail: p.thumbnail_url,
+        tags: p.tags || [],
+        pageContent: p.page_content,
+        link: p.link,
+        role: p.role, // User's role
+        sections: p.sections || [],
+        blocks: p.blocks || [], // Detail page blocks
+        template_type: p.template_type, // Template type
+        published: p.published || false, // Published status
+        published_at: p.published_at // Published timestamp
+      };
+      
+      if (DEBUG_DATABASE && idx === 0) {
+        console.log('[Database Debug] 📥 Converted project from DB:', {
+          id: converted.id,
+          title: converted.title,
+          thumbnail: converted.thumbnail,
+          thumbnail_url: p.thumbnail_url,
+          has_thumbnail: !!converted.thumbnail,
+        });
+      }
+      
+      return converted;
+    }),
     
     testimonials: portfolioData.testimonials.map(t => ({
       id: t.id,

@@ -5,7 +5,7 @@
  * auto-save, validation, and state management.
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { BaseItem, CRUDOperations, SaveStatus, ValidationResult } from '../types';
 import { useAutoSave } from './useAutoSave';
@@ -31,6 +31,7 @@ export function useSectionManager<T extends BaseItem>({
 }: UseSectionManagerOptions<T>) {
   const [items, setItems] = useState<T[]>(initialData);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
+  const hasLocalChangesRef = useRef(false); // Track if we have pending local changes
 
   // Auto-save functionality
   const { saveStatus, lastSaved, save: manualSave } = useAutoSave({
@@ -38,12 +39,56 @@ export function useSectionManager<T extends BaseItem>({
     onSave: async (data) => {
       if (onSave) {
         await onSave(data);
+        // Clear the local changes flag after successful save
+        hasLocalChangesRef.current = false;
       }
     },
     delay: autoSaveDelay,
     enabled: autoSave && !!onSave,
     localStorageKey,
   });
+
+  // Sync state with initialData when it changes (e.g., after database reload)
+  // This is needed for external updates (like from detail editors)
+  const initialDataRef = useRef<string>(JSON.stringify(initialData));
+  
+  useEffect(() => {
+    const newDataString = JSON.stringify(initialData);
+    
+    // Skip if initialData hasn't actually changed
+    if (newDataString === initialDataRef.current) {
+      return;
+    }
+    
+    // Skip sync if we have local changes that haven't been saved yet
+    if (hasLocalChangesRef.current) {
+      console.log('[useSectionManager] ⏭️ Skipping sync - local changes pending');
+      return;
+    }
+    
+    // Skip sync if we're currently saving
+    if (saveStatus === 'saving') {
+      console.log('[useSectionManager] ⏭️ Skipping sync during save operation');
+      return;
+    }
+    
+    const currentDataString = JSON.stringify(items);
+    
+    // Only sync if the data is actually different from current state
+    if (newDataString !== currentDataString) {
+      const currentIds = items.map(item => item.id).sort().join(',');
+      const newIds = initialData.map(item => item.id).sort().join(',');
+      
+      console.log('[useSectionManager] 🔄 Syncing state with external data changes', {
+        current: items.length,
+        new: initialData.length,
+      });
+      setItems(initialData);
+    }
+    
+    initialDataRef.current = newDataString;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData, saveStatus]);
 
   // Validate item
   const validateItem = useCallback((item: T): ValidationResult => {
@@ -81,12 +126,14 @@ export function useSectionManager<T extends BaseItem>({
       return;
     }
 
+    hasLocalChangesRef.current = true;
     setItems(prev => [...prev, item]);
     console.log('[useSectionManager] ✅ Item added:', item.id);
   }, [items.length, maxItems, validateItem]);
 
   // Update item
   const update = useCallback((id: string, updates: Partial<T>) => {
+    hasLocalChangesRef.current = true;
     setItems(prev => {
       const updated = prev.map(item => {
         if (item.id === id) {
@@ -125,6 +172,8 @@ export function useSectionManager<T extends BaseItem>({
 
   // Remove item
   const remove = useCallback((id: string) => {
+    hasLocalChangesRef.current = true;
+    console.log('[useSectionManager] 🗑️ Removing item:', id);
     setItems(prev => {
       const filtered = prev.filter(item => item.id !== id);
       
@@ -134,7 +183,7 @@ export function useSectionManager<T extends BaseItem>({
         order_index: index,
       }));
       
-      console.log('[useSectionManager] ✅ Item removed:', id);
+      console.log('[useSectionManager] ✅ Item removed. New count:', reordered.length);
       return reordered;
     });
 
@@ -147,6 +196,7 @@ export function useSectionManager<T extends BaseItem>({
 
   // Reorder by direction
   const reorder = useCallback((id: string, direction: 'up' | 'down') => {
+    hasLocalChangesRef.current = true;
     setItems(prev => {
       const index = prev.findIndex(item => item.id === id);
       if (index === -1) return prev;
@@ -172,6 +222,7 @@ export function useSectionManager<T extends BaseItem>({
     if (fromIndex < 0 || fromIndex >= items.length) return;
     if (toIndex < 0 || toIndex >= items.length) return;
 
+    hasLocalChangesRef.current = true;
     setItems(prev => {
       const reordered = [...prev];
       const [movedItem] = reordered.splice(fromIndex, 1);

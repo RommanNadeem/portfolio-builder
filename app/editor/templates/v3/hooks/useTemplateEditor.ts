@@ -59,6 +59,12 @@ export function useTemplateEditor(
   // Refs
   const saveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const isInitialLoad = useRef(true);
+  const documentRef = useRef<EntityDocument | null>(null); // Always has latest document
+
+  // Keep ref in sync with document state
+  useEffect(() => {
+    documentRef.current = document;
+  }, [document]);
 
   // Load document on mount
   useEffect(() => {
@@ -97,20 +103,25 @@ export function useTemplateEditor(
 
   // Save function (define first so other callbacks can use it)
   const save = useCallback(async () => {
-    if (!document) return;
+    // 🔥 Use ref to get latest document (not stale closure!)
+    const currentDocument = documentRef.current;
+    if (!currentDocument) {
+      console.warn('[useTemplateEditor] ⚠️ No document in ref, cannot save');
+      return;
+    }
 
     try {
       setSaveStatus('saving');
       console.log('[useTemplateEditor] 💾 Saving document...');
-      console.log('[useTemplateEditor] 📊 Document state:', {
-        id: document.id,
-        entityType: document.entity_type,
-        template_type: document.template.template_type,
-        blocks_count: document.template.blocks.length,
-        entity_template_type: (document.entity_data as any).template_type,
+      console.log('[useTemplateEditor] 📊 Document state (from ref):', {
+        id: currentDocument.id,
+        entityType: currentDocument.entity_type,
+        template_type: currentDocument.template.template_type,
+        blocks_count: currentDocument.template.blocks.length,
+        entity_template_type: (currentDocument.entity_data as any).template_type,
       });
 
-      const result: SyncResult = await entityDocumentManager.saveToPortfolio(document);
+      const result: SyncResult = await entityDocumentManager.saveToPortfolio(currentDocument);
 
       if (result.success) {
         setSaveStatus('saved');
@@ -131,7 +142,7 @@ export function useTemplateEditor(
       setError(err.message || 'Save failed');
       onSaveError?.(err.message || 'Save failed');
     }
-  }, [document, entityType, onSaveSuccess, onSaveError]);
+  }, [entityType, onSaveSuccess, onSaveError]); // Removed document from deps - using ref now
 
   // Update blocks
   const updateBlocks = useCallback((newBlocks: TemplateBlock[]) => {

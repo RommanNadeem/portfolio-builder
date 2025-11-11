@@ -1,14 +1,29 @@
 /**
- * CompaniesSection Component (V2 - Using Core Architecture)
+ * CompaniesSection Component (Controlled Version)
  * 
- * Companies section for the scrolling company slider.
+ * Fully controlled component with no internal state.
+ * Real-time sync between editor and preview.
  */
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Plus, Building2 } from 'lucide-react';
-import { useSectionManager } from '@/app/editor/core/hooks';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable';
+import { useSectionManagerControlled } from '@/app/editor/core/hooks';
 import { CompanyItem, convertFromStringArray, convertToStringArray } from './types';
 import { CompanyChip } from './CompanyChip';
 
@@ -32,44 +47,65 @@ export function CompaniesSection({
   const [isAdding, setIsAdding] = useState(false);
   const [newCompanyName, setNewCompanyName] = useState('');
   
-  // Parse companies from either sliderCompanies string or companies array
-  const companiesString = data.sliderCompanies || data.companies || '';
-  const companiesArray = typeof companiesString === 'string' 
-    ? companiesString.split(',').map(c => c.trim()).filter(Boolean)
-    : Array.isArray(companiesString) 
-      ? companiesString 
-      : [];
+  // Parse companies from either sliderCompanies string or companies array (memoized)
+  const companies = useMemo(() => {
+    const companiesString = data.sliderCompanies || data.companies || '';
+    const companiesArray = typeof companiesString === 'string' 
+      ? companiesString.split(',').map(c => c.trim()).filter(Boolean)
+      : Array.isArray(companiesString) 
+        ? companiesString 
+        : [];
+    return convertFromStringArray(companiesArray);
+  }, [data.sliderCompanies, data.companies]);
 
-  const initialData = convertFromStringArray(companiesArray);
+  // Handle changes - update parent immediately
+  const handleCompaniesChange = useCallback((newCompanies: CompanyItem[]) => {
+    const companiesArray = convertToStringArray(newCompanies);
+    const companiesString = companiesArray.join(', ');
+    onChange(prev => ({
+      ...prev,
+      companies: companiesString,
+      sliderCompanies: companiesString,
+    }));
+  }, [onChange]);
 
-  // Use shared hook for state management
+  // Use controlled hook
   const {
-    items: companies,
+    items: currentCompanies,
     add,
     update,
     remove,
-    saveStatus,
+    reorderByIndex,
     itemCount,
-  } = useSectionManager<CompanyItem>({
-    initialData,
-    onSave: async (items) => {
-      // Convert back to string array
-      const companiesArray = convertToStringArray(items);
-      const companiesString = companiesArray.join(', ');
-      
-      // Update parent state
-      onChange(prev => ({
-        ...prev,
-        companies: companiesString, // For new format
-        sliderCompanies: companiesString, // For legacy format
-      }));
-      
-      console.log('[CompaniesSection] 💾 Saved companies:', items.length);
-    },
-    autoSave: true,
-    autoSaveDelay: 100, // Instant sync for live preview
-    localStorageKey: `companies-${userId}`,
+  } = useSectionManagerControlled<CompanyItem>({
+    items: companies,
+    onChange: handleCompaniesChange,
   });
+
+  // Drag-and-drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = currentCompanies.findIndex((item) => item.id === active.id);
+      const newIndex = currentCompanies.findIndex((item) => item.id === over.id);
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        reorderByIndex(oldIndex, newIndex);
+      }
+    }
+  };
 
   const handleAddCompany = () => {
     if (newCompanyName.trim()) {
@@ -92,19 +128,19 @@ export function CompaniesSection({
 
   // In preview renderMode, show as slider matching old UI
   if (renderMode === 'preview' || viewMode === 'preview') {
-    if (companies.length === 0) {
+    if (currentCompanies.length === 0) {
       return null;
     }
 
     const isMobile = previewMode === 'mobile';
     // Duplicate companies for seamless infinite scroll
-    const duplicatedCompanies = [...companies, ...companies];
+    const duplicatedCompanies = [...currentCompanies, ...currentCompanies];
 
     return (
-      <div className={`w-full bg-white ${isMobile ? 'px-4 py-6' : 'px-4 sm:px-6 lg:px-8 py-8 sm:py-12'}`}>
+      <div className={`w-full bg-white ${isMobile ? 'py-6' : 'py-8 sm:py-12'}`}>
         {/* Section Header - Uppercase, centered */}
         <h2 className={`text-center font-semibold tracking-wider text-gray-600 uppercase ${
-          isMobile ? 'text-xs mb-5' : 'text-xs sm:text-sm mb-6 sm:mb-8'
+          isMobile ? 'text-xs mb-5 px-4' : 'text-xs sm:text-sm mb-6 sm:mb-8'
         }`}>
           Companies and Teams I Have Worked With
         </h2>
@@ -145,22 +181,33 @@ export function CompaniesSection({
         </div>
       </div>
 
-      {/* Company chips */}
-      {companies.length > 0 ? (
-        <div className="flex flex-wrap gap-2">
-          {companies.map((company) => (
-            <CompanyChip
-              key={company.id}
-              company={company}
-              onUpdate={update}
-              onDelete={remove}
-            />
-          ))}
-        </div>
+      {/* Company chips with drag-and-drop */}
+      {currentCompanies.length > 0 ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={currentCompanies.map(c => c.id)}
+            strategy={rectSortingStrategy}
+          >
+            <div className="flex flex-wrap gap-2">
+              {currentCompanies.map((company) => (
+                <CompanyChip
+                  key={company.id}
+                  company={company}
+                  onUpdate={update}
+                  onDelete={remove}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       ) : (
-        <div className="text-center py-8 text-gray-500">
-          <p className="mb-2">No companies yet</p>
-          <p className="text-sm">Add companies you've worked with</p>
+        <div className="text-center py-8 text-gray-600">
+          <p className="mb-2 font-medium">No companies yet</p>
+          <p className="text-sm text-gray-500">Add companies you've worked with</p>
         </div>
       )}
 
@@ -173,13 +220,13 @@ export function CompaniesSection({
             onChange={(e) => setNewCompanyName(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="e.g., Google, Meta, Apple..."
-            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-500"
             autoFocus
           />
           <button
             onClick={handleAddCompany}
             disabled={!newCompanyName.trim()}
-            className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
             Add
           </button>
@@ -188,7 +235,7 @@ export function CompaniesSection({
               setIsAdding(false);
               setNewCompanyName('');
             }}
-            className="px-3 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+            className="px-3 py-2 text-gray-700 hover:text-gray-900 transition-colors"
           >
             Cancel
           </button>
@@ -196,7 +243,7 @@ export function CompaniesSection({
       ) : (
         <button
           onClick={() => setIsAdding(true)}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-white border-2 border-dashed border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-white border-2 border-dashed border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all"
         >
           <span>+ Add Company</span>
         </button>

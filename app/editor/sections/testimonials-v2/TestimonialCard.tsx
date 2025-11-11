@@ -48,13 +48,13 @@ export function TestimonialCard({
       <div className="space-y-3">
         {/* Name Input */}
         <div className="flex items-center gap-2">
-          <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          <User className="w-4 h-4 text-gray-600 flex-shrink-0" />
           <input
             type="text"
             value={testimonial.name}
             onChange={(e) => handleUpdate('name', e.target.value)}
             placeholder="Sarah Johnson"
-            className="flex-1 px-3 py-2 text-sm font-semibold border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
+            className="flex-1 px-3 py-2 text-sm font-semibold text-gray-900 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-500"
           />
         </div>
 
@@ -64,7 +64,7 @@ export function TestimonialCard({
           value={testimonial.role}
           onChange={(e) => handleUpdate('role', e.target.value)}
           placeholder="VP of Product"
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
+          className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-500"
         />
 
         {/* Company Input */}
@@ -73,33 +73,18 @@ export function TestimonialCard({
           value={testimonial.company}
           onChange={(e) => handleUpdate('company', e.target.value)}
           placeholder="TechCorp Inc"
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
+          className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-500"
         />
-
-        {/* Relationship Input */}
-        <select
-          value={testimonial.relationship}
-          onChange={(e) => handleUpdate('relationship', e.target.value)}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="">Select relationship...</option>
-          <option value="Manager">Manager</option>
-          <option value="Colleague">Colleague</option>
-          <option value="Client">Client</option>
-          <option value="Direct Report">Direct Report</option>
-          <option value="Mentor">Mentor</option>
-          <option value="Other">Other</option>
-        </select>
 
         {/* LinkedIn URL */}
         <div className="flex items-center gap-2">
-          <Linkedin className="w-4 h-4 text-blue-600 flex-shrink-0" />
+          <Linkedin className="w-4 h-4 text-blue-700 flex-shrink-0" />
           <input
             type="url"
             value={testimonial.linkedinUrl || ''}
             onChange={(e) => handleUpdate('linkedinUrl', e.target.value)}
             placeholder="https://linkedin.com/in/sarahjohnson"
-            className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
+            className="flex-1 px-3 py-2 text-sm text-gray-900 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-500"
           />
         </div>
 
@@ -109,7 +94,7 @@ export function TestimonialCard({
           onChange={(e) => handleUpdate('content', e.target.value)}
           placeholder="Working with [Name] was transformative for our product. Their attention to detail and user-first approach helped us achieve our goals faster than expected."
           rows={4}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder:text-gray-400"
+          className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder:text-gray-500"
         />
       </div>
     </ItemCard>

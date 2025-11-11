@@ -23,6 +23,10 @@ export interface PortfolioData {
   testimonials: any[];
   footerText?: string;
   footerSignature?: string;
+  sectionOrder?: string[];
+  navigation?: {
+    ctaUrl?: string;
+  };
 }
 
 export function usePortfolioData() {

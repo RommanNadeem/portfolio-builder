@@ -60,6 +60,7 @@ export default function CareerEditor() {
     lastSaved,
     updateBlocks,
     initializeTemplate,
+    save: forceSave,
   } = useTemplateEditor({
     entityId: careerId,
     entityType: 'career',
@@ -84,7 +85,7 @@ export default function CareerEditor() {
   // Sync UI state with document (run once on load only)
   useEffect(() => {
     if (!loading && document && isLoading) {
-      // Career always uses career-experience template
+          // Career always uses career-experience template
       // Initialize if blocks are empty (even if template_type is set)
       if (blocks.length === 0) {
         console.log('[CareerEditor V3] Auto-initializing career template (blocks empty)');
@@ -185,11 +186,11 @@ export default function CareerEditor() {
         templateName={TEMPLATE_CONFIGS['career-experience']?.name || 'Career Template'}
         saveStatus={saveStatus}
         lastSaved={lastSaved}
-        viewMode={viewMode}
-        deviceMode={deviceMode}
+      viewMode={viewMode}
+      deviceMode={deviceMode}
         onBack={() => router.push('/editor?mode=edit')}
-        onViewModeChange={setViewMode}
-        onDeviceModeChange={setDeviceMode}
+      onViewModeChange={setViewMode}
+      onDeviceModeChange={setDeviceMode}
       />
 
       <TemplateEditorContent
@@ -202,6 +203,8 @@ export default function CareerEditor() {
         onBlockChange={handleBlockChange}
         onBlockDelete={handleBlockDelete}
         onToggleSection={handleToggleSection}
+        onSave={forceSave}
+        entityType="career"
       />
     </div>
   );

@@ -16,6 +16,10 @@ export interface Profile {
   resume_url?: string;
   companies?: string;
   slider_companies?: string;
+  section_order?: string[];  // JSONB array - order of draggable sections
+  navigation?: any;  // JSONB object - navigation settings (e.g., ctaUrl)
+  footer_text?: string;
+  footer_signature?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -213,5 +217,9 @@ export interface PortfolioData {
   projects: Project[];
   testimonials: Testimonial[];
   customSections: CustomSection[];
+  sectionOrder?: string[];
+  navigation?: {
+    ctaUrl?: string;
+  };
 }
 

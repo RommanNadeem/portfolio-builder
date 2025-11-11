@@ -75,18 +75,18 @@ export default function EmojiPicker({ value, onChange }: EmojiPickerProps) {
 
           {/* Emoji Grid */}
           <div className="p-4">
-            {/* Remove emoji option at top */}
-            {value && (
+            {/* Reset to default option at top */}
+            {value && value !== '⭐' && (
               <div className="mb-3 pb-3 border-b border-gray-200">
                 <button
                   onClick={() => {
-                    onChange('');
+                    onChange('⭐');
                     setIsOpen(false);
                   }}
-                  className="w-full px-3 py-2 bg-red-50 text-red-600 text-sm font-medium rounded-lg hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+                  className="w-full px-3 py-2 bg-gray-50 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
                 >
-                  <span className="text-lg">❌</span>
-                  Remove Emoji
+                  <span className="text-lg">⭐</span>
+                  Reset to Default
                 </button>
               </div>
             )}

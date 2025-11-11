@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Upload, X } from 'lucide-react';
+import MonthYearPicker from '@/app/editor/components/MonthYearPicker';
 import { HeroBlock as HeroBlockType } from '../types';
 import { SmartSuggestions } from './BlockSuggestions';
 import { ImagePlaceholder, LogoPlaceholder } from './ImagePlaceholder';
@@ -11,14 +12,18 @@ interface HeroBlockProps {
   onChange: (block: HeroBlockType) => void;
   mode: 'edit' | 'preview';
   entityType?: 'project' | 'career'; // Optional entity type for context
+  onSave?: () => Promise<void>; // Force immediate save (for image uploads)
 }
 
-export function HeroBlock({ block, onChange, mode, entityType }: HeroBlockProps) {
+export function HeroBlock({ block, onChange, mode, entityType, onSave }: HeroBlockProps) {
   const { data } = block;
   const isEmpty = !data.title || data.title.trim().length === 0;
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imageUrlInput, setImageUrlInput] = useState(data.imageUrl || '');
   const isCareerTemplate = entityType === 'career';
+  
+  // For career templates, display role from meta in preview
+  const displaySubtitle = isCareerTemplate ? (data.meta?.role || data.subtitle) : data.subtitle;
 
   // Sync input when imageUrl changes externally (e.g., from upload or load)
   useEffect(() => {
@@ -57,7 +62,27 @@ export function HeroBlock({ block, onChange, mode, entityType }: HeroBlockProps)
         
         if (result.url) {
           console.log('[HeroBlock] ✅ Uploaded to Supabase:', result.url);
-          onChange({ ...block, data: { ...data, imageUrl: result.url } });
+          
+          const updatedBlock = { ...block, data: { ...data, imageUrl: result.url } };
+          console.log('[HeroBlock] 🔄 Setting imageUrl in block:', {
+            blockId: block.id,
+            oldImageUrl: data.imageUrl,
+            newImageUrl: result.url,
+          });
+          
+          onChange(updatedBlock);
+          
+          // 🔥 Force immediate save to persist image URL
+          if (onSave) {
+            console.log('[HeroBlock] 💾 Triggering immediate save for image in 1 second...');
+            setTimeout(async () => {
+              console.log('[HeroBlock] 💾 Calling onSave now...');
+              await onSave();
+              console.log('[HeroBlock] ✅ Image save completed');
+            }, 1000); // Increased delay to ensure state propagates
+          } else {
+            console.warn('[HeroBlock] ⚠️ No onSave function provided, relying on auto-save');
+          }
         } else {
           throw new Error(result.error || 'Upload failed');
         }
@@ -92,11 +117,11 @@ export function HeroBlock({ block, onChange, mode, entityType }: HeroBlockProps)
           )}
           
           <h1 className="text-6xl font-bold text-gray-900 mb-4">
-            {data.title || 'Untitled Project'}
+            {data.title || (isCareerTemplate ? 'Company Name' : 'Untitled Project')}
           </h1>
           
-          {data.subtitle && (
-            <p className="text-2xl text-gray-600 mb-6">{data.subtitle}</p>
+          {displaySubtitle && (
+            <p className="text-2xl text-gray-600 mb-6">{displaySubtitle}</p>
           )}
           
           {data.description && (
@@ -106,12 +131,11 @@ export function HeroBlock({ block, onChange, mode, entityType }: HeroBlockProps)
           {/* Meta Information */}
           {data.meta && Object.keys(data.meta).length > 0 && (
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-sm text-gray-600">
-              {data.meta.projectYear && <span>📅 {data.meta.projectYear}</span>}
-              {data.meta.year && <span>📅 {data.meta.year}</span>}
-              {data.meta.team && <span>👥 {data.meta.team}</span>}
-              {data.meta.timeline && <span>⏱️ {data.meta.timeline}</span>}
-              {data.meta.role && <span>🎯 {data.meta.role}</span>}
-              {(data.meta as any).Website && (
+              {/* Career Template: Show timeline and website */}
+              {isCareerTemplate && (data.meta as any).startDate && (data.meta as any).endDate && (
+                <span>📅 {(data.meta as any).startDate} - {(data.meta as any).endDate}</span>
+              )}
+              {isCareerTemplate && (data.meta as any).Website && (
                 <a
                   href={(data.meta as any).Website}
                   target="_blank"
@@ -122,7 +146,14 @@ export function HeroBlock({ block, onChange, mode, entityType }: HeroBlockProps)
                   <span className="font-medium">Visit Website</span>
                 </a>
               )}
-              {data.meta.channels && data.meta.channels.length > 0 && (
+              
+              {/* Project Template fields */}
+              {!isCareerTemplate && data.meta.projectYear && <span>📅 {data.meta.projectYear}</span>}
+              {!isCareerTemplate && data.meta.year && <span>📅 {data.meta.year}</span>}
+              {!isCareerTemplate && data.meta.team && <span>👥 {data.meta.team}</span>}
+              {!isCareerTemplate && data.meta.timeline && <span>⏱️ {data.meta.timeline}</span>}
+              {!isCareerTemplate && data.meta.role && <span>🎯 {data.meta.role}</span>}
+              {!isCareerTemplate && data.meta.channels && data.meta.channels.length > 0 && (
                 <div className="flex gap-2">
                   {data.meta.channels.map((channel, idx) => (
                     <span key={idx} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">
@@ -131,7 +162,7 @@ export function HeroBlock({ block, onChange, mode, entityType }: HeroBlockProps)
                   ))}
                 </div>
               )}
-              {data.meta.stackTags && data.meta.stackTags.length > 0 && (
+              {!isCareerTemplate && data.meta.stackTags && data.meta.stackTags.length > 0 && (
                 <div className="flex gap-2">
                   {data.meta.stackTags.map((tag, idx) => (
                     <span key={idx} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full">
@@ -155,22 +186,24 @@ export function HeroBlock({ block, onChange, mode, entityType }: HeroBlockProps)
         type="text"
         value={data.title}
         onChange={(e) => onChange({ ...block, data: { ...data, title: e.target.value } })}
-        placeholder="Untitled"
+        placeholder={isCareerTemplate ? "Company Name" : "Untitled"}
         className="w-full text-[40px] leading-tight font-semibold tracking-[0.2px] text-gray-900 border-0 bg-transparent focus:outline-none placeholder-italic px-0 py-0 focus:ring-0"
       />
 
-      {/* Subtitle - body per spec */}
-      <input
-        type="text"
-        value={data.subtitle || ''}
-        onChange={(e) => {
-          const newValue = e.target.value;
-          console.log('[HeroBlock] Subtitle changed:', newValue);
-          onChange({ ...block, data: { ...data, subtitle: newValue } });
-        }}
-        placeholder="Add a subtitle…"
-        className="w-full text-[15px] leading-7 text-gray-800 focus-underline bg-transparent focus:outline-none placeholder-italic px-0 py-2 focus:ring-0"
-      />
+      {/* Subtitle - Only for Project Templates */}
+      {!isCareerTemplate && (
+        <input
+          type="text"
+          value={data.subtitle || ''}
+          onChange={(e) => {
+            const newValue = e.target.value;
+            console.log('[HeroBlock] Subtitle changed:', newValue);
+            onChange({ ...block, data: { ...data, subtitle: newValue } });
+          }}
+          placeholder="Add a subtitle…"
+          className="w-full text-[15px] leading-7 text-gray-800 focus-underline bg-transparent focus:outline-none placeholder-italic px-0 py-2 focus:ring-0"
+        />
+      )}
 
       {/* Description */}
       <textarea
@@ -305,31 +338,73 @@ export function HeroBlock({ block, onChange, mode, entityType }: HeroBlockProps)
       )}
 
       {/* Meta Information - meta/labels per spec */}
-      <div className="flex flex-wrap gap-3 text-[12px] font-medium text-gray-500 uppercase tracking-[0.6px] pt-6">
-        <input
-          type="text"
-          value={data.meta?.role || ''}
-          onChange={(e) => onChange({ ...block, data: { ...data, meta: { ...data.meta, role: e.target.value } } })}
-          placeholder="YOUR ROLE"
-          className="border-0 border-b border-transparent hover:border-gray-200 focus:border-gray-900 bg-transparent focus:outline-none px-0 py-1 text-[12px] font-medium text-gray-500 uppercase tracking-[0.6px] placeholder:text-gray-400 placeholder:not-italic transition-[border-color] duration-150 focus:ring-0"
-        />
-        <span className="text-gray-300">•</span>
-        <input
-          type="text"
-          value={data.meta?.timeline || ''}
-          onChange={(e) => onChange({ ...block, data: { ...data, meta: { ...data.meta, timeline: e.target.value } } })}
-          placeholder="TIMELINE"
-          className="border-0 border-b border-transparent hover:border-gray-200 focus:border-gray-900 bg-transparent focus:outline-none px-0 py-1 text-[12px] font-medium text-gray-500 uppercase tracking-[0.6px] placeholder:text-gray-400 placeholder:not-italic transition-[border-color] duration-150 focus:ring-0"
-        />
-        <span className="text-gray-300">•</span>
-        <input
-          type="text"
-          value={data.meta?.year || ''}
-          onChange={(e) => onChange({ ...block, data: { ...data, meta: { ...data.meta, year: e.target.value } } })}
-          placeholder="YEAR"
-          className="border-0 border-b border-transparent hover:border-gray-200 focus:border-gray-900 bg-transparent focus:outline-none px-0 py-1 text-[12px] font-medium text-gray-500 uppercase tracking-[0.6px] placeholder:text-gray-400 placeholder:not-italic transition-[border-color] duration-150 focus:ring-0"
-        />
-      </div>
+      {isCareerTemplate ? (
+        // Career Template: Timeline with Month/Year Pickers
+        <div className="pt-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Role / Position
+            </label>
+            <input
+              type="text"
+              value={data.meta?.role || ''}
+              onChange={(e) => onChange({ ...block, data: { ...data, meta: { ...data.meta, role: e.target.value } } })}
+              placeholder="e.g., Senior Product Manager"
+              className="w-full text-[15px] leading-7 text-gray-800 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Timeline
+            </label>
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <MonthYearPicker
+                  value={(data.meta as any)?.startDate || ''}
+                  onChange={(value) => onChange({ ...block, data: { ...data, meta: { ...data.meta, startDate: value } as any } })}
+                  placeholder="Start date"
+                />
+              </div>
+              <span className="text-gray-400">—</span>
+              <div className="flex-1">
+                <MonthYearPicker
+                  value={(data.meta as any)?.endDate || ''}
+                  onChange={(value) => onChange({ ...block, data: { ...data, meta: { ...data.meta, endDate: value } as any } })}
+                  placeholder="End date or Present"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        // Project Template: Original inline metadata fields
+        <div className="flex flex-wrap gap-3 text-[12px] font-medium text-gray-500 uppercase tracking-[0.6px] pt-6">
+          <input
+            type="text"
+            value={data.meta?.role || ''}
+            onChange={(e) => onChange({ ...block, data: { ...data, meta: { ...data.meta, role: e.target.value } } })}
+            placeholder="YOUR ROLE"
+            className="border-0 border-b border-transparent hover:border-gray-200 focus:border-gray-900 bg-transparent focus:outline-none px-0 py-1 text-[12px] font-medium text-gray-500 uppercase tracking-[0.6px] placeholder:text-gray-400 placeholder:not-italic transition-[border-color] duration-150 focus:ring-0"
+          />
+          <span className="text-gray-300">•</span>
+          <input
+            type="text"
+            value={data.meta?.timeline || ''}
+            onChange={(e) => onChange({ ...block, data: { ...data, meta: { ...data.meta, timeline: e.target.value } } })}
+            placeholder="TIMELINE"
+            className="border-0 border-b border-transparent hover:border-gray-200 focus:border-gray-900 bg-transparent focus:outline-none px-0 py-1 text-[12px] font-medium text-gray-500 uppercase tracking-[0.6px] placeholder:text-gray-400 placeholder:not-italic transition-[border-color] duration-150 focus:ring-0"
+          />
+          <span className="text-gray-300">•</span>
+          <input
+            type="text"
+            value={data.meta?.year || ''}
+            onChange={(e) => onChange({ ...block, data: { ...data, meta: { ...data.meta, year: e.target.value } } })}
+            placeholder="YEAR"
+            className="border-0 border-b border-transparent hover:border-gray-200 focus:border-gray-900 bg-transparent focus:outline-none px-0 py-1 text-[12px] font-medium text-gray-500 uppercase tracking-[0.6px] placeholder:text-gray-400 placeholder:not-italic transition-[border-color] duration-150 focus:ring-0"
+          />
+        </div>
+      )}
     </div>
   );
 }

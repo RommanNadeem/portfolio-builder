@@ -75,7 +75,7 @@ export function SectionHeader({
           {collapsible && (
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="ml-2 p-1 hover:bg-gray-100 rounded"
+              className="ml-2 p-1 hover:bg-gray-100 rounded-lg"
             >
               {isCollapsed ? (
                 <ChevronDown className="w-4 h-4 text-gray-500" />

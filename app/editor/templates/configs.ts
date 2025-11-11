@@ -211,7 +211,7 @@ export function createEmptyBlock(blockType: string, sectionConfig?: { label?: st
         id,
         ...baseBlock,
         data: { 
-          title: sectionConfig?.label || '',  // ⭐ Use section label as default
+          title: '',  // Don't use default title - let user add if needed
           body: '', 
           variant: 'info' 
         },
@@ -222,7 +222,7 @@ export function createEmptyBlock(blockType: string, sectionConfig?: { label?: st
         id,
         ...baseBlock,
         data: { 
-          title: sectionConfig?.label || '',  // ⭐ Use section label as default
+          title: '',  // Don't use default title - let user add if needed
           body: '' 
         },
       };
@@ -232,7 +232,7 @@ export function createEmptyBlock(blockType: string, sectionConfig?: { label?: st
         id,
         ...baseBlock,
         data: { 
-          title: sectionConfig?.label || '',  // ⭐ Use section label as default title
+          title: '',  // Don't use default title - let user add if needed
           bullets: [''] 
         },
       };
@@ -242,7 +242,7 @@ export function createEmptyBlock(blockType: string, sectionConfig?: { label?: st
         id,
         ...baseBlock,
         data: { 
-          title: sectionConfig?.label || '',  // ⭐ Use section label as default
+          title: '',  // Don't use default title - let user add if needed
           steps: [{ title: '', description: '' }] 
         },
       };
@@ -252,7 +252,7 @@ export function createEmptyBlock(blockType: string, sectionConfig?: { label?: st
         id,
         ...baseBlock,
         data: { 
-          title: sectionConfig?.label || '',  // ⭐ Use section label as default
+          title: '',  // Don't use default title - let user add if needed
           items: [{ title: '', body: '', iconKey: '' }] 
         },
       };

@@ -6,7 +6,21 @@
 
 'use client';
 
-import { Linkedin, Github, Twitter, Instagram, Globe, Calendar, Mail, Phone, Link as LinkIcon } from 'lucide-react';
+import { 
+  Linkedin, 
+  Github, 
+  Twitter, 
+  Instagram, 
+  Globe, 
+  Calendar, 
+  Mail, 
+  Phone,
+  Youtube,
+  Palette,
+  Dribbble as DribbbleIcon,
+  Edit3,
+  Link as LinkIcon,
+} from 'lucide-react';
 import { ItemCard } from '@/app/editor/core/components';
 import { SocialLinkItem } from './types';
 
@@ -21,17 +35,22 @@ interface SocialLinkCardProps {
 }
 
 const getIcon = (iconName: string) => {
+  const iconClass = "w-5 h-5";
   const icons: Record<string, React.ReactNode> = {
-    mail: <Mail className="w-5 h-5" />,
-    phone: <Phone className="w-5 h-5" />,
-    linkedin: <Linkedin className="w-5 h-5" />,
-    github: <Github className="w-5 h-5" />,
-    twitter: <Twitter className="w-5 h-5" />,
-    instagram: <Instagram className="w-5 h-5" />,
-    globe: <Globe className="w-5 h-5" />,
-    calendar: <Calendar className="w-5 h-5" />,
+    linkedin: <Linkedin className={iconClass} />,
+    github: <Github className={iconClass} />,
+    twitter: <Twitter className={iconClass} />,
+    instagram: <Instagram className={iconClass} />,
+    globe: <Globe className={iconClass} />,
+    calendar: <Calendar className={iconClass} />,
+    mail: <Mail className={iconClass} />,
+    phone: <Phone className={iconClass} />,
+    youtube: <Youtube className={iconClass} />,
+    behance: <Palette className={iconClass} />,
+    dribbble: <DribbbleIcon className={iconClass} />,
+    medium: <Edit3 className={iconClass} />,
   };
-  return icons[iconName] || <LinkIcon className="w-5 h-5" />;
+  return icons[iconName] || <LinkIcon className={iconClass} />;
 };
 
 export function SocialLinkCard({
@@ -59,39 +78,24 @@ export function SocialLinkCard({
       isDraggable={true}
       className="bg-gradient-to-br from-white to-purple-50"
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         {/* Icon */}
-        <div className="flex-shrink-0 w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600">
+        <div className="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-purple-700">
           {getIcon(link.icon)}
         </div>
 
-        {/* Content */}
-        <div className="flex-1 space-y-2">
-          {/* Platform */}
-          <input
-            type="text"
-            value={link.platform}
-            onChange={(e) => handleUpdate('platform', e.target.value)}
-            placeholder="Platform name"
-            className="w-full px-3 py-2 text-sm font-semibold border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-400"
-          />
-
-          {/* URL */}
+        {/* Content - Compact Single Row */}
+        <div className="flex-1 flex flex-col gap-1.5">
+          {/* Platform name - small text */}
+          <div className="text-xs font-medium text-gray-600">{link.platform}</div>
+          
+          {/* URL Input - main field */}
           <input
             type="url"
             value={link.url}
             onChange={(e) => handleUpdate('url', e.target.value)}
             placeholder="https://..."
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-400 font-mono text-xs"
-          />
-
-          {/* Username (optional) */}
-          <input
-            type="text"
-            value={link.username || ''}
-            onChange={(e) => handleUpdate('username', e.target.value)}
-            placeholder="@username (optional)"
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-400"
+            className="w-full px-2 py-1.5 text-sm text-gray-900 border border-gray-200 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-400 font-mono text-xs"
           />
         </div>
       </div>
