@@ -103,7 +103,7 @@ export default function PublishPage() {
   };
 
   const handleGoToDashboard = () => {
-    router.push('/home');
+    router.push('/dashboard');
   };
 
   if (!data) {

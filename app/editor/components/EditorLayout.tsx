@@ -35,10 +35,6 @@ export function EditorLayout({
     router.push('/signin');
   };
 
-  const handlePreview = () => {
-    router.push('/home');
-  };
-
   return (
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Top Navigation Bar */}
@@ -130,15 +126,6 @@ export function EditorLayout({
           >
             <LayoutDashboard className="w-4 h-4" />
             Dashboard
-          </button>
-
-          {/* Preview Portfolio */}
-          <button
-            onClick={handlePreview}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-all"
-          >
-            <Eye className="w-4 h-4" />
-            View Portfolio
           </button>
 
           {/* Settings */}

@@ -47,8 +47,8 @@ export default function SignInPage() {
         // User has data, go to editor
         router.push('/editor');
       } else {
-        // No data yet, go to home/dashboard
-        router.push('/home');
+        // No data yet, go to dashboard
+        router.push('/dashboard');
       }
     }
   };
