@@ -201,7 +201,7 @@ export function usePortfolioData() {
     window.addEventListener('focus', handleFocus);
     
     // 🔔 Listen for portfolio updates from template editor (same tab)
-    const handlePortfolioUpdate = (e: Event) => {
+    const handlePortfolioUpdate = async (e: Event) => {
       const customEvent = e as CustomEvent;
       console.log('[usePortfolioData] 🔔 Portfolio update event received:', customEvent.detail);
       
@@ -214,6 +214,13 @@ export function usePortfolioData() {
             careers: parsed.careerHighlights?.length || 0,
           });
           setPortfolio(parsed);
+          
+          // 🔥 CRITICAL: Also trigger database save!
+          // The template editor updated localStorage, now persist to database
+          if (currentUserId) {
+            console.log('[usePortfolioData] 💾 Triggering database save after template update');
+            await savePortfolio(parsed);
+          }
         } catch (err) {
           console.error('[usePortfolioData] Failed to parse after update:', err);
         }
