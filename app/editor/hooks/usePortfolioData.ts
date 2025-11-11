@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCurrentUser } from '@/lib/supabase';
 import { getCompletePortfolio, convertToLegacyFormat, saveCompletePortfolio } from '@/lib/database';
@@ -31,6 +31,7 @@ export function usePortfolioData() {
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const savePortfolioRef = useRef<((data: PortfolioData) => Promise<any>) | null>(null);
 
   // Load data on mount
   useEffect(() => {
@@ -213,13 +214,37 @@ export function usePortfolioData() {
             projects: parsed.projects?.length || 0,
             careers: parsed.careerHighlights?.length || 0,
           });
+          
+          // Log the actual project data to verify template_type and blocks
+          if (customEvent.detail.entityType === 'project' && parsed.projects) {
+            const updatedProject = parsed.projects.find((p: any) => p.id === customEvent.detail.entityId);
+            console.log('[usePortfolioData] 📦 Updated project in localStorage:', {
+              id: updatedProject?.id,
+              title: updatedProject?.title,
+              template_type: updatedProject?.template_type,
+              blocks_count: updatedProject?.blocks?.length || 0,
+              has_blocks: !!updatedProject?.blocks,
+            });
+          }
+          
           setPortfolio(parsed);
           
           // 🔥 CRITICAL: Also trigger database save!
           // The template editor updated localStorage, now persist to database
-          if (currentUserId) {
+          if (currentUserId && savePortfolioRef.current) {
             console.log('[usePortfolioData] 💾 Triggering database save after template update');
-            await savePortfolio(parsed);
+            console.log('[usePortfolioData] Current user ID:', currentUserId);
+            const result = await savePortfolioRef.current(parsed);
+            if (result?.error) {
+              console.error('[usePortfolioData] ❌ Database save failed:', result.error);
+            } else {
+              console.log('[usePortfolioData] ✅ Database save completed after template update');
+            }
+          } else {
+            console.warn('[usePortfolioData] ⚠️ No currentUserId or savePortfolio ref, skipping database save!', {
+              hasUserId: !!currentUserId,
+              hasSaveRef: !!savePortfolioRef.current,
+            });
           }
         } catch (err) {
           console.error('[usePortfolioData] Failed to parse after update:', err);
@@ -234,7 +259,7 @@ export function usePortfolioData() {
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('portfolio-updated', handlePortfolioUpdate);
     };
-  }, [router]);
+  }, [router, currentUserId]); // currentUserId needed for event handler
 
   // Save to database
   const savePortfolio = async (updatedPortfolio: PortfolioData) => {
@@ -297,6 +322,11 @@ export function usePortfolioData() {
       return updated;
     });
   };
+
+  // Update ref when savePortfolio changes
+  useEffect(() => {
+    savePortfolioRef.current = savePortfolio;
+  }, [savePortfolio]);
 
   return {
     portfolio,

@@ -11,7 +11,7 @@ import {
 } from './types';
 
 // Debug flag
-const DEBUG_DATABASE = false;
+const DEBUG_DATABASE = true; // Enable for debugging template_type persistence
 
 // ============================================
 // PROFILE OPERATIONS
@@ -591,7 +591,7 @@ export async function saveCompletePortfolio(
         const isValidUUID = p.id && p.id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
         const validId = isValidUUID ? p.id : crypto.randomUUID();
         
-        return {
+        const upsertData = {
           id: validId,
           user_id: userId,
           title: p.title,
@@ -608,6 +608,20 @@ export async function saveCompletePortfolio(
           published_at: p.published_at, // Published timestamp
           display_order: index
         };
+        
+        // Debug log each project being saved
+        if (DEBUG_DATABASE) {
+          console.log(`[Database Debug] 📦 Project ${index + 1}:`, {
+            id: upsertData.id,
+            title: upsertData.title,
+            template_type: upsertData.template_type,
+            blocks_count: upsertData.blocks.length,
+            has_template_type: !!upsertData.template_type,
+            has_blocks: upsertData.blocks.length > 0,
+          });
+        }
+        
+        return upsertData;
       });
       
       if (DEBUG_DATABASE) console.log('[Database Debug] Prepared projects for upsert:', projectsToUpsert);

@@ -137,6 +137,12 @@ export function useTemplateEditor(
   const updateBlocks = useCallback((newBlocks: TemplateBlock[]) => {
     if (!document) return;
 
+    console.log('[useTemplateEditor] 🔄 Updating blocks:', {
+      oldCount: document.template.blocks.length,
+      newCount: newBlocks.length,
+      template_type: document.template.template_type,
+    });
+
     setDocument(prev => {
       if (!prev) return prev;
       return {
@@ -150,6 +156,7 @@ export function useTemplateEditor(
 
     // Trigger auto-save
     if (autoSave && !isInitialLoad.current) {
+      console.log('[useTemplateEditor] ⏰ Scheduling auto-save in', autoSaveDelay, 'ms');
       setSaveStatus('saving');
       
       if (saveTimeoutRef.current) {
@@ -157,8 +164,13 @@ export function useTemplateEditor(
       }
 
       saveTimeoutRef.current = setTimeout(async () => {
+        console.log('[useTemplateEditor] 💾 Auto-save triggered for blocks update');
         await save();
       }, autoSaveDelay);
+    } else if (!autoSave) {
+      console.log('[useTemplateEditor] ⚠️ Auto-save is disabled');
+    } else if (isInitialLoad.current) {
+      console.log('[useTemplateEditor] ⏭️ Skipping save (initial load)');
     }
   }, [document, autoSave, autoSaveDelay, save]);
 
