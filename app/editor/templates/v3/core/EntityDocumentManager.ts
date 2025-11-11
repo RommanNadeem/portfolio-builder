@@ -272,6 +272,11 @@ export class EntityDocumentManager {
       
       if (heroData.imageUrl !== undefined) {
         updated.thumbnail = heroData.imageUrl || null;
+        this.log(`🖼️ Synced hero image to thumbnail:`, {
+          imageUrl: heroData.imageUrl,
+          thumbnail: updated.thumbnail,
+          hasImage: !!updated.thumbnail,
+        });
       }
       
       // Metadata from hero.meta

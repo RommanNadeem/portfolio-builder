@@ -117,6 +117,13 @@ export function ProjectsSection({
                   src={project.thumbnail}
                   alt={project.title}
                   className="w-full h-48 object-cover"
+                  onError={(e) => {
+                    console.error('[ProjectsSection] 🖼️ Image load failed:', project.thumbnail);
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                  onLoad={() => {
+                    console.log('[ProjectsSection] 🖼️ Image loaded successfully:', project.thumbnail);
+                  }}
                 />
               ) : (
                 <div className="w-full h-48 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
