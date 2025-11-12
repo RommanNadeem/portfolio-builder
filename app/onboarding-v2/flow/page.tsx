@@ -540,7 +540,7 @@ export default function OnboardingFlowPage() {
       // Combine email/phone with social links
       // Filter out Email/Phone from socialLinks to avoid duplicates (case-insensitive)
       const socialLinksWithoutEmailPhone = data.socialLinks.filter(
-        link => link.platform.toLowerCase() !== 'email' && link.platform.toLowerCase() !== 'phone'
+        link => link.platform && link.platform.toLowerCase() !== 'email' && link.platform.toLowerCase() !== 'phone'
       );
       
       const allSocialLinks = [
@@ -614,7 +614,7 @@ export default function OnboardingFlowPage() {
   // Combine email/phone with social links for preview
   // Filter out Email/Phone from socialLinks to avoid duplicates (case-insensitive)
   const socialLinksWithoutEmailPhone = data.socialLinks.filter(
-    link => link.platform.toLowerCase() !== 'email' && link.platform.toLowerCase() !== 'phone'
+    link => link.platform && link.platform.toLowerCase() !== 'email' && link.platform.toLowerCase() !== 'phone'
   );
   
   const allLinks = [
