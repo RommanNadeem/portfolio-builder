@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { checkSlugAvailability } from '@/lib/publishing';
 import { sanitizeSlugInput, getSlugValidationErrors } from '@/lib/reserved-slugs';
+import { getBaseUrl, getDisplayUrl } from '@/lib/url-utils';
 
 interface SlugSelectorProps {
   userId: string;
@@ -55,7 +56,8 @@ export function SlugSelector({ userId, currentSlug = '', onSlugChange }: SlugSel
     setSlug(sanitized);
   };
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const baseUrl = getBaseUrl();
+  const displayUrl = getDisplayUrl();
 
   return (
     <div className="space-y-3">
@@ -65,7 +67,7 @@ export function SlugSelector({ userId, currentSlug = '', onSlugChange }: SlugSel
 
       <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
         <span className="text-gray-500 text-sm whitespace-nowrap">
-          {baseUrl.replace('https://', '').replace('http://', '')}/
+          {displayUrl}/
         </span>
         <div className="relative flex-1 min-w-[200px]">
           <input

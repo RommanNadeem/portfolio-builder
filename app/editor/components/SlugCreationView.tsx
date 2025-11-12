@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import { Check, X, Loader2 } from 'lucide-react';
 import { checkSlugAvailability, suggestSlugFromProfile } from '@/lib/publishing';
 import { sanitizeSlugInput, getSlugValidationErrors } from '@/lib/reserved-slugs';
+import { getBaseUrl, getDisplayUrl } from '@/lib/url-utils';
 
 interface SlugCreationViewProps {
   userId: string;
@@ -29,7 +30,8 @@ export function SlugCreationView({ userId, currentSlug, onSlugClaimed }: SlugCre
   const [touched, setTouched] = useState(false);
   const [claiming, setClaiming] = useState(false);
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const baseUrl = getBaseUrl();
+  const displayUrl = getDisplayUrl();
 
   // Load slug suggestion on mount
   useEffect(() => {
@@ -110,7 +112,7 @@ export function SlugCreationView({ userId, currentSlug, onSlugClaimed }: SlugCre
 
         <div className="flex items-center gap-2">
           <span className="text-gray-500 text-sm whitespace-nowrap flex-shrink-0">
-            {baseUrl.replace('https://', '').replace('http://', '')}/
+            {displayUrl}/
           </span>
           <div className="relative flex-1">
             <input

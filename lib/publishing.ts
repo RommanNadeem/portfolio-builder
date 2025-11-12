@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 import { getCompletePortfolio, convertToLegacyFormat } from './database';
 import { isReservedSlug, isValidSlugFormat, generateSlugFromName } from './reserved-slugs';
 import { EVENTS, emitPublishEvent } from './events';
+import { getBaseUrl, getPortfolioUrl } from './url-utils';
 import type { 
   PublishResult, 
   SlugAvailability, 
@@ -148,13 +149,13 @@ export async function claimSlug(
     emitPublishEvent(EVENTS.SLUG_CLAIMED, {
       userId,
       slug: normalizedSlug,
-      url: `${process.env.NEXT_PUBLIC_APP_URL || ''}/${normalizedSlug}`,
+      url: getPortfolioUrl(normalizedSlug),
     });
 
     return {
       success: true,
       slug: normalizedSlug,
-      url: `${process.env.NEXT_PUBLIC_APP_URL || ''}/${normalizedSlug}`,
+      url: getPortfolioUrl(normalizedSlug),
     };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -453,8 +454,7 @@ export async function publishPortfolio(userId: string, portfolioData?: any): Pro
 
     if (DEBUG) console.log(`[Publishing] ✅ Portfolio published successfully`);
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const publishedUrl = `${baseUrl}/${profile.portfolio_slug}`;
+    const publishedUrl = getPortfolioUrl(profile.portfolio_slug);
 
     // Emit publish event
     emitPublishEvent(EVENTS.PORTFOLIO_PUBLISHED, {
@@ -666,13 +666,11 @@ export async function getPublishStatus(userId: string): Promise<{
       };
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-
     return {
       isPublished: data.is_portfolio_published || false,
       slug: data.portfolio_slug || null,
       lastPublishedAt: data.last_published_at || null,
-      url: data.portfolio_slug ? `${baseUrl}/${data.portfolio_slug}` : null,
+      url: data.portfolio_slug ? getPortfolioUrl(data.portfolio_slug) : null,
     };
   } catch (error) {
     console.error('[Publishing] Error getting status:', error);

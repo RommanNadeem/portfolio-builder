@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { getPublishedPortfolio } from '@/lib/publishing';
+import { getBaseUrl } from '@/lib/url-utils';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -55,7 +56,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const tagline = (portfolio as any).tagline || (portfolio as any).profile?.tagline || '';
   const profileImage = (portfolio as any).profileImage || (portfolio as any).profile?.profile_image_url;
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const baseUrl = getBaseUrl();
 
   return {
     title: `${fullName} - Portfolio`,

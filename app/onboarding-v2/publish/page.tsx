@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Check, Copy, ExternalLink, Loader2 } from 'lucide-react';
 import PortfolioPreview from '@/components/preview/PortfolioPreview';
 import { track } from '@/lib/telemetry';
+import { getBaseUrl, getDisplayUrl, getPortfolioUrl } from '@/lib/url-utils';
 
 export default function PublishPage() {
   const router = useRouter();
@@ -96,7 +97,7 @@ export default function PublishPage() {
   };
 
   const handleCopyLink = () => {
-    const link = `${window.location.origin}/u/${slug}`;
+    const link = getPortfolioUrl(`u/${slug}`);
     navigator.clipboard.writeText(link);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
@@ -135,7 +136,7 @@ export default function PublishPage() {
               <p className="text-sm text-gray-600 mb-2">Your portfolio URL:</p>
               <div className="flex items-center gap-2">
                 <code className="flex-1 text-left px-4 py-3 bg-white border border-gray-300 rounded-lg text-indigo-600 font-mono text-sm">
-                  {window.location.origin}/u/{slug}
+                  {getPortfolioUrl(`u/${slug}`)}
                 </code>
                 <button
                   onClick={handleCopyLink}
@@ -250,7 +251,7 @@ export default function PublishPage() {
                   Your custom URL
                 </label>
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-500 text-sm">{window.location.origin}/u/</span>
+                  <span className="text-gray-500 text-sm">{getDisplayUrl()}/u/</span>
                   <input
                     type="text"
                     value={slug}
