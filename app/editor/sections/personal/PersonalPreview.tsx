@@ -22,6 +22,7 @@ export function PersonalPreview({ data, socialLinks = [], viewMode, previewMode 
 
   const getIcon = (iconName: string) => {
     const className = "w-4 h-4";
+    if (!iconName) return <Globe className={className} />;
     switch (iconName.toLowerCase()) {
       case 'mail':
       case 'email': return <Mail className={className} />;
