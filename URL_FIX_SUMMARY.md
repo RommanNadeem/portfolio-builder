@@ -29,18 +29,18 @@ const url = getBaseUrl(); // Smart detection based on environment
 
 ## 🚀 How It Works Now
 
-### Production (Vercel) - Zero Configuration
+### Production (Vercel Default) - Zero Configuration
 ```
-✅ Automatically uses: https://your-app.vercel.app
+✅ Automatically uses: https://buildspace-me.vercel.app
 No env vars needed - works out of the box!
 ```
 
-### Custom Domain - Simple Configuration
+### Production (Custom Domain) - **Currently Active**
 ```bash
-# Just set this one variable in Vercel:
-NEXT_PUBLIC_APP_URL=https://yourdomain.com
+# Set this one variable in Vercel environment variables:
+NEXT_PUBLIC_APP_URL=https://www.buildspace.me
 
-✅ All URLs will use: https://yourdomain.com
+✅ All URLs will use: https://www.buildspace.me
 ```
 
 ### Local Development - Works Automatically
@@ -69,13 +69,13 @@ npm run build
 
 ```typescript
 // Get base URL (smart detection)
-getBaseUrl() → "https://your-app.vercel.app"
+getBaseUrl() → "https://www.buildspace.me"
 
 // Get portfolio URL for a slug
-getPortfolioUrl("john-doe") → "https://your-app.vercel.app/john-doe"
+getPortfolioUrl("john-doe") → "https://www.buildspace.me/john-doe"
 
 // Get display URL (no protocol)
-getDisplayUrl() → "your-app.vercel.app"
+getDisplayUrl() → "www.buildspace.me"
 
 // Environment checks
 isProduction() → true/false
@@ -100,18 +100,19 @@ isVercel() → true/false
 
 ## ⚡ Quick Start
 
-### For Vercel Deployment
+### For Vercel Deployment (Default)
 1. Deploy your app to Vercel
-2. That's it! URLs work automatically ✨
+2. URLs work automatically with vercel.app domain ✨
 
-### For Custom Domain
+### For Custom Domain (Production - buildspace.me)
 1. Deploy to Vercel
-2. Add environment variable:
+2. Configure custom domain in Vercel dashboard
+3. Add environment variable:
    ```
-   NEXT_PUBLIC_APP_URL=https://yourdomain.com
+   NEXT_PUBLIC_APP_URL=https://www.buildspace.me
    ```
-3. Redeploy
-4. Done! ✨
+4. Redeploy
+5. Done! All URLs now use www.buildspace.me ✨
 
 ## 📖 Full Documentation
 See `PRODUCTION_URL_FIX.md` for detailed information.

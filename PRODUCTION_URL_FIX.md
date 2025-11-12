@@ -38,14 +38,14 @@ All URL construction now uses the new utilities:
 
 ### On Production (Vercel)
 ```
-NEXT_PUBLIC_VERCEL_URL=your-app.vercel.app (auto-set by Vercel)
-Result: https://your-app.vercel.app
+NEXT_PUBLIC_VERCEL_URL=buildspace-me.vercel.app (auto-set by Vercel)
+Result: https://buildspace-me.vercel.app
 ```
 
-### On Custom Domain
+### On Custom Domain (Recommended for Production)
 ```
-NEXT_PUBLIC_APP_URL=https://yourdomain.com (set manually)
-Result: https://yourdomain.com
+NEXT_PUBLIC_APP_URL=https://www.buildspace.me (set manually)
+Result: https://www.buildspace.me
 ```
 
 ### On Local Development
@@ -97,12 +97,12 @@ npm run build && npm start
 # URLs should show: your-app.vercel.app/your-slug
 ```
 
-### Custom Domain
+### Custom Domain (Production)
 ```bash
 # Set in Vercel environment variables:
-NEXT_PUBLIC_APP_URL=https://yourdomain.com
+NEXT_PUBLIC_APP_URL=https://www.buildspace.me
 
-# URLs should show: yourdomain.com/your-slug
+# URLs should show: www.buildspace.me/your-slug
 ```
 
 ## Benefits
@@ -127,13 +127,13 @@ NEXT_PUBLIC_APP_URL=https://yourdomain.com
 - `http://localhost:3000/john-doe`
 - `http://localhost:3000/jane-smith`
 
-### Production (Vercel)
-- `https://portfoliobuilder.vercel.app/john-doe`
-- `https://portfoliobuilder.vercel.app/jane-smith`
+### Production (Vercel default)
+- `https://buildspace-me.vercel.app/john-doe`
+- `https://buildspace-me.vercel.app/jane-smith`
 
-### Custom Domain
-- `https://myportfolio.com/john-doe`
-- `https://myportfolio.com/jane-smith`
+### Production (Custom Domain) - **Currently Active**
+- `https://www.buildspace.me/john-doe`
+- `https://www.buildspace.me/jane-smith`
 
 ## Troubleshooting
 
@@ -141,7 +141,7 @@ NEXT_PUBLIC_APP_URL=https://yourdomain.com
 **Solution**: Make sure `NEXT_PUBLIC_VERCEL_URL` is available (it should be auto-set by Vercel). If using a custom domain, set `NEXT_PUBLIC_APP_URL`.
 
 ### Issue: URLs showing vercel.app instead of custom domain
-**Solution**: Set `NEXT_PUBLIC_APP_URL` to your custom domain in Vercel environment variables.
+**Solution**: Set `NEXT_PUBLIC_APP_URL=https://www.buildspace.me` in Vercel environment variables (should already be configured).
 
 ### Issue: URLs not working in server components
 **Solution**: Server components can't access `window.location`. The utility will use `NEXT_PUBLIC_VERCEL_URL` or `NEXT_PUBLIC_APP_URL` instead.

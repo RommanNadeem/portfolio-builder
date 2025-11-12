@@ -2,6 +2,8 @@
 
 AI-powered portfolio builder that creates professional portfolios in under 60 seconds. Import from resume or LinkedIn and let AI generate compelling copy.
 
+**Production URL:** [https://www.buildspace.me](https://www.buildspace.me)
+
 ## ✨ Features
 
 - 📄 **Resume Parser** - Upload PDF/DOCX and extract structured data

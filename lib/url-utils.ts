@@ -1,14 +1,16 @@
 /**
  * URL utilities for handling production and development environments
+ * 
+ * Production URL: https://www.buildspace.me
  */
 
 /**
  * Get the base URL for the application
  * Prioritizes:
- * 1. Explicit NEXT_PUBLIC_APP_URL env var
+ * 1. Explicit NEXT_PUBLIC_APP_URL env var (https://www.buildspace.me in production)
  * 2. Vercel URL (production/preview)
  * 3. window.location.origin (client-side)
- * 4. localhost fallback
+ * 4. localhost fallback (development)
  */
 export function getBaseUrl(): string {
   // 1. Check for explicit env var (highest priority)
