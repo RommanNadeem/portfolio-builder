@@ -1,0 +1,527 @@
+/* 
+  Portfolio Builder - Onboarding Design System
+  Based on Ctrl.xyz aesthetic
+*/
+
+/* ============================================
+   COLOR SYSTEM
+   ============================================ */
+
+:root {
+  /* Pastel Backgrounds */
+  --pastel-blue: #DBEAFE;
+  --pastel-pink: #FCE7F3;
+  --pastel-yellow: #FEF3C7;
+  --pastel-green: #D1FAE5;
+  --pastel-purple: #EDE9FE;
+  --pastel-orange: #FED7AA;
+  
+  /* Primary Colors */
+  --emerald-600: #10B981;
+  --emerald-700: #059669;
+  
+  /* Neutrals */
+  --gray-900: #111827;
+  --gray-800: #1F2937;
+  --gray-700: #374151;
+  --gray-600: #4B5563;
+  --gray-500: #6B7280;
+  --gray-400: #9CA3AF;
+  --gray-200: #E5E7EB;
+  --gray-100: #F3F4F6;
+  --gray-50: #F9FAFB;
+  
+  /* Spacing */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 0.75rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
+  
+  /* Border Radius */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 1.75rem;
+  --radius-full: 9999px;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+}
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+
+.onboarding-title {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--gray-900);
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  margin-bottom: var(--spacing-lg);
+}
+
+.onboarding-subtitle {
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: var(--gray-800);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.onboarding-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-bottom: var(--spacing-sm);
+  display: block;
+}
+
+.onboarding-description {
+  font-size: 0.875rem;
+  color: var(--gray-800);
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: var(--emerald-700);  /* Updated to emerald-700 for WCAG AAA (5.28:1) */
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #047857;  /* Emerald-800 for hover */
+  box-shadow: var(--shadow-xl);
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: white;
+  color: var(--gray-900);
+  font-size: 1rem;
+  font-weight: 600;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  border-color: var(--gray-300);
+  background: var(--gray-50);
+  color: var(--gray-900);
+}
+
+/* ============================================
+   CARDS
+   ============================================ */
+
+.onboarding-card {
+  background: white;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-2xl);
+  padding: var(--spacing-2xl);
+  transition: all 0.3s ease;
+}
+
+.onboarding-card:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--gray-300);
+}
+
+.onboarding-card-pastel-blue {
+  background: linear-gradient(to bottom right, var(--pastel-blue), #F0F9FF);
+  border-color: #93C5FD;
+}
+
+.onboarding-card-pastel-pink {
+  background: linear-gradient(to bottom right, var(--pastel-pink), #FDF2F8);
+  border-color: #F9A8D4;
+}
+
+.onboarding-card-pastel-yellow {
+  background: linear-gradient(to bottom right, var(--pastel-yellow), #FFFBEB);
+  border-color: #FCD34D;
+}
+
+.onboarding-card-pastel-green {
+  background: linear-gradient(to bottom right, var(--pastel-green), #ECFDF5);
+  border-color: #6EE7B7;
+}
+
+/* ============================================
+   INPUTS
+   ============================================ */
+
+.onboarding-input {
+  width: 100%;
+  padding: 0.875rem 1.25rem;
+  font-size: 1rem;
+  color: var(--gray-900);
+  background: white;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.onboarding-input:focus {
+  border-color: var(--emerald-700);
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+}
+
+.onboarding-input::placeholder {
+  color: var(--gray-600);  /* Updated from gray-500 for better contrast */
+  font-weight: 400;
+}
+
+.onboarding-input:focus::placeholder {
+  color: var(--gray-500);
+}
+
+.onboarding-textarea {
+  width: 100%;
+  padding: 0.875rem 1.25rem;
+  font-size: 1rem;
+  color: var(--gray-900);
+  background: white;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  transition: all 0.2s ease;
+  outline: none;
+  resize: vertical;
+  min-height: 120px;
+}
+
+.onboarding-textarea:focus {
+  border-color: var(--emerald-700);
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+}
+
+.onboarding-textarea::placeholder {
+  color: var(--gray-600);
+  font-weight: 400;
+}
+
+.onboarding-textarea:focus::placeholder {
+  color: var(--gray-500);
+}
+
+/* ============================================
+   SELECT / DROPDOWN
+   ============================================ */
+
+.onboarding-select {
+  width: 100%;
+  padding: 0.875rem 1.25rem;
+  font-size: 1rem;
+  color: var(--gray-900);
+  background: white;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  transition: all 0.2s ease;
+  outline: none;
+  cursor: pointer;
+}
+
+.onboarding-select:focus {
+  border-color: var(--emerald-700);
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+}
+
+/* Style for select options */
+.onboarding-select option {
+  color: var(--gray-900);
+  background: white;
+  font-weight: 500;
+  padding: 0.5rem;
+}
+
+/* Ensure placeholder/first option is visible */
+.onboarding-select option:first-child {
+  color: var(--gray-600);
+}
+
+.onboarding-select option:disabled {
+  color: var(--gray-600);
+}
+
+/* ============================================
+   CHIPS / TAGS
+   ============================================ */
+
+.onboarding-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  color: var(--gray-900);  /* Updated from gray-700 for WCAG AAA */
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.onboarding-chip:hover {
+  border-color: var(--emerald-700);
+  background: var(--pastel-green);
+  color: var(--emerald-700);
+  font-weight: 700;
+}
+
+.onboarding-chip.active {
+  background: var(--emerald-700);  /* Updated from emerald-600 for WCAG AAA */
+  color: white;
+  border-color: var(--emerald-700);
+}
+
+/* ============================================
+   PROGRESS INDICATOR
+   ============================================ */
+
+.onboarding-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.onboarding-progress-step {
+  flex: 1;
+  height: 4px;
+  background: var(--gray-200);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.onboarding-progress-step.active {
+  background: var(--emerald-700);  /* Updated from emerald-600 for consistency */
+}
+
+/* ============================================
+   BADGES / PILLS
+   ============================================ */
+
+.onboarding-badge {
+  display: inline-block;
+  padding: 0.375rem 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+}
+
+.onboarding-badge-blue {
+  background: var(--pastel-blue);
+  color: #1E40AF;
+  border: 1px solid #93C5FD;
+}
+
+.onboarding-badge-green {
+  background: var(--pastel-green);
+  color: #065F46;
+  border: 1px solid #6EE7B7;
+}
+
+.onboarding-badge-yellow {
+  background: var(--pastel-yellow);
+  color: #92400E;
+  border: 1px solid #FCD34D;
+}
+
+/* ============================================
+   UPLOAD AREA
+   ============================================ */
+
+.onboarding-upload-area {
+  border: 2px dashed var(--gray-200);
+  border-radius: var(--radius-2xl);
+  padding: var(--spacing-3xl);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: linear-gradient(to bottom, white, var(--gray-100));
+}
+
+.onboarding-upload-area:hover {
+  border-color: var(--emerald-700);
+  background: linear-gradient(to bottom, var(--pastel-green), white);
+}
+
+.onboarding-upload-area.active {
+  border-color: var(--emerald-700);
+  background: var(--pastel-green);
+}
+
+/* ============================================
+   STEP CONTAINER
+   ============================================ */
+
+.onboarding-container {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: var(--spacing-2xl);
+}
+
+.onboarding-section {
+  margin-bottom: var(--spacing-3xl);
+}
+
+/* ============================================
+   NAVIGATION
+   ============================================ */
+
+.onboarding-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg) var(--spacing-2xl);
+  background: white;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.onboarding-nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.text-center {
+  text-align: center;
+}
+
+.mb-sm { margin-bottom: var(--spacing-sm); }
+.mb-md { margin-bottom: var(--spacing-md); }
+.mb-lg { margin-bottom: var(--spacing-lg); }
+.mb-xl { margin-bottom: var(--spacing-xl); }
+.mb-2xl { margin-bottom: var(--spacing-2xl); }
+
+.mt-sm { margin-top: var(--spacing-sm); }
+.mt-md { margin-top: var(--spacing-md); }
+.mt-lg { margin-top: var(--spacing-lg); }
+.mt-xl { margin-top: var(--spacing-xl); }
+.mt-2xl { margin-top: var(--spacing-2xl); }
+
+.gap-sm { gap: var(--spacing-sm); }
+.gap-md { gap: var(--spacing-md); }
+.gap-lg { gap: var(--spacing-lg); }
+
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.4s ease-out;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .onboarding-title {
+    font-size: 2rem;
+  }
+  
+  .onboarding-subtitle {
+    font-size: 1rem;
+  }
+  
+  .onboarding-container {
+    padding: var(--spacing-lg);
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+  }
+}
+
+/* ============================================
+   DARK MODE SUPPORT (Optional)
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --gray-900: #F9FAFB;
+    --gray-800: #F3F4F6;
+    --gray-700: #E5E7EB;
+    --gray-200: #374151;
+    --gray-100: #1F2937;
+  }
+}
+

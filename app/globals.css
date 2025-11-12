@@ -139,18 +139,38 @@ textarea:disabled {
 }
 
 /* ============================================
-   PORTFOLIO BUILDER - DESIGN TOKENS
+   PORTFOLIO BUILDER - EXACT CTRL.XYZ COLORS
    ============================================ */
 
 :root {
-  /* Colors */
-  --accent: #7C3AED;
-  --text: #0F172A;
-  --muted: #6B7280;
-  --divider: #F2F4F7;
+  /* Exact Ctrl.xyz Pastels */
+  --pastel-blue: #DDEAFF;
+  --pastel-yellow: #FFF5B8;
+  --pastel-pink: #FEE7EB;
+  --pastel-green: #E5F8D6;
+  
+  /* Primary CTA Color */
+  --cta-green: #0A7C61;
+  --cta-green-hover: #086B52;
+  
+  /* Text Colors */
+  --text-primary: #111111;
+  --text-secondary: #666666;
+  
+  /* Backgrounds */
+  --bg-white: #FFFFFF;
+  --bg-light-grey: #F5F5F5;
+  
+  /* Accent */
+  --highlight-orange: #FF9F80;
+  
+  /* Borders */
+  --border-light: #E5E7EB;
   
   /* Shadows */
   --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
 /* ============================================

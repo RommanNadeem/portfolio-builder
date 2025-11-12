@@ -297,6 +297,61 @@ export async function refineText(
   })
 }
 
+// ==================== Quiz Data Generation ====================
+
+export interface QuizData {
+  role: string
+  experienceLevel: string
+  yearsOfExperience: string
+  industries: string[]
+  topSkills: string[]
+  workStyle: string[]
+  recentProject: {
+    type: string
+    description: string
+    impact: string
+  }
+  topAchievements: string[]
+  careerGoals: string
+  targetAudience: string
+}
+
+export interface GeneratedPortfolioData {
+  heading: string
+  tagline: string
+  taglineSuggestions: string[]
+  whoAreYou: string
+  profession: string
+  companies: string
+  careerHighlights: Array<{
+    id: string
+    organization: string
+    role: string
+    description: string
+    achievements: string[]
+    startDate?: string
+    endDate?: string
+    current?: boolean
+  }>
+}
+
+/**
+ * Generate portfolio data from quiz answers using AI
+ */
+export async function generateFromQuiz(
+  userName: string,
+  quizData: QuizData
+): Promise<APIResponse<GeneratedPortfolioData>> {
+  return callAPI<GeneratedPortfolioData>('/api/generate-from-quiz', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: userName,
+      quiz_data: quizData
+    })
+  })
+}
+
 /**
  * Improve job description
  * @param description - Job description to improve

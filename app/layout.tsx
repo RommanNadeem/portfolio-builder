@@ -19,8 +19,8 @@ const lato = Lato({
 });
 
 export const metadata: Metadata = {
-  title: "Portfolio Builder",
-  description: "Create your professional portfolio in minutes",
+  title: "Portfolio Builder - Turn Your Resume Into a Story in 60 Seconds",
+  description: "Upload your resume and get an AI-generated portfolio with case studies, metrics, and real domains. From data to story to brand in under a minute.",
 };
 
 export default function RootLayout({

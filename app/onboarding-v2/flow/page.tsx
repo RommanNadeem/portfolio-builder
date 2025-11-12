@@ -8,6 +8,8 @@ import { track } from '@/lib/telemetry';
 import { parseResume, generateTaglines, generateAbout } from '@/lib/railway-api';
 import { User, Upload, X, Sparkles, Mail, Phone, Plus, Check, Linkedin, Github, Twitter, Instagram, Globe, Calendar, Link, Edit2, Save } from 'lucide-react';
 import ImportPicker from '@/components/onboarding/ImportPicker';
+import { InteractiveQuiz } from '../components/InteractiveQuiz';
+import type { QuizData, GeneratedPortfolioData } from '@/lib/railway-api';
 
 interface OnboardingData {
   fullName: string;
@@ -62,6 +64,7 @@ export default function OnboardingFlowPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showQuiz, setShowQuiz] = useState(false);
 
   const [data, setData] = useState<OnboardingData>({
     fullName: '',
@@ -254,17 +257,54 @@ export default function OnboardingFlowPage() {
   };
 
   const handleSkip = async () => {
+    // Show interactive quiz instead of generic flow
+    setShowQuiz(true);
+  };
+
+  const handleQuizComplete = async (quizData: QuizData) => {
     setIsProcessing(true);
     
     try {
+      // Import the quiz generation function
+      const { generateFromQuiz } = await import('@/lib/railway-api');
+      
+      // Generate portfolio data from quiz
+      const { data: generatedData, error } = await generateFromQuiz(data.fullName, quizData);
+      
+      if (error || !generatedData) {
+        throw new Error('Failed to generate portfolio data from quiz');
+      }
+
+      // Update onboarding data with AI-generated content
+      setData(prev => ({
+        ...prev,
+        heading: generatedData.heading,
+        tagline: generatedData.tagline,
+        taglineSuggestions: generatedData.taglineSuggestions,
+        whoAreYou: generatedData.whoAreYou,
+        careerHighlights: generatedData.careerHighlights.map(h => ({
+          ...h,
+          id: h.id || crypto.randomUUID()
+        })),
+        source: 'manual',
+      }));
+
+      setIsProcessing(false);
+      setShowQuiz(false);
+      setCurrentStep(3); // Move to heading step with AI-generated content
+    } catch (error) {
+      console.error('Quiz generation error:', error);
+      
+      // Fallback to generic data
       const { data: taglineData } = await generateTaglines({
         name: data.fullName,
-        role: 'Professional',
+        role: quizData.role || 'Professional',
         companies: []
       });
 
       setData(prev => ({
         ...prev,
+        heading: `Hi, I'm ${prev.fullName} — ${quizData.role}`,
         taglineSuggestions: taglineData?.taglines || [
           'Product Manager who ships fast',
           'Designer focused on usable products',
@@ -272,23 +312,15 @@ export default function OnboardingFlowPage() {
         ],
         source: 'manual',
       }));
-
+      
       setIsProcessing(false);
-      setCurrentStep(3);
-    } catch (error) {
-      console.error('Skip error:', error);
-      setData(prev => ({
-        ...prev,
-        taglineSuggestions: [
-          'Product Manager who ships fast',
-          'Designer focused on usable products',
-          'Engineer who turns ideas into systems'
-        ],
-        source: 'manual',
-      }));
-      setIsProcessing(false);
+      setShowQuiz(false);
       setCurrentStep(3);
     }
+  };
+
+  const handleQuizBack = () => {
+    setShowQuiz(false);
   };
 
   // Step 3: Choose Heading
@@ -610,6 +642,17 @@ export default function OnboardingFlowPage() {
   };
 
   if (!mounted) return null;
+
+  // Show quiz if user skipped resume upload
+  if (showQuiz) {
+    return (
+      <InteractiveQuiz
+        userName={data.fullName}
+        onComplete={handleQuizComplete}
+        onBack={handleQuizBack}
+      />
+    );
+  }
 
   // Combine email/phone with social links for preview
   // Filter out Email/Phone from socialLinks to avoid duplicates (case-insensitive)
