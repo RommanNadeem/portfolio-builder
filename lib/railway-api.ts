@@ -501,3 +501,331 @@ export async function checkBackendHealth(): Promise<{ healthy: boolean; error?: 
   }
 }
 
+// ==================== AI Case Study Generation ====================
+
+export interface UploadedFile {
+  id: string
+  name: string
+  type: string
+  size: number
+  file_data: string // base64 encoded
+}
+
+export interface TemplateSchema {
+  template_type: string
+  template_name: string
+  template_description: string
+  sections: Array<{
+    id: string
+    label: string
+    blockType: string
+    required: boolean
+    description: string
+    expected_fields: any
+    ai_hints: string
+  }>
+  block_definitions: any
+}
+
+export interface GenerateCaseStudyRequest {
+  template_schema: TemplateSchema
+  files: UploadedFile[]
+  user_context: {
+    profile?: {
+      profession?: string
+      experience_level?: string
+      industry?: string
+    }
+    project_data?: {
+      id: string
+      title?: string
+      description?: string
+      tags?: string[]
+      role?: string
+      company?: string
+      link?: string
+    }
+  }
+  user_notes: string
+  generation_options?: {
+    tone?: 'professional' | 'casual' | 'technical'
+    auto_extract_metrics?: boolean
+    include_technical_details?: boolean
+    creativity_level?: 'conservative' | 'balanced' | 'creative'
+    target_length?: 'brief' | 'standard' | 'comprehensive'
+  }
+  metadata?: {
+    frontend_version?: string
+    timestamp?: string
+    user_id?: string
+    request_id?: string
+  }
+}
+
+export interface GeneratedBlock {
+  type: string
+  id: string
+  data: any
+  confidence: number
+  sources: string[]
+}
+
+export interface GenerateCaseStudyResponse {
+  blocks: GeneratedBlock[]
+  overall_confidence: number
+  suggestions?: string[]
+  missing_data?: string[]
+  processing_time_ms?: number
+}
+
+/**
+ * Generate AI-powered case study from uploaded files
+ * @param request - Complete generation request with template schema and files
+ * @returns Generated blocks matching template structure
+ */
+export async function generateCaseStudy(
+  request: GenerateCaseStudyRequest
+): Promise<APIResponse<GenerateCaseStudyResponse>> {
+  console.log('[Railway API] Generating case study:', {
+    template: request.template_schema.template_type,
+    files: request.files.length,
+    notes_length: request.user_notes.length,
+  })
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/generate-case-study`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request)
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      console.error('[Railway API] Error response:', data)
+      throw new Error(data.error || data.detail || `HTTP ${response.status}`)
+    }
+
+    console.log('[Railway API] Success: Case study generated')
+
+    // Backend returns data directly (not wrapped in success object)
+    return {
+      data: data as GenerateCaseStudyResponse,
+      error: null
+    }
+  } catch (error) {
+    console.error('[Railway API] Case study generation failed:', error)
+    return {
+      data: null,
+      error: error instanceof Error ? error : new Error('Unknown error occurred')
+    }
+  }
+}
+
+/**
+ * Convert File object to base64 string
+ */
+export async function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = () => {
+      const result = reader.result as string
+      // Remove data URL prefix (e.g., "data:application/pdf;base64,")
+      const base64 = result.split(',')[1]
+      resolve(base64)
+    }
+    reader.onerror = error => reject(error)
+  })
+}
+
+/**
+ * Prepare files for upload
+ */
+export async function prepareFilesForUpload(files: File[]): Promise<UploadedFile[]> {
+  const prepared: UploadedFile[] = []
+
+  for (const file of files) {
+    try {
+      const base64 = await fileToBase64(file)
+      prepared.push({
+        id: crypto.randomUUID(),
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        file_data: base64,
+      })
+    } catch (error) {
+      console.error(`Failed to process file ${file.name}:`, error)
+    }
+  }
+
+  return prepared
+}
+
+// ==================== AI-Designed Case Study (Custom Structure) ====================
+
+export interface BlockCatalogItem {
+  type: string
+  description: string
+  fields: Record<string, any>
+  ai_instructions?: {
+    generation_guide: string
+    field_hints: Record<string, string>
+    quality_rules: string[]
+    extraction_patterns?: string[]
+  }
+}
+
+export interface GenerateCustomCaseStudyRequest {
+  category: string  // NEW: Project category from dropdown
+  available_blocks: BlockCatalogItem[]
+  content: {
+    files: UploadedFile[]
+    user_notes: string
+    project_metadata?: {
+      title?: string
+      description?: string
+      tags?: string[]
+      role?: string
+      company?: string
+    }
+  }
+  generation_options: {
+    tone: string
+    tone_description: string
+    tone_characteristics: string
+    target_length: string
+    length_details: {
+      reading_time: string
+      block_count_range: { min: number; max: number; ideal: number }
+      depth: string
+      word_count_estimate: string
+      content_focus: string
+      block_content_guidance: Record<string, string>
+      best_for: string
+    }
+    auto_extract_metrics?: boolean
+    include_technical_details?: boolean
+    prefer_variety?: boolean
+  }
+  ai_generation_guide: {  // NEW: Instructions for AI
+    writing_quality: string[]
+    content_extraction: Record<string, string>
+    formatting: Record<string, string>
+    quality_checks: Record<string, string>
+  }
+  metadata?: {
+    frontend_version?: string
+    timestamp?: string
+    user_id?: string
+    request_id?: string
+  }
+}
+
+export interface CustomCaseStudyResponse {
+  blocks: GeneratedBlock[]
+  overall_confidence: number
+  structure_info?: {
+    total_blocks: number
+    narrative_flow: string
+    design_rationale: string
+    estimated_reading_time?: string
+  }
+  suggestions?: string[]
+  missing_data?: string[]
+  processing_time_ms?: number
+}
+
+/**
+ * Generate AI-designed custom case study
+ * AI decides the structure and blocks to use
+ * @param request - Block catalog and content
+ * @returns Custom-designed blocks
+ */
+export async function generateCustomCaseStudy(
+  request: GenerateCustomCaseStudyRequest
+): Promise<APIResponse<CustomCaseStudyResponse>> {
+  console.log('[Railway API] Generating custom AI-designed case study:', {
+    available_blocks: request.available_blocks.length,
+    files: request.content.files.length,
+    notes_length: request.content.user_notes.length,
+  })
+
+  try {
+    console.log('[Railway API] Request payload size:', JSON.stringify(request).length, 'bytes')
+    
+    const response = await fetch(`${BACKEND_URL}/api/generate-custom-case-study`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request)
+    })
+
+    console.log('[Railway API] Response status:', response.status)
+
+    // Try to parse response
+    let data;
+    try {
+      data = await response.json()
+    } catch (parseError) {
+      console.error('[Railway API] Failed to parse response as JSON')
+      throw new Error(`Backend returned invalid JSON (HTTP ${response.status})`)
+    }
+
+    if (!response.ok) {
+      console.error('[Railway API] Error response:', data)
+      
+      // Handle FastAPI validation errors (422)
+      if (response.status === 422 && Array.isArray(data.detail)) {
+        console.error('[Railway API] Validation errors:', data.detail)
+        
+        // Format validation errors nicely
+        const validationErrors = data.detail.map((err: any) => {
+          const field = Array.isArray(err.loc) ? err.loc.join(' → ') : 'unknown field';
+          return `${field}: ${err.msg}`;
+        }).join('\n');
+        
+        throw new Error(`Validation Error:\n${validationErrors}`)
+      }
+      
+      // Handle other error formats
+      const errorMessage = 
+        data.error || 
+        (typeof data.detail === 'string' ? data.detail : null) ||
+        data.message ||
+        `HTTP ${response.status}: ${response.statusText}`
+      
+      throw new Error(errorMessage)
+    }
+
+    console.log('[Railway API] Success: Custom case study generated')
+    console.log('[Railway API] Blocks generated:', data.blocks?.length || 0)
+    if (data.structure_info) {
+      console.log('[Railway API] Structure:', data.structure_info)
+    }
+
+    return {
+      data: data as CustomCaseStudyResponse,
+      error: null
+    }
+  } catch (error) {
+    console.error('[Railway API] Custom case study generation failed:', error)
+    
+    // Better error handling
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : typeof error === 'string' 
+      ? error 
+      : 'Unknown error occurred'
+    
+    return {
+      data: null,
+      error: new Error(errorMessage)
+    }
+  }
+}
+

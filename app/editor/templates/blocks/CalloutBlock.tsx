@@ -111,6 +111,32 @@ export function CalloutBlock({ block, onChange, mode }: CalloutBlockProps) {
             rows={3}
             className={`w-full text-[15px] leading-7 ${styles.text} border-0 bg-transparent focus:outline-none placeholder-italic resize-none px-0 py-0 focus:ring-0`}
           />
+
+          {/* Quote - Optional */}
+          <div className="mt-3 pt-3 border-t border-gray-200/50">
+            <label className="block text-xs font-medium text-gray-500 mb-2">Quote (optional)</label>
+            <textarea
+              value={data.quote || ''}
+              onChange={(e) => onChange({ ...block, data: { ...data, quote: e.target.value } })}
+              placeholder="Add a quote or testimonial..."
+              rows={2}
+              className={`w-full text-[15px] leading-7 ${styles.text} border-0 bg-transparent focus:outline-none placeholder-italic resize-none px-0 py-0 focus:ring-0`}
+            />
+          </div>
+
+          {/* Author - Optional (only show if quote exists) */}
+          {(data.quote || data.author) && (
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-2">Attribution (optional)</label>
+              <input
+                type="text"
+                value={data.author || ''}
+                onChange={(e) => onChange({ ...block, data: { ...data, author: e.target.value } })}
+                placeholder="— Name, Title"
+                className={`w-full text-sm ${styles.text} border-0 bg-transparent focus:outline-none placeholder-italic px-0 py-0 focus:ring-0`}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

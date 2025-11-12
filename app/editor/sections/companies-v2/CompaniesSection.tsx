@@ -8,7 +8,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import { Plus, Building2 } from 'lucide-react';
+import { Plus, Building2, Check, X } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -226,18 +226,20 @@ export function CompaniesSection({
           <button
             onClick={handleAddCompany}
             disabled={!newCompanyName.trim()}
-            className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            className="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            title="Add company"
           >
-            Add
+            <Check className="w-5 h-5" />
           </button>
           <button
             onClick={() => {
               setIsAdding(false);
               setNewCompanyName('');
             }}
-            className="px-3 py-2 text-gray-700 hover:text-gray-900 transition-colors"
+            className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            title="Cancel"
           >
-            Cancel
+            <X className="w-5 h-5" />
           </button>
         </div>
       ) : (
