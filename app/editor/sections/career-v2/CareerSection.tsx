@@ -7,7 +7,7 @@
 'use client';
 
 import { useMemo, useCallback } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Award } from 'lucide-react';
 import { useSectionManagerControlled } from '@/app/editor/core/hooks';
 import { ItemList } from '@/app/editor/core/components';
 import { CareerItem, convertFromLegacy, convertToLegacy, CareerHighlight } from './types';
@@ -21,6 +21,7 @@ interface CareerSectionProps {
   previewMode?: 'desktop' | 'mobile';
   renderMode?: 'editor' | 'preview';
   userId?: string;
+  onScrollToSection?: (sectionId: string) => void;
 }
 
 export function CareerSection({
@@ -30,6 +31,7 @@ export function CareerSection({
   previewMode = 'desktop',
   renderMode = 'editor',
   userId,
+  onScrollToSection,
 }: CareerSectionProps) {
   
   // Convert legacy data to new format (memoized)
@@ -62,6 +64,16 @@ export function CareerSection({
   });
 
   const handleAdd = () => {
+    // Check if there's already an empty career highlight
+    const hasEmptyCareer = currentHighlights.some(c => 
+      c.organization.trim().length === 0 || c.role.trim().length === 0
+    );
+    
+    if (hasEmptyCareer) {
+      console.log('[CareerSection] Empty career highlight already exists, not adding new one');
+      return; // Don't add new one, user should fill existing
+    }
+    
     add({
       title: 'New Role',
       description: '',
@@ -117,14 +129,27 @@ export function CareerSection({
         )}
       />
       
-      {/* Add button */}
-      <button
-        onClick={handleAdd}
-        className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-white border-2 border-dashed border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all"
-      >
-        <Plus className="w-4 h-4" />
-        <span>Add Career Highlight</span>
-      </button>
+      {/* Add button - Always visible */}
+      {currentHighlights.length === 0 ? (
+        <button
+          onClick={handleAdd}
+          className="w-full flex flex-col items-center justify-center gap-2 px-4 py-8 bg-white border-2 border-dashed border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all"
+        >
+          <Award className="w-12 h-12 text-blue-300 mb-1" />
+          <div className="text-center">
+            <p className="font-medium">No career highlights yet</p>
+            <p className="text-sm text-gray-500">Click to add your first highlight</p>
+          </div>
+        </button>
+      ) : (
+        <button
+          onClick={handleAdd}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-white border-2 border-dashed border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Add Career Highlight</span>
+        </button>
+      )}
     </div>
   );
 }

@@ -32,10 +32,19 @@ export function BulletsBlock({ block, onChange, mode }: BulletsBlockProps) {
   };
 
   if (mode === 'preview') {
+    // Determine title to display: use provided title, or default based on section label if bullets have content
+    const hasContent = data.bullets.some(b => b.trim());
+    const displayTitle = data.title || (hasContent && block.sectionLabel ? block.sectionLabel : '');
+    
+    // Don't render empty blocks in preview mode
+    if (!hasContent) {
+      return null;
+    }
+    
     return (
       <div>
-        {data.title && (
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">{data.title}</h2>
+        {displayTitle && (
+          <h2 className="text-3xl font-bold text-gray-900 mb-6">{displayTitle}</h2>
         )}
         <ul className="space-y-3">
           {data.bullets.filter(b => b.trim()).map((bullet, index) => (

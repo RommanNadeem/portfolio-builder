@@ -32,10 +32,19 @@ export function MetricsBlock({ block, onChange, mode }: MetricsBlockProps) {
   };
 
   if (mode === 'preview') {
+    // Determine title to display: use provided title, or default based on section label if metrics have content
+    const hasContent = data.metrics.some(m => m.label && m.value);
+    const displayTitle = data.title || (hasContent && block.sectionLabel ? block.sectionLabel : '');
+    
+    // Don't render empty blocks in preview mode
+    if (!hasContent) {
+      return null;
+    }
+    
     return (
       <div>
-        {data.title && (
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">{data.title}</h2>
+        {displayTitle && (
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">{displayTitle}</h2>
         )}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {data.metrics.filter(m => m.label && m.value).map((metric, index) => (

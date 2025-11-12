@@ -16,29 +16,8 @@ import { ArrowLeft } from 'lucide-react';
 import { TemplateSelector, TEMPLATE_CONFIGS } from '@/app/editor/templates';
 import { TemplateEditorHeader, TemplateEditorContent } from '@/app/detail/components';
 import { useTemplateEditor } from '@/app/editor/templates/v3';
+import { hasBlockContent } from '@/app/editor/templates/shared-utils';
 import type { TemplateBlock, TemplateType } from '@/app/editor/templates/types';
-
-// ============================================
-// HELPERS
-// ============================================
-
-function hasBlockContent(block: TemplateBlock): boolean {
-  if (block.type === 'hero') return true;
-  
-  const data = (block as any).data || (block as any).content;
-  if (!data) return false;
-
-  if (typeof data === 'string') return data.trim().length > 0;
-  if (Array.isArray(data)) return data.length > 0;
-  if (typeof data === 'object') {
-    return Object.values(data).some(val => {
-      if (typeof val === 'string') return val.trim().length > 0;
-      if (Array.isArray(val)) return val.length > 0;
-      return false;
-    });
-  }
-  return false;
-}
 
 // ============================================
 // MAIN COMPONENT

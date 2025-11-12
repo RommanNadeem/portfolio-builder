@@ -63,8 +63,12 @@ export function CareerPreview({ highlights, viewMode, previewMode, onUpdate }: C
                     isMobile ? 'p-3' : 'p-6 sm:p-8'
                   }`}
                   onClick={() => {
-                    // Navigate to detail page in preview mode
-                    router.push(`/detail/career-editor/${highlight.id}?mode=preview`);
+                    // Navigate to detail page
+                    // If no blocks, go to edit mode so user can add content
+                    // If has blocks, go to preview mode to view
+                    const hasBlocks = highlight.blocks && highlight.blocks.length > 0;
+                    const mode = hasBlocks ? 'preview' : 'edit';
+                    router.push(`/detail/career-editor/${highlight.id}?mode=${mode}`);
                   }}
                 >
                   {/* Quick Edit Icon - Appears on Hover */}

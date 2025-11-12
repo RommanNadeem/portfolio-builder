@@ -31,7 +31,7 @@ interface UseTemplateEditorReturn {
   lastSaved: string | null;
   
   // Actions
-  updateBlocks: (newBlocks: TemplateBlock[]) => void;
+  updateBlocks: (newBlocks: TemplateBlock[], skipAutoSave?: boolean) => void;
   setTemplateType: (template: TemplateType) => void;
   initializeTemplate: (template: TemplateType) => Promise<void>;
   save: () => Promise<void>;
@@ -90,7 +90,12 @@ export function useTemplateEditor(
         setError(err.message || 'Failed to load');
       } finally {
         setLoading(false);
-        isInitialLoad.current = false;
+        // Delay setting isInitialLoad to false to allow editor pages to initialize
+        // This prevents auto-save from triggering during navigation/mounting
+        setTimeout(() => {
+          console.log('[useTemplateEditor] ✅ Initial load complete, auto-save enabled');
+          isInitialLoad.current = false;
+        }, 1000); // 1 second grace period for UI initialization
       }
     }
 
@@ -145,13 +150,14 @@ export function useTemplateEditor(
   }, [entityType, onSaveSuccess, onSaveError]); // Removed document from deps - using ref now
 
   // Update blocks
-  const updateBlocks = useCallback((newBlocks: TemplateBlock[]) => {
+  const updateBlocks = useCallback((newBlocks: TemplateBlock[], skipAutoSave = false) => {
     if (!document) return;
 
     console.log('[useTemplateEditor] 🔄 Updating blocks:', {
       oldCount: document.template.blocks.length,
       newCount: newBlocks.length,
       template_type: document.template.template_type,
+      skipAutoSave,
     });
 
     setDocument(prev => {
@@ -165,8 +171,14 @@ export function useTemplateEditor(
       };
     });
 
-    // Trigger auto-save
-    if (autoSave && !isInitialLoad.current) {
+    // Trigger auto-save (with multiple safeguards)
+    if (skipAutoSave) {
+      console.log('[useTemplateEditor] ⏭️ Skipping save (explicitly disabled)');
+    } else if (!autoSave) {
+      console.log('[useTemplateEditor] ⚠️ Auto-save is disabled');
+    } else if (isInitialLoad.current) {
+      console.log('[useTemplateEditor] ⏭️ Skipping save (initial load)');
+    } else {
       console.log('[useTemplateEditor] ⏰ Scheduling auto-save in', autoSaveDelay, 'ms');
       setSaveStatus('saving');
       
@@ -178,10 +190,6 @@ export function useTemplateEditor(
         console.log('[useTemplateEditor] 💾 Auto-save triggered for blocks update');
         await save();
       }, autoSaveDelay);
-    } else if (!autoSave) {
-      console.log('[useTemplateEditor] ⚠️ Auto-save is disabled');
-    } else if (isInitialLoad.current) {
-      console.log('[useTemplateEditor] ⏭️ Skipping save (initial load)');
     }
   }, [document, autoSave, autoSaveDelay, save]);
 

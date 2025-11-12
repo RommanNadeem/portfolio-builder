@@ -109,6 +109,7 @@ export default function OnboardingFlowPage() {
   const [newCareer, setNewCareer] = useState({
     role: '',
     organization: '',
+    achievements: [''],
   });
 
   useEffect(() => {
@@ -332,6 +333,9 @@ export default function OnboardingFlowPage() {
   const handleAddCareer = () => {
     if (!newCareer.role.trim() || !newCareer.organization.trim()) return;
 
+    // Filter out empty achievements
+    const validAchievements = newCareer.achievements.filter(a => a.trim() !== '');
+
     setData(prev => ({
       ...prev,
       careerHighlights: [
@@ -341,14 +345,75 @@ export default function OnboardingFlowPage() {
           organization: newCareer.organization,
           role: newCareer.role,
           description: '',
-          achievements: [],
+          achievements: validAchievements,
           current: false,
         }
       ]
     }));
 
-    setNewCareer({ role: '', organization: '' });
+    setNewCareer({ role: '', organization: '', achievements: [''] });
     setIsAddingCareer(false);
+  };
+
+  const handleAddAchievement = () => {
+    setNewCareer(prev => ({
+      ...prev,
+      achievements: [...prev.achievements, '']
+    }));
+  };
+
+  const handleUpdateAchievement = (index: number, value: string) => {
+    setNewCareer(prev => ({
+      ...prev,
+      achievements: prev.achievements.map((a, i) => i === index ? value : a)
+    }));
+  };
+
+  const handleRemoveAchievement = (index: number) => {
+    setNewCareer(prev => ({
+      ...prev,
+      achievements: prev.achievements.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Achievement editing for existing career highlights
+  const handleAddExistingAchievement = (careerId: string) => {
+    setData(prev => ({
+      ...prev,
+      careerHighlights: prev.careerHighlights.map(h =>
+        h.id === careerId
+          ? { ...h, achievements: [...(h.achievements || []), ''] }
+          : h
+      )
+    }));
+  };
+
+  const handleUpdateExistingAchievement = (careerId: string, index: number, value: string) => {
+    setData(prev => ({
+      ...prev,
+      careerHighlights: prev.careerHighlights.map(h =>
+        h.id === careerId
+          ? {
+              ...h,
+              achievements: h.achievements?.map((a, i) => i === index ? value : a) || []
+            }
+          : h
+      )
+    }));
+  };
+
+  const handleRemoveExistingAchievement = (careerId: string, index: number) => {
+    setData(prev => ({
+      ...prev,
+      careerHighlights: prev.careerHighlights.map(h =>
+        h.id === careerId
+          ? {
+              ...h,
+              achievements: h.achievements?.filter((_, i) => i !== index) || []
+            }
+          : h
+      )
+    }));
   };
 
   // Step 7: Social Links
@@ -473,9 +538,9 @@ export default function OnboardingFlowPage() {
         : '';
       
       // Combine email/phone with social links
-      // Filter out Email/Phone from socialLinks to avoid duplicates
+      // Filter out Email/Phone from socialLinks to avoid duplicates (case-insensitive)
       const socialLinksWithoutEmailPhone = data.socialLinks.filter(
-        link => link.platform !== 'Email' && link.platform !== 'Phone'
+        link => link.platform.toLowerCase() !== 'email' && link.platform.toLowerCase() !== 'phone'
       );
       
       const allSocialLinks = [
@@ -521,16 +586,7 @@ export default function OnboardingFlowPage() {
       
       console.log('[Signup Debug] ✅ Portfolio saved successfully');
 
-      // Verify data was saved by fetching it back
-      const { getCompletePortfolio } = await import('@/lib/database');
-      const { data: verifyData, error: verifyError } = await getCompletePortfolio(authData.user.id);
-      console.log('[Signup Debug] Verification - Data exists:', !!verifyData);
-      console.log('[Signup Debug] Verification - Error:', verifyError);
-      if (verifyData) {
-        console.log('[Signup Debug] Verification - Profile:', verifyData.profile);
-      }
-
-      // 3. Set auth flags
+      // Set auth flags
       localStorage.setItem('freshAuth', 'true');
       localStorage.setItem('bypassDashboard', 'true');
       
@@ -542,13 +598,9 @@ export default function OnboardingFlowPage() {
         }
       } as any);
 
-      // 4. Navigate directly to editor (bypassing dashboard)
+      // Navigate directly to editor
       console.log('[Signup Debug] Redirecting to editor');
-      
-      // Small delay to ensure auth state is propagated
-      setTimeout(() => {
-        router.push('/editor');
-      }, 500);
+      router.push('/editor');
 
     } catch (err: any) {
       console.error('Signup error:', err);
@@ -560,9 +612,9 @@ export default function OnboardingFlowPage() {
   if (!mounted) return null;
 
   // Combine email/phone with social links for preview
-  // Filter out Email/Phone from socialLinks to avoid duplicates
+  // Filter out Email/Phone from socialLinks to avoid duplicates (case-insensitive)
   const socialLinksWithoutEmailPhone = data.socialLinks.filter(
-    link => link.platform !== 'Email' && link.platform !== 'Phone'
+    link => link.platform.toLowerCase() !== 'email' && link.platform.toLowerCase() !== 'phone'
   );
   
   const allLinks = [
@@ -857,29 +909,50 @@ export default function OnboardingFlowPage() {
                           </p>
                         )}
 
-                        {highlight.achievements && highlight.achievements.length > 0 && (
-                          <div>
-                            <label className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
-                              Achievements ({highlight.achievements.length})
-                            </label>
-                            <ul className="space-y-1">
-                              {highlight.achievements.slice(0, 3).map((achievement, idx) => (
-                                <li key={idx} className="text-xs text-gray-600 pl-3 relative before:content-['•'] before:absolute before:left-0">
-                                  {achievement}
-                                </li>
-                              ))}
-                              {highlight.achievements.length > 3 && (
-                                <li className="text-xs text-gray-400 italic pl-3">
-                                  +{highlight.achievements.length - 3} more achievement{highlight.achievements.length - 3 > 1 ? 's' : ''}
-                                </li>
-                              )}
-                            </ul>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
+                            Achievements
+                          </label>
+                          <div className="space-y-2">
+                            {(highlight.achievements && highlight.achievements.length > 0) ? (
+                              highlight.achievements.map((achievement, idx) => (
+                                <div key={idx} className="flex gap-2">
+                                  <input
+                                    type="text"
+                                    value={achievement}
+                                    onChange={(e) => handleUpdateExistingAchievement(highlight.id, idx, e.target.value)}
+                                    placeholder={`Achievement ${idx + 1}`}
+                                    className="flex-1 px-3 py-2 text-sm border border-gray-200 focus:border-black focus:outline-none transition-colors placeholder:text-gray-400"
+                                  />
+                                  <button
+                                    onClick={() => handleRemoveExistingAchievement(highlight.id, idx)}
+                                    className="px-2 text-gray-400 hover:text-red-600"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ))
+                            ) : (
+                              <p className="text-xs text-gray-400 italic">No achievements added</p>
+                            )}
+                            <button
+                              onClick={() => handleAddExistingAchievement(highlight.id)}
+                              className="text-xs text-gray-600 hover:text-black flex items-center gap-1"
+                            >
+                              <Plus className="w-3 h-3" />
+                              Add achievement
+                            </button>
                           </div>
-                        )}
+                        </div>
 
                         <div className="flex gap-2 pt-2">
                           <button
-                            onClick={() => setEditingCareerId(null)}
+                            onClick={() => {
+                              // Clean up empty achievements before saving
+                              const validAchievements = highlight.achievements?.filter(a => a.trim() !== '') || [];
+                              handleUpdateCareer(highlight.id, { achievements: validAchievements });
+                              setEditingCareerId(null);
+                            }}
                             className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-black text-white text-xs hover:bg-gray-800"
                           >
                             <Save className="w-3 h-3" />
@@ -966,11 +1039,45 @@ export default function OnboardingFlowPage() {
                 />
               </div>
 
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
+                  Achievements (Optional)
+                </label>
+                <div className="space-y-2">
+                  {newCareer.achievements.map((achievement, index) => (
+                    <div key={index} className="flex gap-2">
+                      <input
+                        type="text"
+                        value={achievement}
+                        onChange={(e) => handleUpdateAchievement(index, e.target.value)}
+                        placeholder={`Achievement ${index + 1}`}
+                        className="flex-1 px-3 py-2 text-sm border border-gray-200 focus:border-black focus:outline-none transition-colors placeholder:text-gray-400"
+                      />
+                      {newCareer.achievements.length > 1 && (
+                        <button
+                          onClick={() => handleRemoveAchievement(index)}
+                          className="px-2 text-gray-400 hover:text-red-600"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    onClick={handleAddAchievement}
+                    className="text-xs text-gray-600 hover:text-black flex items-center gap-1"
+                  >
+                    <Plus className="w-3 h-3" />
+                    Add another achievement
+                  </button>
+                </div>
+              </div>
+
               <div className="flex gap-2">
                 <button
                   onClick={() => {
                     setIsAddingCareer(false);
-                    setNewCareer({ role: '', organization: '' });
+                    setNewCareer({ role: '', organization: '', achievements: [''] });
                   }}
                   className="flex-1 px-3 py-2 border border-gray-200 text-xs text-gray-900 hover:border-black"
                 >

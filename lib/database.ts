@@ -6,6 +6,8 @@ import {
   Strength,
   Project,
   Testimonial,
+  FAQ,
+  Service,
   CustomSection,
   PortfolioData
 } from './types';
@@ -67,6 +69,8 @@ export async function getCompletePortfolio(userId: string): Promise<{ data: Port
       strengthsRes,
       projectsRes,
       testimonialsRes,
+      faqsRes,
+      servicesRes,
       customSectionsRes
     ] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', userId).single(),
@@ -75,6 +79,8 @@ export async function getCompletePortfolio(userId: string): Promise<{ data: Port
       supabase.from('strengths').select('*').eq('user_id', userId).order('display_order'),
       supabase.from('projects').select('*').eq('user_id', userId).order('display_order'),
       supabase.from('testimonials').select('*').eq('user_id', userId).order('display_order'),
+      supabase.from('faqs').select('*').eq('user_id', userId).order('display_order'),
+      supabase.from('services').select('*').eq('user_id', userId).order('display_order'),
       supabase.from('custom_sections').select('*').eq('user_id', userId).order('display_order')
     ]);
     
@@ -90,6 +96,8 @@ export async function getCompletePortfolio(userId: string): Promise<{ data: Port
       strengths: (strengthsRes.data || []) as Strength[],
       projects: (projectsRes.data || []) as Project[],
       testimonials: (testimonialsRes.data || []) as Testimonial[],
+      faqs: (faqsRes.data || []) as FAQ[],
+      services: (servicesRes.data || []) as Service[],
       customSections: (customSectionsRes.data || []) as CustomSection[]
     };
     
@@ -319,6 +327,9 @@ export async function saveCompletePortfolio(
   try {
     if (DEBUG_DATABASE) console.log('[Database Debug] saveCompletePortfolio called for user:', userId);
     if (DEBUG_DATABASE) console.log('[Database Debug] Full portfolio data:', portfolioData);
+    if (DEBUG_DATABASE) console.log('[Database Debug] Resume in portfolioData:', portfolioData.resume);
+    if (DEBUG_DATABASE) console.log('[Database Debug] FAQs in portfolioData:', portfolioData.faqs);
+    if (DEBUG_DATABASE) console.log('[Database Debug] Services in portfolioData:', portfolioData.services);
     if (DEBUG_DATABASE) console.log('[Database Debug] Career highlights in data:', portfolioData.careerHighlights);
     if (DEBUG_DATABASE) console.log('[Database Debug] Career highlights count:', portfolioData.careerHighlights?.length || 0);
     
@@ -334,15 +345,17 @@ export async function saveCompletePortfolio(
       who_are_you: portfolioData.whoAreYou,
       profile_image_url: portfolioData.profileImage,
       resume_url: portfolioData.resume,
+      resume_file_name: portfolioData.resumeFileName,
       companies: portfolioData.companies,
       slider_companies: portfolioData.sliderCompanies,
-      section_order: portfolioData.sectionOrder || ['career', 'projects', 'strengths', 'testimonials'],
+      section_order: portfolioData.sectionOrder || ['career', 'projects', 'strengths', 'services', 'testimonials', 'faqs', 'resume'],
       navigation: portfolioData.navigation || null,
       footer_text: portfolioData.footerText || null,
       footer_signature: portfolioData.footerSignature || null
     };
     
     if (DEBUG_DATABASE) console.log('[Database Debug] Attempting to save profile:', profileData);
+    if (DEBUG_DATABASE) console.log('[Database Debug] Resume URL being saved:', profileData.resume_url);
     
     let profileResult;
     try {
@@ -682,6 +695,64 @@ export async function saveCompletePortfolio(
       await supabase.from('testimonials').delete().eq('user_id', userId);
     }
     
+    // FAQs - Use upsert
+    if (portfolioData.faqs?.length > 0) {
+      if (DEBUG_DATABASE) console.log('[Database Debug] Upserting', portfolioData.faqs.length, 'FAQs');
+      
+      const newFaqIds = portfolioData.faqs.map((f: any) => f.id);
+      const { data: existingFaqs } = await supabase.from('faqs').select('id').eq('user_id', userId);
+      if (existingFaqs) {
+        const toDelete = existingFaqs.map(f => f.id).filter(id => !newFaqIds.includes(id));
+        if (toDelete.length > 0) await supabase.from('faqs').delete().in('id', toDelete);
+      }
+      
+      await supabase.from('faqs').upsert(
+        portfolioData.faqs.map((f: any, index: number) => ({
+          id: f.id,
+          user_id: userId,
+          question: f.question,
+          answer: f.answer,
+          category: f.category,
+          display_order: index
+        })),
+        { onConflict: 'id' }
+      );
+    } else {
+      await supabase.from('faqs').delete().eq('user_id', userId);
+    }
+    
+    // Services - Use upsert
+    if (portfolioData.services?.length > 0) {
+      if (DEBUG_DATABASE) console.log('[Database Debug] Upserting', portfolioData.services.length, 'services');
+      
+      const newServiceIds = portfolioData.services.map((s: any) => s.id);
+      const { data: existingServices } = await supabase.from('services').select('id').eq('user_id', userId);
+      if (existingServices) {
+        const toDelete = existingServices.map(s => s.id).filter(id => !newServiceIds.includes(id));
+        if (toDelete.length > 0) await supabase.from('services').delete().in('id', toDelete);
+      }
+      
+      await supabase.from('services').upsert(
+        portfolioData.services.map((s: any, index: number) => ({
+          id: s.id,
+          user_id: userId,
+          title: s.title,
+          description: s.description,
+          icon: s.icon,
+          price: s.price,
+          duration: s.duration,
+          features: s.features || [],
+          cta_text: s.cta_text,
+          cta_url: s.cta_url,
+          is_featured: s.is_featured || false,
+          display_order: index
+        })),
+        { onConflict: 'id' }
+      );
+    } else {
+      await supabase.from('services').delete().eq('user_id', userId);
+    }
+    
     // Custom sections - Use upsert
     if (portfolioData.customSections?.length > 0) {
       if (DEBUG_DATABASE) console.log('[Database Debug] Upserting', portfolioData.customSections.length, 'custom sections');
@@ -725,6 +796,7 @@ export async function saveCompletePortfolio(
 export function convertToLegacyFormat(portfolioData: PortfolioData): any {
   if (DEBUG_DATABASE) console.log('[Database Debug] convertToLegacyFormat input:', portfolioData);
   if (DEBUG_DATABASE) console.log('[Database Debug] Career highlights from DB:', portfolioData.careerHighlights);
+  if (DEBUG_DATABASE) console.log('[Database Debug] Resume URL from DB:', portfolioData.profile.resume_url);
   
   const converted = {
     fullName: portfolioData.profile.full_name,
@@ -736,9 +808,10 @@ export function convertToLegacyFormat(portfolioData: PortfolioData): any {
     whoAreYou: portfolioData.profile.who_are_you,
     profileImage: portfolioData.profile.profile_image_url,
     resume: portfolioData.profile.resume_url,
+    resumeFileName: portfolioData.profile.resume_file_name,
     companies: portfolioData.profile.companies,
     sliderCompanies: portfolioData.profile.slider_companies,
-    sectionOrder: portfolioData.profile.section_order || ['career', 'projects', 'strengths', 'testimonials'],
+    sectionOrder: portfolioData.profile.section_order || ['career', 'projects', 'strengths', 'services', 'testimonials', 'faqs', 'resume'],
     navigation: portfolioData.profile.navigation || undefined,
     footerText: portfolioData.profile.footer_text || undefined,
     footerSignature: portfolioData.profile.footer_signature || undefined,
@@ -830,6 +903,26 @@ export function convertToLegacyFormat(portfolioData: PortfolioData): any {
       linkedinUrl: t.linkedin_url
     })),
     
+    faqs: portfolioData.faqs.map(f => ({
+      id: f.id,
+      question: f.question,
+      answer: f.answer,
+      category: f.category
+    })),
+    
+    services: portfolioData.services.map(s => ({
+      id: s.id,
+      title: s.title,
+      description: s.description,
+      icon: s.icon,
+      price: s.price,
+      duration: s.duration,
+      features: s.features || [],
+      cta_text: s.cta_text,
+      cta_url: s.cta_url,
+      is_featured: s.is_featured || false
+    })),
+    
     customSections: portfolioData.customSections.map(cs => ({
       id: cs.id,
       title: cs.title,
@@ -842,6 +935,9 @@ export function convertToLegacyFormat(portfolioData: PortfolioData): any {
   
   if (DEBUG_DATABASE) console.log('[Database Debug] Converted career highlights:', converted.careerHighlights);
   if (DEBUG_DATABASE) console.log('[Database Debug] Converted career highlights count:', converted.careerHighlights?.length || 0);
+  if (DEBUG_DATABASE) console.log('[Database Debug] Converted resume:', converted.resume);
+  if (DEBUG_DATABASE) console.log('[Database Debug] Converted FAQs:', converted.faqs);
+  if (DEBUG_DATABASE) console.log('[Database Debug] Converted Services:', converted.services);
   
   return converted;
 }
@@ -949,6 +1045,14 @@ export async function deleteAllUserData(userId: string): Promise<{ error: string
     // 6. Delete custom sections
     await supabase.from('custom_sections').delete().eq('user_id', userId);
     if (DEBUG_DATABASE) console.log('[Database Debug] ✅ Custom sections deleted');
+    
+    // 6a. Delete FAQs
+    await supabase.from('faqs').delete().eq('user_id', userId);
+    if (DEBUG_DATABASE) console.log('[Database Debug] ✅ FAQs deleted');
+    
+    // 6b. Delete services
+    await supabase.from('services').delete().eq('user_id', userId);
+    if (DEBUG_DATABASE) console.log('[Database Debug] ✅ Services deleted');
     
     // 7. Delete AI generations
     await supabase.from('ai_generations').delete().eq('user_id', userId);

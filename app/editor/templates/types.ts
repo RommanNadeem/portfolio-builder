@@ -51,6 +51,7 @@ export interface HeroBlock {
       role?: string;
       startDate?: string;  // Career template: start date (e.g., "Jan 2020")
       endDate?: string;    // Career template: end date (e.g., "Dec 2022" or "Present")
+      currentlyWorking?: boolean;  // Career template: currently working here
       Website?: string;    // Career template: company website URL
     };
   };

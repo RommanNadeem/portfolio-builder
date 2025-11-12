@@ -17,6 +17,7 @@ interface StrengthsSectionProps {
   previewMode: 'desktop' | 'mobile';
   renderMode: 'editor' | 'preview';
   userId?: string;
+  onScrollToSection?: (sectionId: string) => void;
 }
 
 export function StrengthsSection({ 
@@ -25,7 +26,8 @@ export function StrengthsSection({
   viewMode, 
   previewMode, 
   renderMode,
-  userId 
+  userId,
+  onScrollToSection 
 }: StrengthsSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const strengthCount = (data.strengths || []).length;
@@ -39,6 +41,15 @@ export function StrengthsSection({
     }
     prevCountRef.current = strengthCount;
   }, [strengthCount]);
+  
+  // Create wrapped onScrollToSection that also expands
+  const handleScrollToSection = (sectionId: string) => {
+    if (sectionId === 'strengths') {
+      console.log('[StrengthsSection] Expanding section before scroll');
+      setIsExpanded(true);
+    }
+    onScrollToSection?.(sectionId);
+  };
 
   // In preview renderMode, pass through to core component
   if (renderMode === 'preview') {
@@ -50,6 +61,7 @@ export function StrengthsSection({
         previewMode={previewMode}
         renderMode={renderMode}
         userId={userId}
+        onScrollToSection={handleScrollToSection}
       />
     );
   }
@@ -95,6 +107,7 @@ export function StrengthsSection({
             previewMode={previewMode}
             renderMode="editor"
             userId={userId}
+            onScrollToSection={handleScrollToSection}
           />
         </div>
       )}

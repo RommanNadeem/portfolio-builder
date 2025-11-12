@@ -52,18 +52,18 @@ export function StrengthCard({
           {/* Emoji Picker */}
           <div className="relative flex-shrink-0">
             <EmojiPicker
-              value={strength.icon || '⭐'}
+              value={strength.icon || ''}
               onChange={(icon) => handleUpdate('icon', icon)}
             />
             {/* Remove emoji button */}
-            {strength.icon && strength.icon !== '⭐' && (
+            {strength.icon && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleUpdate('icon', '⭐');
+                  handleUpdate('icon', '');
                 }}
                 className="absolute -top-1 -right-1 p-0.5 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-sm z-10"
-                title="Remove emoji (reset to default)"
+                title="Remove emoji"
               >
                 <X className="w-2.5 h-2.5" />
               </button>

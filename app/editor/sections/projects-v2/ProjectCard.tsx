@@ -73,19 +73,22 @@ export function ProjectCard({
         
         if (projectExists) {
           console.log('[ProjectCard] ✅ Project verified in localStorage, navigating...');
-          router.push(`/detail/project-editor/${project.id}?mode=${viewMode}`);
+          // Smart mode: If no blocks, go to edit. If has blocks, go to preview.
+          const hasBlocks = project.blocks && project.blocks.length > 0;
+          const targetMode = hasBlocks ? 'preview' : 'edit';
+          console.log('[ProjectCard] Navigation mode:', { hasBlocks, targetMode, blocksCount: project.blocks?.length || 0 });
+          router.push(`/detail/project-editor/${project.id}?mode=${targetMode}`);
         } else {
           console.error('[ProjectCard] ❌ Project not found in localStorage after save!');
           console.log('[ProjectCard] Available projects:', parsed.projects?.map((p: any) => ({ id: p.id, title: p.title })));
-          // Try navigation anyway - detail page has retry logic
-          router.push(`/detail/project-editor/${project.id}?mode=${viewMode}`);
+          router.push(`/detail/project-editor/${project.id}?mode=edit`);
         }
       } else {
         console.error('[ProjectCard] ❌ No portfolioData in localStorage!');
-        router.push(`/detail/project-editor/${project.id}?mode=${viewMode}`);
+        router.push(`/detail/project-editor/${project.id}?mode=edit`);
       }
     }, 200); // Increased to 200ms for safety
-  }, [project.id, router, viewMode, onSave]);
+  }, [project.id, project.blocks, router, onSave]);
 
   const handleUpdate = (field: keyof ProjectItem, value: any) => {
     onUpdate(project.id, { [field]: value });

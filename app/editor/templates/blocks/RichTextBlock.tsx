@@ -15,10 +15,19 @@ export function RichTextBlock({ block, onChange, mode, context }: RichTextBlockP
   const isEmpty = !data.body || data.body.trim().length === 0;
 
   if (mode === 'preview') {
+    // Determine title to display: use provided title, or default based on section label if body has content
+    const hasBodyContent = data.body && data.body.trim().length > 0;
+    const displayTitle = data.title || (hasBodyContent && block.sectionLabel ? block.sectionLabel : '');
+    
+    // Don't render empty blocks in preview mode
+    if (!hasBodyContent) {
+      return null;
+    }
+    
     return (
       <div className="prose prose-lg max-w-none">
-        {data.title && (
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">{data.title}</h2>
+        {displayTitle && (
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">{displayTitle}</h2>
         )}
         <div className="text-gray-700 whitespace-pre-wrap leading-relaxed">
           {data.body}

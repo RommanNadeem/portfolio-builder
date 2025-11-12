@@ -90,18 +90,22 @@ export function CareerCard({
         
         if (careerExists) {
           console.log('[CareerCard] ✅ Career verified in localStorage, navigating...');
-          router.push(`/detail/career-editor/${career.id}?mode=${viewMode}`);
+          // Smart mode: If no blocks, go to edit. If has blocks, go to preview.
+          const hasBlocks = career.blocks && career.blocks.length > 0;
+          const targetMode = hasBlocks ? 'preview' : 'edit';
+          console.log('[CareerCard] Navigation mode:', { hasBlocks, targetMode, blocksCount: career.blocks?.length || 0 });
+          router.push(`/detail/career-editor/${career.id}?mode=${targetMode}`);
         } else {
           console.error('[CareerCard] ❌ Career not found in localStorage after save!');
           console.log('[CareerCard] Available careers:', parsed.careerHighlights?.map((c: any) => ({ id: c.id, org: c.organization })));
-          router.push(`/detail/career-editor/${career.id}?mode=${viewMode}`);
+          router.push(`/detail/career-editor/${career.id}?mode=edit`);
         }
       } else {
         console.error('[CareerCard] ❌ No portfolioData in localStorage!');
-        router.push(`/detail/career-editor/${career.id}?mode=${viewMode}`);
+        router.push(`/detail/career-editor/${career.id}?mode=edit`);
       }
     }, 200);
-  }, [career.id, router, viewMode, onSave]);
+  }, [career.id, career.blocks, router, onSave]);
 
   const handleUpdate = (field: keyof CareerItem, value: any) => {
     onUpdate(career.id, { [field]: value });

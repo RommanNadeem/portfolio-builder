@@ -46,13 +46,18 @@ export function GalleryBlock({ block, onChange, mode }: GalleryBlockProps) {
     const layout = data.layout || 'grid';
     const validImages = data.images.filter(img => img.url);
 
+    // Don't render empty blocks in preview mode
+    if (validImages.length === 0) {
+      return null;
+    }
+
     return (
       <div>
         {data.title && (
           <h2 className="text-3xl font-bold text-gray-900 mb-8">{data.title}</h2>
         )}
         
-        {layout === 'carousel' && validImages.length > 0 ? (
+        {layout === 'carousel' ? (
           <div className="relative">
             <div className="aspect-video bg-gray-100 rounded-xl overflow-hidden">
               <img 

@@ -239,6 +239,7 @@ export class CareerTemplateInitializer implements TemplateInitializer {
           role: entity.role || '',  // Role goes in meta, not subtitle
           startDate: entity.start_date || '',
           endDate: entity.current ? 'Present' : (entity.end_date || ''),
+          currentlyWorking: entity.current || false,  // Preserve currently working status
           ...(entity.location && { Location: entity.location }),
           ...(entity.employment_type && { Type: entity.employment_type }),
           ...(entity.link && { Website: entity.link }),

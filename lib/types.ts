@@ -14,12 +14,19 @@ export interface Profile {
   who_are_you?: string;
   profile_image_url?: string;
   resume_url?: string;
+  resume_file_name?: string;  // Original filename for download
   companies?: string;
   slider_companies?: string;
   section_order?: string[];  // JSONB array - order of draggable sections
   navigation?: any;  // JSONB object - navigation settings (e.g., ctaUrl)
   footer_text?: string;
   footer_signature?: string;
+  
+  // Publishing fields
+  portfolio_slug?: string;  // Globally unique slug for public URL
+  is_portfolio_published?: boolean;  // Whether portfolio is currently published
+  last_published_at?: string;  // Timestamp of last publish
+  
   created_at?: string;
   updated_at?: string;
 }
@@ -124,6 +131,36 @@ export interface Testimonial {
   updated_at?: string;
 }
 
+export interface FAQ {
+  id: string;
+  user_id: string;
+  question: string;
+  answer: string;
+  category?: string;
+  display_order?: number;
+  is_visible?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Service {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string;
+  icon?: string;
+  price?: string;
+  duration?: string;
+  features?: string[];  // JSONB array
+  cta_text?: string;
+  cta_url?: string;
+  display_order?: number;
+  is_featured?: boolean;
+  is_visible?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface CustomSection {
   id: string;
   user_id: string;
@@ -216,10 +253,48 @@ export interface PortfolioData {
   strengths: Strength[];
   projects: Project[];
   testimonials: Testimonial[];
+  faqs: FAQ[];
+  services: Service[];
   customSections: CustomSection[];
   sectionOrder?: string[];
   navigation?: {
     ctaUrl?: string;
   };
+}
+
+// ============================================
+// PUBLISHING TYPES
+// ============================================
+
+export interface PublishedPortfolio {
+  id: string;
+  user_id: string;
+  portfolio_slug: string;
+  published_data: PortfolioData;  // Complete portfolio snapshot
+  version: number;
+  is_active: boolean;
+  published_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PublishResult {
+  success: boolean;
+  error?: string;
+  url?: string;
+  slug?: string;
+}
+
+export interface SlugAvailability {
+  available: boolean;
+  error?: string;
+  takenByCurrentUser?: boolean;
+  suggestions?: string[];
+}
+
+export interface ValidationResult {
+  canPublish: boolean;
+  errors: string[];
+  warnings: string[];
 }
 

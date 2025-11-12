@@ -21,6 +21,7 @@ interface StrengthsSectionProps {
   previewMode?: 'desktop' | 'mobile';
   renderMode?: 'editor' | 'preview';
   userId?: string;
+  onScrollToSection?: (sectionId: string) => void;
 }
 
 export function StrengthsSection({
@@ -30,6 +31,7 @@ export function StrengthsSection({
   previewMode = 'desktop',
   renderMode = 'editor',
   userId,
+  onScrollToSection,
 }: StrengthsSectionProps) {
   
   // Convert legacy data to new format (memoized)
@@ -62,10 +64,20 @@ export function StrengthsSection({
   });
 
   const handleAdd = () => {
+    // Check if there's already an empty strength
+    const hasEmptyStrength = currentStrengths.some(s => 
+      s.title.trim().length === 0
+    );
+    
+    if (hasEmptyStrength) {
+      console.log('[StrengthsSection] Empty strength already exists, not adding new one');
+      return; // Don't add new one, user should fill existing
+    }
+    
     add({
       title: '',
       description: '',
-      icon: '⭐',
+      icon: '',
     });
   };
 
@@ -96,7 +108,7 @@ export function StrengthsSection({
           }`}>Strengths</h2>
         </div>
         
-        <div className={`grid gap-4 max-w-6xl mx-auto ${
+        <div className={`grid gap-4 ${
           isMobile ? 'grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-3 gap-6'
         }`}>
           {validStrengths.map((strength) => (
@@ -106,7 +118,9 @@ export function StrengthsSection({
                 isMobile ? 'p-4' : 'p-6'
               }`}
             >
-              <div className={isMobile ? 'text-2xl mb-2' : 'text-3xl mb-3'}>{strength.icon || '⭐'}</div>
+              {strength.icon && (
+                <div className={isMobile ? 'text-2xl mb-2' : 'text-3xl mb-3'}>{strength.icon}</div>
+              )}
               <h3 className={`font-semibold text-gray-900 ${
                 isMobile ? 'text-sm mb-1.5' : 'text-base mb-2'
               }`}>{strength.title}</h3>
@@ -141,12 +155,12 @@ export function StrengthsSection({
       {currentStrengths.length === 0 ? (
         <button
           onClick={handleAdd}
-          className="w-full flex items-center justify-center gap-2 px-4 py-8 bg-white border-2 border-dashed border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all"
+          className="w-full flex flex-col items-center justify-center gap-2 px-4 py-8 bg-white border-2 border-dashed border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all"
         >
-          <span className="text-3xl mb-2">⭐</span>
+          <Star className="w-12 h-12 text-orange-300 mb-1" />
           <div className="text-center">
             <p className="font-medium">No strengths yet</p>
-            <p className="text-sm">Showcase your skills!</p>
+            <p className="text-sm text-gray-500">Click to add your first strength</p>
           </div>
         </button>
       ) : (

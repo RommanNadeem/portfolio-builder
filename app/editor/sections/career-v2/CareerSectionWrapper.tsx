@@ -17,6 +17,7 @@ interface CareerSectionProps {
   previewMode: 'desktop' | 'mobile';
   renderMode: 'editor' | 'preview';
   userId?: string;
+  onScrollToSection?: (sectionId: string) => void;
 }
 
 export function CareerSection({ 
@@ -25,7 +26,8 @@ export function CareerSection({
   viewMode, 
   previewMode, 
   renderMode,
-  userId 
+  userId,
+  onScrollToSection 
 }: CareerSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const highlightCount = (data.careerHighlights || []).length;
@@ -40,6 +42,15 @@ export function CareerSection({
     }
     prevCountRef.current = highlightCount;
   }, [highlightCount]);
+  
+  // Create wrapped onScrollToSection that also expands
+  const handleScrollToSection = (sectionId: string) => {
+    if (sectionId === 'career') {
+      console.log('[CareerSection] Expanding section before scroll');
+      setIsExpanded(true);
+    }
+    onScrollToSection?.(sectionId);
+  };
 
   // In preview renderMode, pass through to core component
   if (renderMode === 'preview') {
@@ -51,6 +62,7 @@ export function CareerSection({
         previewMode={previewMode}
         renderMode={renderMode}
         userId={userId}
+        onScrollToSection={handleScrollToSection}
       />
     );
   }
@@ -96,6 +108,7 @@ export function CareerSection({
             previewMode={previewMode}
             renderMode="editor"
             userId={userId}
+            onScrollToSection={handleScrollToSection}
           />
         </div>
       )}

@@ -10,17 +10,20 @@ export interface PortfolioData {
   email: string;
   phone: string;
   resume: string | null;
+  resumeFileName?: string;
   companies: string;
   sliderCompanies: string;
   careerHighlights: any[];
   strengths: any[];
   projects: any[];
+  testimonials: any[];
+  faqs: any[];
+  services: any[];
   tagline: string;
   whoAreYou: string;
   profileImage: string | null;
   socialLinks: any[];
   customSections: any[];
-  testimonials: any[];
   footerText?: string;
   footerSignature?: string;
   sectionOrder?: string[];
@@ -115,6 +118,8 @@ export function usePortfolioData() {
         if (!parsedData.customSections) parsedData.customSections = [];
         if (!parsedData.testimonials) parsedData.testimonials = [];
         if (!parsedData.projects) parsedData.projects = [];
+        if (!parsedData.faqs) parsedData.faqs = [];
+        if (!parsedData.services) parsedData.services = [];
 
         // Migrate achievements to array format (DON'T limit to 3!)
         if (parsedData.careerHighlights) {

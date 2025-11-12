@@ -35,7 +35,7 @@ export function convertFromLegacy(legacy: Strength): StrengthItem {
     id: legacy.id,
     title: legacy.title,
     description: legacy.description,
-    icon: legacy.icon || '⭐',
+    icon: legacy.icon || '',
     category: undefined,
     proficiency: undefined,
     created_at: now,
@@ -52,7 +52,7 @@ export function convertToLegacy(item: StrengthItem): Strength {
     id: item.id,
     title: item.title,
     description: item.description,
-    icon: item.icon || '⭐',
+    icon: item.icon || '',
   };
 }
 

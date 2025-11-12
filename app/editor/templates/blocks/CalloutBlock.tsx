@@ -24,6 +24,15 @@ export function CalloutBlock({ block, onChange, mode }: CalloutBlockProps) {
   const Icon = styles.icon;
 
   if (mode === 'preview') {
+    // Don't render empty callouts in preview mode
+    const hasContent = (data.title && data.title.trim()) || 
+                      (data.body && data.body.trim()) || 
+                      (data.quote && data.quote.trim());
+    
+    if (!hasContent) {
+      return null;
+    }
+
     return (
       <div className={`p-6 rounded-lg border-2 ${styles.bg} ${styles.border}`}>
         <div className="flex gap-4">
@@ -56,18 +65,29 @@ export function CalloutBlock({ block, onChange, mode }: CalloutBlockProps) {
       <div className="flex gap-3">
         <Icon className={`w-4 h-4 flex-shrink-0 ${styles.iconColor} mt-1`} />
         <div className="flex-1 space-y-3">
-          {/* Style selector - minimal */}
+          {/* Style selector - minimal with ability to unselect */}
           <div className="flex gap-1 mb-2">
             {(['info', 'success', 'warning', 'error'] as const).map((v) => (
               <button
                 key={v}
-                onClick={() => onChange({ ...block, data: { ...data, variant: v } })}
+                onClick={() => {
+                  // Allow unselecting: clicking the same variant cycles back to 'info'
+                  if (variant === v) {
+                    // If clicking the current variant, cycle to next or default to 'info'
+                    const variants = ['info', 'success', 'warning', 'error'] as const;
+                    const currentIndex = variants.indexOf(v);
+                    const nextVariant = variants[(currentIndex + 1) % variants.length];
+                    onChange({ ...block, data: { ...data, variant: nextVariant } });
+                  } else {
+                    onChange({ ...block, data: { ...data, variant: v } });
+                  }
+                }}
                 className={`w-5 h-5 rounded text-[10px] font-medium transition-all ${
                   variant === v
                     ? 'bg-gray-900 text-white'
                     : 'bg-white/50 text-gray-600 hover:bg-white'
                 }`}
-                title={v}
+                title={variant === v ? `Click to cycle to next style` : v}
               >
                 {v[0].toUpperCase()}
               </button>

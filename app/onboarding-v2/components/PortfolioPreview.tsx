@@ -155,7 +155,7 @@ export function PortfolioPreview({ data, focusSection = null }: PortfolioPreview
       )}
 
       {/* Social Links + Contact Info */}
-      {((data.socialLinks && data.socialLinks.length > 0) || data.email || data.phone) && (
+      {data.socialLinks && data.socialLinks.length > 0 && (
         <div 
           ref={linksRef}
           className={`transition-all duration-300 ${
@@ -163,24 +163,8 @@ export function PortfolioPreview({ data, focusSection = null }: PortfolioPreview
           }`}
         >
           <div className="flex flex-wrap gap-3">
-            {/* Email Chip */}
-            {data.email && (
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-gray-200 text-xs text-gray-700 transition-colors hover:border-gray-400">
-                <Mail className="w-3.5 h-3.5" />
-                <span>Email</span>
-              </div>
-            )}
-            
-            {/* Phone Chip */}
-            {data.phone && (
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-gray-200 text-xs text-gray-700 transition-colors hover:border-gray-400">
-                <Phone className="w-3.5 h-3.5" />
-                <span>Phone</span>
-              </div>
-            )}
-            
-            {/* Social Links */}
-            {data.socialLinks && data.socialLinks.map((link) => (
+            {/* Social Links (including Email/Phone) */}
+            {data.socialLinks.map((link) => (
               <div
                 key={link.id}
                 className="inline-flex items-center gap-2 px-3 py-1.5 border border-gray-200 text-xs text-gray-700 transition-colors hover:border-gray-400"

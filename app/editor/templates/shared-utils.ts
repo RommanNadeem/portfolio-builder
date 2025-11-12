@@ -60,14 +60,14 @@ export function getBlockHint(blockType: string, label?: string, context: 'projec
 // Check if a block has meaningful content
 export function hasBlockContent(block: any): boolean {
   if (block.type === 'hero') return true;
-  if (block.type === 'richtext') return block.data?.body?.trim();
-  if (block.type === 'callout') return block.data?.body?.trim();
-  if (block.type === 'bullets') return block.data?.bullets?.some((b: string) => b.trim());
-  if (block.type === 'steps') return block.data?.steps?.some((s: any) => s.title?.trim());
-  if (block.type === 'feature_grid') return block.data?.items?.some((i: any) => i.title?.trim());
-  if (block.type === 'gallery') return block.data?.images?.length > 0;
-  if (block.type === 'metrics') return block.data?.metrics?.some((m: any) => m.value?.trim());
-  if (block.type === 'embed') return block.data?.url;
+  if (block.type === 'richtext') return !!(block.data?.body?.trim());
+  if (block.type === 'callout') return !!(block.data?.body?.trim());
+  if (block.type === 'bullets') return !!(block.data?.bullets?.some((b: string) => b.trim()));
+  if (block.type === 'steps') return !!(block.data?.steps?.some((s: any) => s.title?.trim()));
+  if (block.type === 'feature_grid') return !!(block.data?.items?.some((i: any) => i.title?.trim()));
+  if (block.type === 'gallery') return !!(block.data?.images?.length > 0);
+  if (block.type === 'metrics') return !!(block.data?.metrics?.some((m: any) => m.value?.trim()));
+  if (block.type === 'embed') return !!(block.data?.url);
   return false;
 }
 

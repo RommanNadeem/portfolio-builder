@@ -3,10 +3,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { usePortfolioData } from './hooks/usePortfolioData';
 import { useAutoSave } from './hooks/useAutoSave';
+import { usePublishStatus } from './hooks/usePublishStatus';
+import { useSectionScroll } from './hooks/useSectionScroll';
 import { EditorLayout } from './components/EditorLayout';
 import { SortableSections } from './components/SortableSections';
 import { DraggableSection } from './components/DraggableSection';
 import { SectionOrderBanner } from './components/SectionOrderBanner';
+import { PublishOverlayController } from './components/PublishOverlayController';
 import { NavigationSection } from './sections/navigation';
 import { PersonalSection } from './sections/personal';
 import { CompaniesSection } from './sections/companies-v2';
@@ -15,14 +18,19 @@ import { ProjectsSection } from './sections/projects-v2';
 import { CareerSection } from './sections/career-v2';
 import { StrengthsSection } from './sections/strengths-v2';
 import { TestimonialsSection } from './sections/testimonials-v2';
+import { FAQsSection } from './sections/faqs-v2';
+import { ServicesSection } from './sections/services-v2';
+import { ResumeSection } from './sections/resume-v2';
 import { FooterSection } from './sections/footer';
 
 // Default section order
-const DEFAULT_SECTION_ORDER = ['career', 'projects', 'strengths', 'testimonials'];
+const DEFAULT_SECTION_ORDER = ['career', 'projects', 'strengths', 'services', 'testimonials', 'faqs', 'resume'];
 
 export default function EditorPage() {
   const [viewMode, setViewMode] = useState<'edit' | 'preview'>('edit');
   const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const { registerSection, scrollToSection } = useSectionScroll();
 
   // Check URL params for view mode (from detail page navigation)
   useEffect(() => {
@@ -35,6 +43,7 @@ export default function EditorPage() {
   
   const { portfolio, updatePortfolio, savePortfolio, loading, error, currentUserId } = usePortfolioData();
   const { isDirty, isSaving, lastSaved } = useAutoSave(portfolio, savePortfolio, 500);
+  const { status: publishStatus, loading: publishLoading } = usePublishStatus(currentUserId);
 
   // Get section order from portfolio data or use default
   const sectionOrder = portfolio?.sectionOrder || DEFAULT_SECTION_ORDER;
@@ -56,6 +65,7 @@ export default function EditorPage() {
       previewMode,
       renderMode,
       userId: currentUserId,
+      onScrollToSection: renderMode === 'preview' ? scrollToSection : undefined,
     };
 
     switch (sectionId) {
@@ -65,8 +75,14 @@ export default function EditorPage() {
         return <ProjectsSection key={sectionId} {...commonProps} />;
       case 'strengths':
         return <StrengthsSection key={sectionId} {...commonProps} />;
+      case 'services':
+        return <ServicesSection key={sectionId} {...commonProps} />;
       case 'testimonials':
         return <TestimonialsSection key={sectionId} {...commonProps} />;
+      case 'faqs':
+        return <FAQsSection key={sectionId} {...commonProps} />;
+      case 'resume':
+        return <ResumeSection key={sectionId} {...commonProps} />;
       default:
         return null;
     }
@@ -78,7 +94,9 @@ export default function EditorPage() {
       id: sectionId,
       component: (
         <DraggableSection key={sectionId} id={sectionId}>
-          {getSectionComponent(sectionId, 'editor')}
+          <div ref={(el) => registerSection(sectionId, el)}>
+            {getSectionComponent(sectionId, 'editor')}
+          </div>
         </DraggableSection>
       ),
     }));
@@ -229,16 +247,31 @@ export default function EditorPage() {
   );
 
   return (
-    <EditorLayout
-      viewMode={viewMode}
-      previewMode={previewMode}
-      onViewModeChange={setViewMode}
-      onPreviewModeChange={setPreviewMode}
-      isDirty={isDirty}
-      isSaving={isSaving}
-      lastSaved={lastSaved}
-      editorPanel={editorPanel}
-      previewPanel={previewPanel}
-    />
+    <>
+      <EditorLayout
+        viewMode={viewMode}
+        previewMode={previewMode}
+        onViewModeChange={setViewMode}
+        onPreviewModeChange={setPreviewMode}
+        isDirty={isDirty}
+        isSaving={isSaving}
+        lastSaved={lastSaved}
+        editorPanel={editorPanel}
+        previewPanel={previewPanel}
+        userId={currentUserId}
+        onPublishClick={() => setShowPublishModal(true)}
+        publishStatus={publishStatus}
+      />
+
+      {/* Publish Overlay */}
+      {currentUserId && portfolio && (
+        <PublishOverlayController
+          isOpen={showPublishModal}
+          onClose={() => setShowPublishModal(false)}
+          userId={currentUserId}
+          portfolioData={portfolio}
+        />
+      )}
+    </>
   );
 }

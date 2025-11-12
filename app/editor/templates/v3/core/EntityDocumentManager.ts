@@ -355,7 +355,11 @@ export class EntityDocumentManager {
         updated.start_date = heroData.meta.startDate;
       }
       
-      if (heroData.meta?.endDate) {
+      // Check currentlyWorking field first, then fallback to endDate check
+      if (heroData.meta?.currentlyWorking !== undefined) {
+        updated.current = heroData.meta.currentlyWorking;
+        updated.end_date = heroData.meta.currentlyWorking ? '' : (heroData.meta.endDate || '');
+      } else if (heroData.meta?.endDate) {
         if (heroData.meta.endDate.toLowerCase() === 'present') {
           updated.current = true;
           updated.end_date = '';

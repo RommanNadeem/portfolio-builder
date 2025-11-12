@@ -17,6 +17,7 @@ interface ProjectsSectionProps {
   previewMode: 'desktop' | 'mobile';
   renderMode: 'editor' | 'preview';
   userId?: string;
+  onScrollToSection?: (sectionId: string) => void;
 }
 
 export function ProjectsSection({ 
@@ -25,7 +26,8 @@ export function ProjectsSection({
   viewMode, 
   previewMode, 
   renderMode,
-  userId 
+  userId,
+  onScrollToSection 
 }: ProjectsSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const projectCount = (data.projects || []).length;
@@ -40,6 +42,15 @@ export function ProjectsSection({
     }
     prevCountRef.current = projectCount;
   }, [projectCount]);
+  
+  // Create wrapped onScrollToSection that also expands
+  const handleScrollToSection = (sectionId: string) => {
+    if (sectionId === 'projects') {
+      console.log('[ProjectsSection] Expanding section before scroll');
+      setIsExpanded(true);
+    }
+    onScrollToSection?.(sectionId);
+  };
 
   // In preview renderMode, pass through to core component
   if (renderMode === 'preview') {
@@ -51,6 +62,7 @@ export function ProjectsSection({
         previewMode={previewMode}
         renderMode={renderMode}
         userId={userId}
+        onScrollToSection={handleScrollToSection}
       />
     );
   }
@@ -96,6 +108,7 @@ export function ProjectsSection({
             previewMode={previewMode}
             renderMode="editor"
             userId={userId}
+            onScrollToSection={handleScrollToSection}
           />
         </div>
       )}

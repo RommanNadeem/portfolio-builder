@@ -32,10 +32,19 @@ export function StepsBlock({ block, onChange, mode }: StepsBlockProps) {
   };
 
   if (mode === 'preview') {
+    // Determine title to display: use provided title, or default based on section label if steps have content
+    const hasContent = data.steps.some(s => s.title.trim());
+    const displayTitle = data.title || (hasContent && block.sectionLabel ? block.sectionLabel : '');
+    
+    // Don't render empty blocks in preview mode
+    if (!hasContent) {
+      return null;
+    }
+    
     return (
       <div>
-        {data.title && (
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">{data.title}</h2>
+        {displayTitle && (
+          <h2 className="text-3xl font-bold text-gray-900 mb-6">{displayTitle}</h2>
         )}
         <div className="space-y-6">
           {data.steps.filter(s => s.title.trim()).map((step, index) => (

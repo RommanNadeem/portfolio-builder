@@ -132,8 +132,8 @@ export function HeroBlock({ block, onChange, mode, entityType, onSave }: HeroBlo
           {data.meta && Object.keys(data.meta).length > 0 && (
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-sm text-gray-600">
               {/* Career Template: Show timeline and website */}
-              {isCareerTemplate && (data.meta as any).startDate && (data.meta as any).endDate && (
-                <span>📅 {(data.meta as any).startDate} - {(data.meta as any).endDate}</span>
+              {isCareerTemplate && (data.meta as any).startDate && (
+                <span>📅 {(data.meta as any).startDate} - {(data.meta as any).currentlyWorking ? 'Present' : ((data.meta as any).endDate || 'Present')}</span>
               )}
               {isCareerTemplate && (data.meta as any).Website && (
                 <a
@@ -370,10 +370,37 @@ export function HeroBlock({ block, onChange, mode, entityType, onSave }: HeroBlo
               <div className="flex-1">
                 <MonthYearPicker
                   value={(data.meta as any)?.endDate || ''}
-                  onChange={(value) => onChange({ ...block, data: { ...data, meta: { ...data.meta, endDate: value } as any } })}
+                  onChange={(value) => onChange({ ...block, data: { ...data, meta: { ...data.meta, endDate: value, currentlyWorking: false } as any } })}
                   placeholder="End date or Present"
+                  disabled={(data.meta as any)?.currentlyWorking}
                 />
               </div>
+            </div>
+            
+            {/* Currently Working Here Checkbox */}
+            <div className="mt-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={(data.meta as any)?.currentlyWorking || false}
+                  onChange={(e) => {
+                    const isCurrentlyWorking = e.target.checked;
+                    onChange({ 
+                      ...block, 
+                      data: { 
+                        ...data, 
+                        meta: { 
+                          ...data.meta, 
+                          currentlyWorking: isCurrentlyWorking,
+                          endDate: isCurrentlyWorking ? 'Present' : (data.meta as any)?.endDate || ''
+                        } as any
+                      } 
+                    });
+                  }}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">Currently working here</span>
+              </label>
             </div>
           </div>
         </div>

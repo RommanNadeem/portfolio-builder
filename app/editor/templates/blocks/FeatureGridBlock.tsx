@@ -34,10 +34,19 @@ export function FeatureGridBlock({ block, onChange, mode }: FeatureGridBlockProp
   };
 
   if (mode === 'preview') {
+    // Determine title to display: use provided title, or default based on section label if items have content
+    const hasContent = data.items.some(item => item.title);
+    const displayTitle = data.title || (hasContent && block.sectionLabel ? block.sectionLabel : '');
+    
+    // Don't render empty blocks in preview mode
+    if (!hasContent) {
+      return null;
+    }
+    
     return (
       <div>
-        {data.title && (
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">{data.title}</h2>
+        {displayTitle && (
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">{displayTitle}</h2>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {data.items.filter(item => item.title).map((item, index) => (

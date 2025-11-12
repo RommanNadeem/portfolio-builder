@@ -195,3 +195,20 @@ textarea:disabled {
   margin-top: 3rem;
   margin-bottom: 1.5rem;
 }
+
+/* Section highlight animation for scroll-to-section */
+@keyframes section-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    background-color: transparent;
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.1);
+    background-color: rgba(59, 130, 246, 0.05);
+  }
+}
+
+.section-highlight {
+  animation: section-pulse 2s ease-in-out;
+  border-radius: 8px;
+}

@@ -21,6 +21,7 @@ interface TestimonialsSectionProps {
   previewMode?: 'desktop' | 'mobile';
   renderMode?: 'editor' | 'preview';
   userId?: string;
+  onScrollToSection?: (sectionId: string) => void;
 }
 
 export function TestimonialsSection({
@@ -30,6 +31,7 @@ export function TestimonialsSection({
   previewMode = 'desktop',
   renderMode = 'editor',
   userId,
+  onScrollToSection,
 }: TestimonialsSectionProps) {
   
   // Convert legacy data to new format (memoized)
@@ -62,6 +64,16 @@ export function TestimonialsSection({
   });
 
   const handleAdd = () => {
+    // Check if there's already an empty testimonial
+    const hasEmptyTestimonial = currentTestimonials.some(t => 
+      t.name.trim().length === 0 || t.content.trim().length === 0
+    );
+    
+    if (hasEmptyTestimonial) {
+      console.log('[TestimonialsSection] Empty testimonial already exists, not adding new one');
+      return; // Don't add new one, user should fill existing
+    }
+    
     const now = new Date().toISOString();
     add({
       name: '',
@@ -90,17 +102,17 @@ export function TestimonialsSection({
       <div id="testimonials" className={`w-full ${isMobile ? 'mb-6' : 'mb-12 sm:mb-16 lg:mb-20'}`}>
         {/* Section Header */}
         <div className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-8'}`}>
-          <div className={`rounded-lg bg-blue-100 flex items-center justify-center ${
+          <div className={`rounded-lg bg-yellow-100 flex items-center justify-center ${
             isMobile ? 'w-6 h-6' : 'w-8 h-8'
           }`}>
-            <MessageSquare className={isMobile ? 'w-3.5 h-3.5 text-blue-600' : 'w-5 h-5 text-blue-600'} />
+            <MessageSquare className={isMobile ? 'w-3.5 h-3.5 text-yellow-600' : 'w-5 h-5 text-yellow-600'} />
           </div>
           <h2 className={`font-bold text-gray-900 ${
             isMobile ? 'text-lg' : 'text-3xl'
           }`}>Testimonials</h2>
         </div>
         
-        <div className={`grid gap-4 max-w-4xl mx-auto ${
+        <div className={`grid gap-4 ${
           isMobile ? 'grid-cols-1' : 'md:grid-cols-2 gap-6'
         }`}>
           {validTestimonials.map((testimonial) => (
@@ -177,12 +189,12 @@ export function TestimonialsSection({
       {currentTestimonials.length === 0 ? (
         <button
           onClick={handleAdd}
-          className="w-full flex items-center justify-center gap-2 px-4 py-8 bg-white border-2 border-dashed border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all"
+          className="w-full flex flex-col items-center justify-center gap-2 px-4 py-8 bg-white border-2 border-dashed border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all"
         >
-          <span className="text-3xl mb-2">💬</span>
+          <MessageSquare className="w-12 h-12 text-yellow-300 mb-1" />
           <div className="text-center">
             <p className="font-medium">No testimonials yet</p>
-            <p className="text-sm">Add your first one!</p>
+            <p className="text-sm text-gray-500">Click to add your first testimonial</p>
           </div>
         </button>
       ) : (

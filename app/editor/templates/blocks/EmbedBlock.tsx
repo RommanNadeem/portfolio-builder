@@ -217,6 +217,11 @@ export function EmbedBlock({ block, onChange, mode }: EmbedBlockProps) {
   };
 
   if (mode === 'preview') {
+    // Don't render empty blocks in preview mode
+    if (!data.url || !data.url.trim()) {
+      return null;
+    }
+
     const isPDF = data.embedType === 'pdf' || data.url.endsWith('.pdf');
     const isDocument = data.embedType === 'document' || data.url.includes('drive.google.com');
     const isClickableDocument = isPDF || isDocument;
@@ -228,34 +233,26 @@ export function EmbedBlock({ block, onChange, mode }: EmbedBlockProps) {
             <h2 className="text-3xl font-bold text-gray-900 mb-6">{data.title}</h2>
           )}
           
-          {data.url ? (
-            <>
-              <div 
-                className={isClickableDocument ? 'cursor-pointer group relative' : ''}
-                onClick={(e) => {
-                  if (isClickableDocument) {
-                    e.stopPropagation();
-                    setIsFullscreen(true);
-                  }
-                }}
-              >
-                {getEmbedPreview()}
-                {isClickableDocument && (
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-150 flex items-center justify-center">
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg pointer-events-none">
-                      <p className="text-[12px] font-medium text-gray-900">Click to enlarge</p>
-                    </div>
-                  </div>
-                )}
+          <div 
+            className={isClickableDocument ? 'cursor-pointer group relative' : ''}
+            onClick={(e) => {
+              if (isClickableDocument) {
+                e.stopPropagation();
+                setIsFullscreen(true);
+              }
+            }}
+          >
+            {getEmbedPreview()}
+            {isClickableDocument && (
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-150 flex items-center justify-center">
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg pointer-events-none">
+                  <p className="text-[12px] font-medium text-gray-900">Click to enlarge</p>
+                </div>
               </div>
-              {data.caption && (
-                <p className="text-center text-gray-600 mt-4">{data.caption}</p>
-              )}
-            </>
-          ) : (
-            <div className="p-12 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg text-center text-gray-500">
-              No embed URL provided
-            </div>
+            )}
+          </div>
+          {data.caption && (
+            <p className="text-center text-gray-600 mt-4">{data.caption}</p>
           )}
         </div>
 

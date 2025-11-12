@@ -17,6 +17,7 @@ interface TestimonialsSectionProps {
   previewMode: 'desktop' | 'mobile';
   renderMode: 'editor' | 'preview';
   userId?: string;
+  onScrollToSection?: (sectionId: string) => void;
 }
 
 export function TestimonialsSection({ 
@@ -25,7 +26,8 @@ export function TestimonialsSection({
   viewMode, 
   previewMode, 
   renderMode,
-  userId 
+  userId,
+  onScrollToSection 
 }: TestimonialsSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const testimonialCount = (data.testimonials || []).length;
@@ -39,6 +41,15 @@ export function TestimonialsSection({
     }
     prevCountRef.current = testimonialCount;
   }, [testimonialCount]);
+  
+  // Create wrapped onScrollToSection that also expands
+  const handleScrollToSection = (sectionId: string) => {
+    if (sectionId === 'testimonials') {
+      console.log('[TestimonialsSection] Expanding section before scroll');
+      setIsExpanded(true);
+    }
+    onScrollToSection?.(sectionId);
+  };
 
   // In preview renderMode, pass through to core component
   if (renderMode === 'preview') {
@@ -50,6 +61,7 @@ export function TestimonialsSection({
         previewMode={previewMode}
         renderMode={renderMode}
         userId={userId}
+        onScrollToSection={handleScrollToSection}
       />
     );
   }
@@ -63,8 +75,8 @@ export function TestimonialsSection({
         className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-            <MessageSquare className="w-4 h-4 text-blue-600" />
+          <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+            <MessageSquare className="w-4 h-4 text-yellow-600" />
           </div>
           <div className="text-left">
             <h3 className="text-sm font-semibold text-gray-900">Testimonials</h3>
@@ -95,6 +107,7 @@ export function TestimonialsSection({
             previewMode={previewMode}
             renderMode="editor"
             userId={userId}
+            onScrollToSection={handleScrollToSection}
           />
         </div>
       )}

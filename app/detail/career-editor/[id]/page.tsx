@@ -16,29 +16,8 @@ import { ArrowLeft } from 'lucide-react';
 import { TEMPLATE_CONFIGS } from '@/app/editor/templates';
 import { TemplateEditorHeader, TemplateEditorContent } from '@/app/detail/components';
 import { useTemplateEditor } from '@/app/editor/templates/v3';
+import { hasBlockContent } from '@/app/editor/templates/shared-utils';
 import type { TemplateBlock } from '@/app/editor/templates/types';
-
-// ============================================
-// HELPERS
-// ============================================
-
-function hasBlockContent(block: TemplateBlock): boolean {
-  if (block.type === 'hero') return true;
-  
-  const data = (block as any).data || (block as any).content;
-  if (!data) return false;
-
-  if (typeof data === 'string') return data.trim().length > 0;
-  if (Array.isArray(data)) return data.length > 0;
-  if (typeof data === 'object') {
-    return Object.values(data).some(val => {
-      if (typeof val === 'string') return val.trim().length > 0;
-      if (Array.isArray(val)) return val.length > 0;
-      return false;
-    });
-  }
-  return false;
-}
 
 // ============================================
 // MAIN COMPONENT
@@ -85,7 +64,13 @@ export default function CareerEditor() {
   // Sync UI state with document (run once on load only)
   useEffect(() => {
     if (!loading && document && isLoading) {
-          // Career always uses career-experience template
+      console.log('[CareerEditor V3] Initializing UI state:', {
+        blocksCount: blocks.length,
+        hasDocument: !!document,
+        documentId: document?.id,
+      });
+      
+      // Career always uses career-experience template
       // Initialize if blocks are empty (even if template_type is set)
       if (blocks.length === 0) {
         console.log('[CareerEditor V3] Auto-initializing career template (blocks empty)');
@@ -96,17 +81,27 @@ export default function CareerEditor() {
         }, 100);
       } else {
         // Initialize saved blocks from existing data
+        console.log('[CareerEditor V3] Analyzing existing blocks for content...');
         const saved = new Set<string>();
-        blocks.forEach((block) => {
-          if (hasBlockContent(block)) {
+        blocks.forEach((block, idx) => {
+          const hasContent = hasBlockContent(block);
+          console.log(`[CareerEditor V3] Block ${idx} (${block.type}):`, {
+            id: block.id,
+            type: block.type,
+            hasContent,
+            data: block.data,
+          });
+          if (hasContent) {
             saved.add(block.id);
           }
         });
+        console.log('[CareerEditor V3] Saved block IDs:', Array.from(saved));
         setSavedBlockIds(saved);
         setIsLoading(false);
       }
     }
-  }, [loading, document, isLoading]); // ← Only run when loading state changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, document, isLoading]); // ← Only run when loading state changes, not when blocks change
 
   // Handle block changes
   const handleBlockChange = useCallback((index: number, updatedBlock: TemplateBlock) => {
