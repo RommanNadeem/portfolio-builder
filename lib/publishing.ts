@@ -532,6 +532,10 @@ export async function getPublishedPortfolio(
     }
 
     const normalizedSlug = slug.toLowerCase().trim();
+    
+    if (DEBUG) {
+      console.log(`[Publishing] 🔍 Looking up published portfolio for slug: "${normalizedSlug}"`);
+    }
 
     const { data, error } = await supabase
       .from('published_portfolios')
@@ -541,18 +545,32 @@ export async function getPublishedPortfolio(
       .maybeSingle();
 
     if (error) {
-      console.error('[Publishing] Error fetching published portfolio:', error);
+      console.error('[Publishing] ❌ Database error fetching published portfolio:', error);
+      console.error('[Publishing] Error details:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
       return null;
     }
 
     if (!data) {
-      console.log('[Publishing] No published portfolio found for slug:', normalizedSlug);
+      console.warn(`[Publishing] ⚠️ No published portfolio found for slug: "${normalizedSlug}"`);
+      console.warn('[Publishing] Possible reasons:');
+      console.warn('  1. Portfolio not published yet (run publish from editor)');
+      console.warn('  2. Slug not claimed by any user');
+      console.warn('  3. Portfolio was unpublished (is_active = false)');
       return null;
+    }
+
+    if (DEBUG) {
+      console.log(`[Publishing] ✅ Found published portfolio for: "${normalizedSlug}"`);
     }
 
     return data.published_data as PortfolioData;
   } catch (error) {
-    console.error('[Publishing] Error:', error);
+    console.error('[Publishing] ❌ Unexpected error:', error);
     return null;
   }
 }

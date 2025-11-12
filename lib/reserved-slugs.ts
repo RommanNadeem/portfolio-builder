@@ -19,6 +19,7 @@ export const RESERVED_SLUGS = new Set([
   'career-editor',
   'home',
   'debug-data',
+  'debug-published',
   'test-ai',
   
   // API routes
