@@ -208,67 +208,49 @@ export function ResumeSection({
     <div className="space-y-3">
       {hasResume ? (
         <>
-          {/* Resume Display with Embedded Preview */}
-          <div className="bg-gradient-to-br from-white to-green-50 rounded-lg border-2 border-emerald-200 overflow-hidden">
-            {/* Header */}
-            <div className="p-4 border-b border-emerald-200 bg-emerald-50">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-emerald-100 flex items-center justify-center w-10 h-10">
-                    <FileText className="w-5 h-5 text-emerald-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 text-sm">Resume Uploaded</h3>
-                    <p className="text-gray-600 text-xs">Available for visitors to view</p>
-                  </div>
+          {/* Resume Display - Compact Card */}
+          <div className="bg-gradient-to-br from-white to-green-50 rounded-lg border-2 border-emerald-200 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-emerald-100 flex items-center justify-center w-10 h-10">
+                  <FileText className="w-5 h-5 text-emerald-600" />
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setIsViewerOpen(true)}
-                    className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    <span>View</span>
-                  </button>
-                  <a
-                    href={resumeUrl}
-                    download={resumeFileName}
-                    className="flex items-center gap-2 px-3 py-2 bg-white text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-100 transition-colors border border-gray-300"
-                    title={`Download ${resumeFileName}`}
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                  </a>
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-2 px-3 py-2 bg-white text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-100 transition-colors border border-gray-300"
-                    disabled={isUploading}
-                  >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>Replace</span>
-                  </button>
-                  <button
-                    onClick={handleRemoveResume}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Remove resume"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                <div>
+                  <h3 className="font-semibold text-gray-900 text-sm">Resume Uploaded</h3>
+                  <p className="text-gray-600 text-xs">{resumeFileName}</p>
                 </div>
               </div>
-            </div>
-
-            {/* Embedded PDF Preview */}
-            <div className="relative bg-white" style={{ height: '400px' }}>
-              <iframe
-                src={`${resumeUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-                className="w-full h-full border-0"
-                title="Resume Preview"
-              />
-              {/* Overlay hint */}
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-green-600 to-transparent p-4 text-center">
-                <p className="text-white text-xs font-medium">
-                  ✓ Your resume is live and ready to be viewed by visitors
-                </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsViewerOpen(true)}
+                  className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>View</span>
+                </button>
+                <a
+                  href={resumeUrl}
+                  download={resumeFileName}
+                  className="flex items-center gap-2 px-3 py-2 bg-white text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-100 transition-colors border border-gray-300"
+                  title={`Download ${resumeFileName}`}
+                >
+                  <Download className="w-3.5 h-3.5" />
+                </a>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-2 px-3 py-2 bg-white text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-100 transition-colors border border-gray-300"
+                  disabled={isUploading}
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>Replace</span>
+                </button>
+                <button
+                  onClick={handleRemoveResume}
+                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  title="Remove resume"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>
