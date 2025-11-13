@@ -588,6 +588,14 @@ export default function OnboardingFlowPage() {
             const parsed = JSON.parse(cached);
             parsed.resume = uploadResult.publicUrl;
             localStorage.setItem('portfolioData', JSON.stringify(parsed));
+            
+            // Trigger editor refresh so resume section updates
+            window.dispatchEvent(new CustomEvent('portfolio-updated', {
+              detail: { 
+                type: 'resume-uploaded',
+                resumeUrl: uploadResult.publicUrl 
+              }
+            }));
           } catch (e) {
             // Ignore
           }
