@@ -108,23 +108,27 @@ export function ProjectCard({
     >
       {/* Header with drag, edit, title, and actions */}
       <div className="thin-card-header">
-        <button
-          {...attributes}
-          {...listeners}
-          className="thin-icon-btn thin-icon-btn-ghost"
-          title="Drag to reorder"
-        >
-          <GripVertical className="w-4 h-4 text-gray-700" />
-        </button>
+        {viewMode === 'edit' && (
+          <button
+            {...attributes}
+            {...listeners}
+            className="thin-icon-btn thin-icon-btn-ghost"
+            title="Drag to reorder"
+          >
+            <GripVertical className="w-4 h-4 text-gray-700" />
+          </button>
+        )}
         
-        {/* Edit Icon - Always visible */}
-        <button
-          onClick={navigateToDetail}
-          className="thin-icon-btn thin-icon-btn-primary"
-          title="Edit project"
-        >
-          <FileEdit className="w-4 h-4 text-gray-900" />
-        </button>
+        {/* Edit Icon - Only in edit mode */}
+        {viewMode === 'edit' && (
+          <button
+            onClick={navigateToDetail}
+            className="thin-icon-btn thin-icon-btn-primary"
+            title="Edit project"
+          >
+            <FileEdit className="w-4 h-4 text-gray-900" />
+          </button>
+        )}
         
         <input
           value={project.title}
@@ -133,15 +137,17 @@ export function ProjectCard({
           className="flex-1 px-2 py-1.5 text-sm font-bold text-gray-900 border-0 bg-transparent focus:outline-none focus:ring-0 placeholder:text-gray-600"
         />
         
-        <div className="thin-card-actions">
-          <button
-            onClick={() => onDelete(project.id)}
-            className="thin-icon-btn thin-icon-btn-danger"
-            title="Delete project"
-          >
-            <Trash2 className="w-4 h-4 text-gray-700 hover:text-red-600" />
-          </button>
-        </div>
+        {viewMode === 'edit' && (
+          <div className="thin-card-actions">
+            <button
+              onClick={() => onDelete(project.id)}
+              className="thin-icon-btn thin-icon-btn-danger"
+              title="Delete project"
+            >
+              <Trash2 className="w-4 h-4 text-gray-700 hover:text-red-600" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

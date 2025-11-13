@@ -125,23 +125,27 @@ export function CareerCard({
     >
       {/* Header with drag, edit, company/role, and delete */}
       <div className="thin-card-header">
-        <button
-          {...attributes}
-          {...listeners}
-          className="thin-icon-btn thin-icon-btn-ghost"
-          title="Drag to reorder"
-        >
-          <GripVertical className="w-4 h-4 text-gray-700" />
-        </button>
+        {viewMode === 'edit' && (
+          <button
+            {...attributes}
+            {...listeners}
+            className="thin-icon-btn thin-icon-btn-ghost"
+            title="Drag to reorder"
+          >
+            <GripVertical className="w-4 h-4 text-gray-700" />
+          </button>
+        )}
         
-        {/* Edit Icon - Always visible */}
-        <button
-          onClick={navigateToDetail}
-          className="thin-icon-btn thin-icon-btn-primary"
-          title="Edit career"
-        >
-          <FileEdit className="w-4 h-4 text-gray-900" />
-        </button>
+        {/* Edit Icon - Only in edit mode */}
+        {viewMode === 'edit' && (
+          <button
+            onClick={navigateToDetail}
+            className="thin-icon-btn thin-icon-btn-primary"
+            title="Edit career"
+          >
+            <FileEdit className="w-4 h-4 text-gray-900" />
+          </button>
+        )}
         
         <div className="flex-1 space-y-1 min-w-0">
           {/* Organization - Now first */}
@@ -161,15 +165,17 @@ export function CareerCard({
           />
         </div>
         
-        <div className="thin-card-actions">
-          <button
-            onClick={() => onDelete(career.id)}
-            className="thin-icon-btn thin-icon-btn-danger"
-            title="Delete"
-          >
-            <Trash2 className="w-4 h-4 text-gray-700 hover:text-red-600" />
-          </button>
-        </div>
+        {viewMode === 'edit' && (
+          <div className="thin-card-actions">
+            <button
+              onClick={() => onDelete(career.id)}
+              className="thin-icon-btn thin-icon-btn-danger"
+              title="Delete"
+            >
+              <Trash2 className="w-4 h-4 text-gray-700 hover:text-red-600" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Dates */}

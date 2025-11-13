@@ -7,7 +7,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Link as LinkIcon, ChevronDown, ChevronUp } from 'lucide-react';
+import { Link as LinkIcon, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
 import { SocialLinksSection as SocialLinksSectionCore } from './SocialLinksSection';
 
 interface SocialLinksSectionProps {
@@ -60,9 +60,14 @@ export function SocialLinksSection({
       {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
+        className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-all group relative"
       >
-        <div className="flex items-center gap-3">
+        {/* Drag Handle - appears on left on hover */}
+        <div className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+          <GripVertical className="w-4 h-4 text-gray-400" />
+        </div>
+        
+        <div className="flex items-center gap-3 group-hover:pl-6 transition-all">
           <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
             <LinkIcon className="w-4 h-4 text-teal-600" />
           </div>

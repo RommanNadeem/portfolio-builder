@@ -7,7 +7,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Briefcase, ChevronDown, ChevronUp } from 'lucide-react';
+import { Briefcase, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
 import { ProjectsSection as ProjectsSectionCore } from './ProjectsSection';
 
 interface ProjectsSectionProps {
@@ -73,9 +73,14 @@ export function ProjectsSection({
       {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
+        className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-all group relative"
       >
-        <div className="flex items-center gap-3">
+        {/* Drag Handle - appears on left on hover */}
+        <div className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+          <GripVertical className="w-4 h-4 text-gray-400" />
+        </div>
+        
+        <div className="flex items-center gap-3 group-hover:pl-6 transition-all">
           <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
             <Briefcase className="w-4 h-4 text-emerald-600" />
           </div>
