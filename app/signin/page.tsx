@@ -79,7 +79,7 @@ export default function SignInPage() {
 
         <form onSubmit={handleSignIn} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-bold text-gray-900 mb-2">
+            <label htmlFor="email" className="block text-sm font-bold mb-2" style={{ color: '#111111' }}>
               Email Address
             </label>
             <input
@@ -91,7 +91,7 @@ export default function SignInPage() {
                 setError('');
               }}
               placeholder="you@example.com"
-              className="onboarding-input"
+              className="w-full px-5 py-3.5 text-base bg-white border-2 border-gray-200 rounded-xl transition-all outline-none focus:border-emerald-700 focus:shadow-[0_0_0_3px_rgba(5,150,105,0.15)] disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ color: '#111111' }}
               disabled={loading}
               autoFocus
@@ -99,7 +99,7 @@ export default function SignInPage() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-bold text-gray-900 mb-2">
+            <label htmlFor="password" className="block text-sm font-bold mb-2" style={{ color: '#111111' }}>
               Password
             </label>
             <input
@@ -111,7 +111,7 @@ export default function SignInPage() {
                 setError('');
               }}
               placeholder="Enter your password"
-              className="onboarding-input"
+              className="w-full px-5 py-3.5 text-base bg-white border-2 border-gray-200 rounded-xl transition-all outline-none focus:border-emerald-700 focus:shadow-[0_0_0_3px_rgba(5,150,105,0.15)] disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ color: '#111111' }}
               disabled={loading}
             />
@@ -119,15 +119,15 @@ export default function SignInPage() {
 
           {error && (
             <div className="p-4 border-2 border-red-200 bg-red-50 rounded-xl">
-              <p className="text-sm font-semibold text-gray-900">{error}</p>
+              <p className="text-sm font-semibold" style={{ color: '#111111' }}>{error}</p>
             </div>
           )}
 
           <button
             type="submit"
             disabled={loading || !email.trim() || !password.trim()}
-            className="btn-primary w-full"
-            style={{ color: '#111111' }}
+            className="w-full inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold rounded-full transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+            style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
