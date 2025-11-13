@@ -85,6 +85,7 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
     who_are_you: (portfolio as any).whoAreYou,
     profile_image_url: (portfolio as any).profileImage,
     resume_url: (portfolio as any).resume,
+    resume_file_name: (portfolio as any).resumeFileName,
     companies: (portfolio as any).companies,
     slider_companies: (portfolio as any).sliderCompanies,
     navigation: (portfolio as any).navigation,

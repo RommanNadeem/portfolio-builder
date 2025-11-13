@@ -10,14 +10,35 @@ interface ResumeModalProps {
   resumeFileName?: string;
 }
 
-export function ResumeModal({ isOpen, onClose, resumeUrl, resumeFileName = 'resume.pdf' }: ResumeModalProps) {
+export function ResumeModal({ isOpen, onClose, resumeUrl, resumeFileName }: ResumeModalProps) {
   const [isPDF, setIsPDF] = useState(true);
+  const [actualFileName, setActualFileName] = useState('resume.pdf');
 
   useEffect(() => {
     // Check if the resume is a PDF
     const isPdfFile = resumeUrl.toLowerCase().endsWith('.pdf') || resumeUrl.includes('pdf');
     setIsPDF(isPdfFile);
-  }, [resumeUrl]);
+
+    // Extract filename from URL if not provided
+    if (resumeFileName) {
+      setActualFileName(resumeFileName);
+    } else {
+      try {
+        const url = new URL(resumeUrl);
+        const pathname = url.pathname;
+        const filename = pathname.substring(pathname.lastIndexOf('/') + 1);
+        
+        // Decode the filename in case it has URL encoding
+        const decodedFilename = decodeURIComponent(filename);
+        
+        // Use the extracted filename or fallback
+        setActualFileName(decodedFilename || 'resume.pdf');
+      } catch (error) {
+        console.error('Error extracting filename:', error);
+        setActualFileName('resume.pdf');
+      }
+    }
+  }, [resumeUrl, resumeFileName]);
 
   useEffect(() => {
     // Prevent body scroll when modal is open
@@ -51,9 +72,9 @@ export function ResumeModal({ isOpen, onClose, resumeUrl, resumeFileName = 'resu
             {/* Download Button */}
             <a
               href={resumeUrl}
-              download={resumeFileName}
+              download={actualFileName}
               className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-green-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
-              title={`Download ${resumeFileName}`}
+              title={`Download ${actualFileName}`}
             >
               <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">Download</span>
@@ -97,7 +118,7 @@ export function ResumeModal({ isOpen, onClose, resumeUrl, resumeFileName = 'resu
                 </p>
                 <a
                   href={resumeUrl}
-                  download={resumeFileName}
+                  download={actualFileName}
                   className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
                 >
                   <Download className="w-5 h-5" />
