@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { 
   FileText,
-  ArrowDown,
   Sparkles, 
   TrendingUp,
   BarChart3,
@@ -99,16 +98,6 @@ export default function LandingPage() {
         {/* Scroll Animation: Resume → Portfolio */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="relative w-full max-w-2xl">
-            {/* Scroll indicator above resume */}
-            <motion.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="absolute top-32 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2"
-            >
-              <div className="text-xs font-medium" style={{ color: '#666666' }}>Scroll</div>
-              <ArrowDown className="w-6 h-6" style={{ color: '#111111' }} />
-            </motion.div>
-
             {/* Resume falling */}
                       <motion.div
               style={{ y: resumeY, rotate: resumeRotate, scale: resumeScale }}
