@@ -210,48 +210,51 @@ export function ResumeSection({
         <>
           {/* Resume Display - Compact Card */}
           <div className="bg-gradient-to-br from-white to-green-50 rounded-lg border-2 border-emerald-200 p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-emerald-100 flex items-center justify-center w-10 h-10">
-                  <FileText className="w-5 h-5 text-emerald-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 text-sm">Resume Uploaded</h3>
-                  <p className="text-gray-600 text-xs">{resumeFileName}</p>
-                </div>
+            {/* Resume Info */}
+            <div className="flex items-center gap-3 mb-3">
+              <div className="rounded-lg bg-emerald-100 flex items-center justify-center w-10 h-10 flex-shrink-0">
+                <FileText className="w-5 h-5 text-emerald-600" />
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setIsViewerOpen(true)}
-                  className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  <Eye className="w-3.5 h-3.5" />
-                  <span>View</span>
-                </button>
-                <a
-                  href={resumeUrl}
-                  download={resumeFileName}
-                  className="flex items-center gap-2 px-3 py-2 bg-white text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-100 transition-colors border border-gray-300"
-                  title={`Download ${resumeFileName}`}
-                >
-                  <Download className="w-3.5 h-3.5" />
-                </a>
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 px-3 py-2 bg-white text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-100 transition-colors border border-gray-300"
-                  disabled={isUploading}
-                >
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>Replace</span>
-                </button>
-                <button
-                  onClick={handleRemoveResume}
-                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                  title="Remove resume"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-gray-900 text-sm">Resume Uploaded</h3>
+                <p className="text-gray-600 text-xs truncate">{resumeFileName}</p>
               </div>
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setIsViewerOpen(true)}
+                className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>View</span>
+              </button>
+              <a
+                href={resumeUrl}
+                download={resumeFileName}
+                className="flex items-center gap-2 px-3 py-2 bg-white text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-100 transition-colors border border-gray-300"
+                title={`Download ${resumeFileName}`}
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download</span>
+              </a>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-2 px-3 py-2 bg-white text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-100 transition-colors border border-gray-300"
+                disabled={isUploading}
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <span>Replace</span>
+              </button>
+              <button
+                onClick={handleRemoveResume}
+                className="flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-xs font-medium"
+                title="Remove resume"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Remove</span>
+              </button>
             </div>
           </div>
 
