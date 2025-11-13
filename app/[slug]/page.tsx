@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 // This page is publicly accessible (no auth required)
-export const revalidate = 60; // ISR: revalidate every 60 seconds
+export const revalidate = 300; // ISR: revalidate every 5 minutes for better performance
 
 interface PageProps {
   params: Promise<{

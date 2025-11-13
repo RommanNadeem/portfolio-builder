@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { supabase } from './supabase';
 import { getCompletePortfolio, convertToLegacyFormat } from './database';
 import { isReservedSlug, isValidSlugFormat, generateSlugFromName } from './reserved-slugs';
@@ -536,10 +537,11 @@ export async function unpublishPortfolio(userId: string): Promise<PublishResult>
 
 /**
  * Get a published portfolio by slug (for public viewing)
+ * Cached per request to avoid redundant database calls
  */
-export async function getPublishedPortfolio(
+export const getPublishedPortfolio = cache(async (
   slug: string | undefined
-): Promise<PortfolioData | null> {
+): Promise<PortfolioData | null> => {
   try {
     if (!slug) {
       console.error('[Publishing] No slug provided');
@@ -552,6 +554,7 @@ export async function getPublishedPortfolio(
       console.log(`[Publishing] 🔍 Looking up published portfolio for slug: "${normalizedSlug}"`);
     }
 
+    // Add caching for better performance (5 minutes cache)
     const { data, error } = await supabase
       .from('published_portfolios')
       .select('published_data')
@@ -588,15 +591,16 @@ export async function getPublishedPortfolio(
     console.error('[Publishing] ❌ Unexpected error:', error);
     return null;
   }
-}
+});
 
 /**
  * Get single career detail (optimized for subpages)
+ * Cached per request to avoid redundant database calls
  */
-export async function getPublishedCareer(
+export const getPublishedCareer = cache(async (
   slug: string,
   careerId: string
-): Promise<{ career: any; portfolioName: string; footerData?: any } | null> {
+): Promise<{ career: any; portfolioName: string; footerData?: any } | null> => {
   try {
     const { data, error } = await supabase
       .from('published_portfolios')
@@ -630,15 +634,16 @@ export async function getPublishedCareer(
     console.error('[Publishing] Error:', error);
     return null;
   }
-}
+});
 
 /**
  * Get single project detail (optimized for subpages)
+ * Cached per request to avoid redundant database calls
  */
-export async function getPublishedProject(
+export const getPublishedProject = cache(async (
   slug: string,
   projectId: string
-): Promise<{ project: any; portfolioName: string; footerData?: any } | null> {
+): Promise<{ project: any; portfolioName: string; footerData?: any } | null> => {
   try {
     const { data, error } = await supabase
       .from('published_portfolios')
@@ -672,7 +677,7 @@ export async function getPublishedProject(
     console.error('[Publishing] Error:', error);
     return null;
   }
-}
+});
 
 /**
  * Get publish status for a user

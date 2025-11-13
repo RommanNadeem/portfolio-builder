@@ -34,6 +34,7 @@ export default async function CareerDetailPage({ params }: PageProps) {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
           <Link
             href={`/${slug}`}
+            prefetch={true}
             className="text-xs sm:text-sm text-gray-600 hover:text-gray-900 transition-colors inline-flex items-center gap-1.5 sm:gap-2 font-medium cursor-pointer"
           >
             <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -96,6 +97,7 @@ export default async function CareerDetailPage({ params }: PageProps) {
         <div className="mt-12 sm:mt-16 pt-6 sm:pt-8 border-t border-gray-200">
           <Link
             href={`/${slug}`}
+            prefetch={true}
             className="inline-flex items-center gap-1.5 sm:gap-2 text-blue-600 hover:text-blue-700 transition-colors font-medium text-sm sm:text-base cursor-pointer"
           >
             <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
