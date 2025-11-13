@@ -105,15 +105,6 @@ export default function ImportPicker({
           </div>
         </div>
       )}
-
-      <div className="text-center">
-        <button
-          onClick={onSkip}
-          className="text-gray-900 hover:text-emerald-600 font-medium transition-colors"
-        >
-          start from scratch
-        </button>
-      </div>
     </div>
   );
 }
