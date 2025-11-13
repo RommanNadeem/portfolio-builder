@@ -856,7 +856,7 @@ export default function OnboardingFlowPage() {
               Hi {data.fullName}
             </p>
             <p className="text-base text-gray-800">
-              Upload your work history to auto-fill, or start from scratch
+              Upload your work history to auto-fill your portfolio
             </p>
           </div>
 
