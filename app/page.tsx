@@ -103,7 +103,7 @@ export default function LandingPage() {
             <motion.div
               animate={{ y: [0, 10, 0] }}
               transition={{ duration: 2, repeat: Infinity }}
-              className="absolute -top-20 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2"
+              className="absolute top-32 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2"
             >
               <div className="text-xs font-medium" style={{ color: '#666666' }}>Scroll</div>
               <ArrowDown className="w-6 h-6" style={{ color: '#111111' }} />
