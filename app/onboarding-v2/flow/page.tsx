@@ -62,6 +62,67 @@ const AVAILABLE_PLATFORMS = [
   { platform: 'Other', icon: 'link' },
 ];
 
+// Smart icon detection from URL
+function detectPlatformIcon(url: string, platform?: string): { platform: string; icon: string } {
+  const lowerUrl = url.toLowerCase();
+  const lowerPlatform = platform?.toLowerCase() || '';
+  
+  // LinkedIn
+  if (lowerUrl.includes('linkedin.com') || lowerPlatform.includes('linkedin')) {
+    return { platform: 'LinkedIn', icon: 'linkedin' };
+  }
+  // GitHub
+  if (lowerUrl.includes('github.com') || lowerPlatform.includes('github')) {
+    return { platform: 'GitHub', icon: 'github' };
+  }
+  // Twitter/X
+  if (lowerUrl.includes('twitter.com') || lowerUrl.includes('x.com') || lowerPlatform.includes('twitter')) {
+    return { platform: 'Twitter', icon: 'twitter' };
+  }
+  // Instagram
+  if (lowerUrl.includes('instagram.com') || lowerPlatform.includes('instagram')) {
+    return { platform: 'Instagram', icon: 'instagram' };
+  }
+  // Dribbble
+  if (lowerUrl.includes('dribbble.com') || lowerPlatform.includes('dribbble')) {
+    return { platform: 'Dribbble', icon: 'palette' };
+  }
+  // Behance
+  if (lowerUrl.includes('behance.net') || lowerPlatform.includes('behance')) {
+    return { platform: 'Behance', icon: 'palette' };
+  }
+  // YouTube
+  if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be') || lowerPlatform.includes('youtube')) {
+    return { platform: 'YouTube', icon: 'youtube' };
+  }
+  // Medium
+  if (lowerUrl.includes('medium.com') || lowerPlatform.includes('medium')) {
+    return { platform: 'Medium', icon: 'edit3' };
+  }
+  // Facebook
+  if (lowerUrl.includes('facebook.com') || lowerPlatform.includes('facebook')) {
+    return { platform: 'Facebook', icon: 'facebook' };
+  }
+  // Email
+  if (lowerUrl.includes('mailto:') || lowerUrl.includes('@') || lowerPlatform.includes('email')) {
+    return { platform: 'Email', icon: 'mail' };
+  }
+  // Phone
+  if (lowerUrl.includes('tel:') || lowerUrl.match(/^\+?[\d\s()-]+$/) || lowerPlatform.includes('phone')) {
+    return { platform: 'Phone', icon: 'phone' };
+  }
+  // Calendar/Scheduling
+  if (lowerUrl.includes('calendly.com') || lowerUrl.includes('cal.com') || lowerPlatform.includes('calendar')) {
+    return { platform: 'Schedule a Call', icon: 'calendar' };
+  }
+  
+  // Default to Website or Other
+  if (platform && platform.trim()) {
+    return { platform: platform, icon: 'link' };
+  }
+  return { platform: 'Website', icon: 'globe' };
+}
+
 export default function OnboardingFlowPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
@@ -237,10 +298,16 @@ export default function OnboardingFlowPage() {
         phone: parsed.phone || '',
         resumeFile: file, // Store file to upload during signup
         resumeFileName: file.name,
-        socialLinks: (parsed.socialLinks || []).map((link: any) => ({
-          ...link,
-          id: link.id || crypto.randomUUID()
-        })),
+        socialLinks: (parsed.socialLinks || []).map((link: any) => {
+          // Smart icon detection from URL
+          const detected = detectPlatformIcon(link.url, link.platform);
+          return {
+            ...link,
+            id: link.id || crypto.randomUUID(),
+            platform: detected.platform,
+            icon: detected.icon
+          };
+        }),
         careerHighlights: (parsed.careerHighlights || []).map((h: any) => ({
           id: h.id || crypto.randomUUID(),
           organization: h.organization,
