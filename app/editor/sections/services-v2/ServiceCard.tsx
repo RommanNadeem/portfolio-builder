@@ -61,7 +61,7 @@ export function ServiceCard({
       canMoveUp={canMoveUp}
       canMoveDown={canMoveDown}
       isDraggable={true}
-      className={`bg-gradient-to-br ${service.is_featured ? 'from-yellow-50 to-orange-50 border-2 border-orange-300' : 'from-white to-purple-50'}`}
+      className={`bg-gradient-to-br ${service.is_featured ? 'from-emerald-50 to-green-50 border-2 border-emerald-300' : 'from-white to-gray-50'}`}
     >
       <div className="space-y-3">
         {/* Icon and Title Row */}
@@ -93,7 +93,7 @@ export function ServiceCard({
             value={service.title}
             onChange={(e) => handleUpdate('title', e.target.value)}
             placeholder="UX Design & Consultation"
-            className="flex-1 px-3 py-2 text-sm font-semibold text-gray-900 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-500"
+            className="thin-input"
           />
 
           {/* Featured Toggle */}
@@ -101,8 +101,8 @@ export function ServiceCard({
             onClick={() => handleUpdate('is_featured', !service.is_featured)}
             className={`p-2 rounded-lg transition-all ${
               service.is_featured 
-                ? 'bg-yellow-400 text-white' 
-                : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                ? 'bg-emerald-600 text-white' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
             title={service.is_featured ? 'Featured service' : 'Mark as featured'}
           >
@@ -112,7 +112,7 @@ export function ServiceCard({
 
         {/* Description */}
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1.5">
+          <label className="thin-label">
             Description
           </label>
           <textarea
@@ -120,42 +120,42 @@ export function ServiceCard({
             onChange={(e) => handleUpdate('description', e.target.value)}
             placeholder="End-to-end UX design services including research, wireframing, prototyping..."
             rows={3}
-            className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none placeholder:text-gray-500"
+            className="thin-textarea"
           />
         </div>
 
         {/* Price and Duration Row */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1.5">
-              Price (Optional)
+            <label className="thin-label">
+              Price <span className="text-gray-600 font-medium">(Optional)</span>
             </label>
             <input
               type="text"
               value={service.price || ''}
               onChange={(e) => handleUpdate('price', e.target.value)}
               placeholder="$500"
-              className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-500"
+              className="thin-input"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1.5">
-              Duration (Optional)
+            <label className="thin-label">
+              Duration <span className="text-gray-600 font-medium">(Optional)</span>
             </label>
             <input
               type="text"
               value={service.duration || ''}
               onChange={(e) => handleUpdate('duration', e.target.value)}
               placeholder="2 weeks"
-              className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-500"
+              className="thin-input"
             />
           </div>
         </div>
 
         {/* Features */}
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1.5">
-            Features (Optional)
+          <label className="thin-label">
+            Features <span className="text-gray-600 font-medium">(Optional)</span>
           </label>
           <div className="space-y-2">
             {(service.features || []).map((feature, index) => (
@@ -165,20 +165,20 @@ export function ServiceCard({
                   value={feature}
                   onChange={(e) => handleUpdateFeature(index, e.target.value)}
                   placeholder="Feature or benefit..."
-                  className="flex-1 px-3 py-1.5 text-sm text-gray-900 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-500"
+                  className="thin-input"
                 />
                 <button
                   onClick={() => handleRemoveFeature(index)}
-                  className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  className="thin-icon-btn thin-icon-btn-danger"
                   title="Remove feature"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4 text-gray-700 hover:text-red-600" />
                 </button>
               </div>
             ))}
             <button
               onClick={handleAddFeature}
-              className="w-full flex items-center justify-center gap-2 px-3 py-1.5 bg-white border border-dashed border-gray-300 text-gray-600 text-xs rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all"
+              className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg border-2 border-dashed border-gray-300 text-gray-700 hover:bg-emerald-50 hover:border-emerald-500 transition-all"
             >
               <Plus className="w-3 h-3" />
               <span>Add Feature</span>
@@ -189,27 +189,27 @@ export function ServiceCard({
         {/* CTA Button */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1.5">
-              Button Text (Optional)
+            <label className="thin-label">
+              Button Text <span className="text-gray-600 font-medium">(Optional)</span>
             </label>
             <input
               type="text"
               value={service.cta_text || ''}
               onChange={(e) => handleUpdate('cta_text', e.target.value)}
               placeholder="Book Now"
-              className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-500"
+              className="thin-input"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1.5">
-              Button URL (Optional)
+            <label className="thin-label">
+              Button URL <span className="text-gray-600 font-medium">(Optional)</span>
             </label>
             <input
               type="url"
               value={service.cta_url || ''}
               onChange={(e) => handleUpdate('cta_url', e.target.value)}
               placeholder="https://calendly.com/..."
-              className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-500"
+              className="thin-input"
             />
           </div>
         </div>

@@ -46,20 +46,17 @@ export function usePortfolioData() {
     
     const loadData = async () => {
       try {
-        console.log('[Editor Debug] Starting to load portfolio data...');
-        
         // STEP 1: Try localStorage first for instant display
         const cachedData = localStorage.getItem('portfolioData');
         if (cachedData) {
           try {
             const parsed = JSON.parse(cachedData);
-            console.log('[Editor Debug] ⚡ Loaded from localStorage (instant)');
             if (isMounted) {
               setPortfolio(parsed);
               setLoading(false); // Hide loading immediately
             }
           } catch (e) {
-            console.warn('[Editor Debug] Failed to parse localStorage data');
+            // Ignore parse errors
           }
         }
 
@@ -67,43 +64,33 @@ export function usePortfolioData() {
         const user = await getCurrentUser();
         
         if (!user) {
-          console.log('[Editor Debug] No user found, redirecting to signin');
           router.push('/signin');
           return;
         }
 
-        console.log('[Editor Debug] User found:', user.id);
         if (!isMounted) return;
         setCurrentUserId(user.id);
         
         const { data: portfolioData, error: dbError } = await getCompletePortfolio(user.id);
         
         if (dbError) {
-          console.error('[Editor Debug] ⚠️ Database fetch error:', dbError);
-          console.log('[Editor Debug] 💡 Using cached data from localStorage');
-          
           // If we have cached data, continue using it (offline mode)
           if (cachedData) {
-            console.log('[Editor Debug] ✅ Continuing with cached data (offline mode)');
             // Don't set error, don't change loading state
             // User can continue working with cached data
             return;
           }
           
           // No cached data and database failed - this is a real error
-          console.error('[Editor Debug] ❌ No cached data available, cannot continue');
           setError('Failed to load portfolio: ' + dbError);
           setLoading(false);
           return;
         }
         
         if (!portfolioData) {
-          console.log('[Editor Debug] No portfolio data found, redirecting to onboarding');
           router.push('/onboarding-v2/start');
           return;
         }
-
-        console.log('[Editor Debug] Raw portfolio data from Supabase:', portfolioData);
         
         const parsedData = convertToLegacyFormat(portfolioData);
         
@@ -144,7 +131,6 @@ export function usePortfolioData() {
           const dbCareerCount = parsedData.careerHighlights?.length || 0;
           
           if (dbCareerCount === 0 && cachedCareerCount > 0) {
-            console.warn('[Editor Debug] ⚠️ Database has no career highlights but localStorage does. Keeping localStorage data to prevent data loss.');
             // Use localStorage data instead
             if (!isMounted) return;
             setPortfolio(cached);
@@ -156,15 +142,12 @@ export function usePortfolioData() {
         if (!isMounted) return;
         setPortfolio(parsedData);
         localStorage.setItem('portfolioData', JSON.stringify(parsedData));
-        console.log('[Editor Debug] ✅ Portfolio loaded from database and cached');
       } catch (err) {
-        console.error('[Editor Debug] ❌ Error loading portfolio:', err);
         if (!isMounted) return;
         setError('Failed to load portfolio: ' + (err as Error).message);
       } finally {
         if (!isMounted) return;
         setLoading(false);
-        console.log('[Editor Debug] Loading complete');
       }
     };
 
@@ -273,30 +256,21 @@ export function usePortfolioData() {
   // Save to database
   const savePortfolio = async (updatedPortfolio: PortfolioData) => {
     if (!currentUserId) {
-      console.warn('[usePortfolioData] No user ID - cannot save');
       return { error: 'No user ID' };
     }
-
-    console.log('[usePortfolioData] 💾 Saving portfolio to database for user:', currentUserId);
-    console.log('[usePortfolioData] Social links count:', updatedPortfolio.socialLinks?.length || 0);
-    console.log('[usePortfolioData] Social links data:', updatedPortfolio.socialLinks);
 
     try {
       // Save to localStorage
       localStorage.setItem('portfolioData', JSON.stringify(updatedPortfolio));
-      console.log('[usePortfolioData] ✅ Saved to localStorage');
       
       // Save to Supabase
       const result = await saveCompletePortfolio(currentUserId, updatedPortfolio);
       if (result.error) {
-        console.error('[usePortfolioData] ❌ Database save error:', result.error);
         return { error: result.error };
       }
       
-      console.log('[usePortfolioData] ✅ Successfully saved to Supabase database');
       return { success: true };
     } catch (err) {
-      console.error('[usePortfolioData] ❌ Save failed:', err);
       return { error: err };
     }
   };

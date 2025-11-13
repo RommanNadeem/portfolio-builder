@@ -224,7 +224,12 @@ export function SlugCreationView({ userId, currentSlug, onSlugClaimed }: SlugCre
       <button
         onClick={handleClaim}
         disabled={!isValid || claiming}
-        className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-semibold text-sm flex items-center justify-center gap-2"
+        className="w-full px-6 py-3 text-sm font-semibold rounded-full transition-all hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2"
+        style={{ 
+          background: (!isValid || claiming) ? '' : 'white', 
+          border: '2px solid #111111', 
+          color: '#111111' 
+        }}
       >
         {claiming ? (
           <>

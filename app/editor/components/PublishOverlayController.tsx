@@ -66,39 +66,66 @@ export function PublishOverlayController({
 
   const handleSlugClaimed = async (slug: string) => {
     try {
+      console.log('[PublishOverlay] Claiming slug:', slug);
+      
       // Claim the slug
       const result = await claimSlug(userId, slug);
       
       if (!result.success) {
         console.error('[PublishOverlay] Failed to claim slug:', result.error);
+        alert(result.error || 'Failed to claim URL. Please try another.');
         return;
       }
 
+      console.log('[PublishOverlay] Slug claimed successfully:', result);
+
       // Update state and transition to status view
+      // Note: We pass the slug directly to publishPortfolio() to avoid race conditions
+      // So we don't need strict verification here
       setCurrentSlug(slug);
       setPortfolioUrl(result.url || '');
       setPublishButtonState('ready');
       setView('status');
     } catch (error) {
       console.error('[PublishOverlay] Error claiming slug:', error);
+      alert('An error occurred while claiming your URL. Please try again.');
     }
   };
 
   const handlePublish = async () => {
     if (publishButtonState === 'loading') return;
 
+    // Safety check: Ensure slug exists before publishing
+    if (!currentSlug) {
+      console.error('[PublishOverlay] No slug available, cannot publish');
+      alert('Please claim your portfolio URL first');
+      setView('slug');
+      return;
+    }
+
     setPublishButtonState('loading');
 
     try {
       console.log('[PublishOverlay] Publishing portfolio...', {
         userId,
+        currentSlug,
         portfolioDataKeys: Object.keys(portfolioData),
       });
 
-      const result = await publishPortfolio(userId, portfolioData);
+      // Pass the slug directly to avoid race condition where DB query doesn't see the just-saved slug
+      const result = await publishPortfolio(userId, portfolioData, currentSlug || undefined);
 
       if (!result.success) {
         console.error('[PublishOverlay] Publish failed:', result.error);
+        
+        // If slug is missing, redirect back to slug creation
+        if (result.error?.includes('portfolio URL')) {
+          alert(result.error);
+          setView('slug');
+          setPublishButtonState('ready');
+          return;
+        }
+        
         setPublishButtonState('error');
         setTimeout(() => {
           setPublishButtonState(isPublished ? 'update' : 'ready');
@@ -109,6 +136,11 @@ export function PublishOverlayController({
       // Success! Transition through states
       setPublishButtonState('published');
       setIsPublished(true);
+      
+      // Update URL if it changed
+      if (result.url) {
+        setPortfolioUrl(result.url);
+      }
       
       // Auto-transition to update state after 2 seconds
       setTimeout(() => {

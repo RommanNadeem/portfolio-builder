@@ -19,8 +19,8 @@ export function NavigationEditor({ isExpanded, data, onChange }: NavigationEdito
 
   return (
     <div className="space-y-3">
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-        <p className="text-xs font-medium text-blue-900">
+      <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+        <p className="text-xs font-semibold text-gray-900" style={{ color: '#111111' }}>
           ℹ️ The navigation bar appears at the top of your portfolio and links to different sections.
         </p>
       </div>

@@ -63,7 +63,8 @@ export function ResumeViewer({ isOpen, onClose, resumeUrl, fileName }: ResumeVie
           <div className="flex items-center gap-2">
             <button
               onClick={handleDownload}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg transition-colors"
+              style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
             >
               <Download className="w-4 h-4" />
               <span>Download</span>

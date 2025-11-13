@@ -108,10 +108,10 @@ export function ServicesSection({
         <div id="services" className={`w-full ${isMobile ? 'mb-6' : 'mb-12 sm:mb-16 lg:mb-20'}`}>
           {/* Section Header */}
           <div className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-8'}`}>
-            <div className={`rounded-lg bg-cyan-100 flex items-center justify-center ${
+            <div className={`rounded-lg bg-emerald-100 flex items-center justify-center ${
               isMobile ? 'w-6 h-6' : 'w-8 h-8'
             }`}>
-              <Package className={isMobile ? 'w-3.5 h-3.5 text-cyan-600' : 'w-5 h-5 text-cyan-600'} />
+              <Package className={isMobile ? 'w-3.5 h-3.5 text-emerald-600' : 'w-5 h-5 text-emerald-600'} />
             </div>
             <h2 className={`font-bold text-gray-900 ${
               isMobile ? 'text-lg' : 'text-3xl'
@@ -119,10 +119,10 @@ export function ServicesSection({
           </div>
           
           {/* Empty State */}
-          <div className={`bg-cyan-50 border-2 border-dashed border-cyan-200 rounded-xl flex flex-col items-center justify-center ${
+          <div className={`bg-emerald-50 border-2 border-dashed border-emerald-200 rounded-xl flex flex-col items-center justify-center ${
             isMobile ? 'p-6' : 'p-8'
           }`}>
-            <Package className={`text-cyan-300 ${isMobile ? 'w-10 h-10 mb-2' : 'w-12 h-12 mb-3'}`} />
+            <Package className={`text-emerald-700 ${isMobile ? 'w-10 h-10 mb-2' : 'w-12 h-12 mb-3'}`} />
             <p className={`text-gray-600 mb-3 text-center ${isMobile ? 'text-sm' : 'text-base'}`}>
               No services added yet
             </p>
@@ -131,7 +131,7 @@ export function ServicesSection({
                 handleAdd();
                 onScrollToSection?.('services');
               }}
-              className={`flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white font-medium rounded-lg hover:bg-cyan-700 transition-colors ${
+              className={`flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors ${
                 isMobile ? 'text-xs' : 'text-sm'
               }`}
             >
@@ -147,10 +147,10 @@ export function ServicesSection({
       <div id="services" className={`w-full ${isMobile ? 'mb-6' : 'mb-12 sm:mb-16 lg:mb-20'}`}>
         {/* Section Header */}
         <div className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-8'}`}>
-          <div className={`rounded-lg bg-cyan-100 flex items-center justify-center ${
+          <div className={`rounded-lg bg-emerald-100 flex items-center justify-center ${
             isMobile ? 'w-6 h-6' : 'w-8 h-8'
           }`}>
-            <Package className={isMobile ? 'w-3.5 h-3.5 text-cyan-600' : 'w-5 h-5 text-cyan-600'} />
+            <Package className={isMobile ? 'w-3.5 h-3.5 text-emerald-600' : 'w-5 h-5 text-emerald-600'} />
           </div>
           <h2 className={`font-bold text-gray-900 ${
             isMobile ? 'text-lg' : 'text-3xl'
@@ -174,7 +174,7 @@ export function ServicesSection({
               {/* Featured Badge */}
               {service.is_featured && (
                 <div className="absolute top-3 right-3">
-                  <div className="bg-yellow-400 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                  <div className="bg-emerald-600 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
                     <Star className="w-3 h-3 fill-current" />
                     <span>Featured</span>
                   </div>
@@ -193,7 +193,7 @@ export function ServicesSection({
 
               {/* Price and Duration */}
               {(service.price || service.duration) && (
-                <div className={`flex items-center gap-2 text-cyan-600 font-medium ${
+                <div className={`flex items-center gap-2 text-emerald-600 font-medium ${
                   isMobile ? 'text-xs mb-2' : 'text-sm mb-3'
                 }`}>
                   {service.price && <span>{service.price}</span>}
@@ -214,7 +214,7 @@ export function ServicesSection({
                     <li key={idx} className={`flex items-start gap-2 text-gray-700 ${
                       isMobile ? 'text-xs' : 'text-sm'
                     }`}>
-                      <span className="flex-shrink-0 text-cyan-500 mt-0.5">✓</span>
+                      <span className="flex-shrink-0 text-emerald-500 mt-0.5">✓</span>
                       <span>{feature}</span>
                     </li>
                   ))}
@@ -227,7 +227,7 @@ export function ServicesSection({
                   href={service.cta_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`inline-flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors font-medium ${
+                  className={`inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium ${
                     isMobile ? 'text-xs' : 'text-sm'
                   }`}
                 >
@@ -265,18 +265,19 @@ export function ServicesSection({
       {currentServices.length === 0 ? (
         <button
           onClick={handleAdd}
-          className="w-full flex flex-col items-center justify-center gap-2 px-4 py-8 bg-white border-2 border-dashed border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all"
+          className="w-full flex flex-col items-center justify-center gap-2 px-4 py-8 bg-white border-2 border-dashed border-gray-300 text-gray-700 rounded-xl hover:bg-emerald-50 hover:border-emerald-500 hover:text-gray-900 transition-all"
         >
-          <Package className="w-12 h-12 text-cyan-300 mb-1" />
+          <Package className="w-12 h-12 text-emerald-700 mb-1" />
           <div className="text-center">
-            <p className="font-medium">No services yet</p>
+            <p className="font-semibold text-gray-900">No services yet</p>
             <p className="text-sm text-gray-500">Click to add your first service</p>
           </div>
         </button>
       ) : (
         <button
           onClick={handleAdd}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-white border-2 border-dashed border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg"
+          style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
         >
           <Plus className="w-4 h-4" />
           <span>Add Service</span>

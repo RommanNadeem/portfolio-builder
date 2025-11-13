@@ -17,17 +17,12 @@ import {
 
 export default function LandingPage() {
   const heroRef = useRef(null);
-  const transformRef = useRef(null);
   
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"]
   });
 
-  const { scrollYProgress: transformProgress } = useScroll({
-    target: transformRef,
-    offset: ["start end", "end start"]
-  });
 
   // Resume falls down
   const resumeY = useTransform(scrollYProgress, [0, 0.5], [0, 300]);
@@ -43,88 +38,77 @@ export default function LandingPage() {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg" style={{ background: '#0A7C61' }} />
-            <span className="text-lg font-bold" style={{ color: '#111111' }}>Portfolio Builder</span>
-            </div>
-          
+          <div className="flex items-center gap-3">
+              <img src="/icon.svg" alt="BuildSpace Icon" className="h-8" />
+            <img src="/logo.svg" alt="BuildSpace" className="h-8" />
+      </div>
+
           <div className="hidden md:flex items-center gap-6 text-sm font-medium">
             <a href="#story" className="hover:opacity-70 transition-opacity" style={{ color: '#111111' }}>Your Story</a>
-            <a href="#features" className="hover:opacity-70 transition-opacity" style={{ color: '#111111' }}>Features</a>
+            <a href="#templates" className="hover:opacity-70 transition-opacity" style={{ color: '#111111' }}>Templates</a>
+            <a href="#examples" className="hover:opacity-70 transition-opacity" style={{ color: '#111111' }}>Examples</a>
+            <a href="#pricing" className="hover:opacity-70 transition-opacity" style={{ color: '#111111' }}>Pricing</a>
             <a href="#faq" className="hover:opacity-70 transition-opacity" style={{ color: '#111111' }}>FAQ</a>
           </div>
 
           <Link
             href="/onboarding-v2/start"
-            className="px-5 py-2.5 text-white text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg"
-            style={{ background: '#0A7C61' }}
+            className="px-5 py-2.5 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg"
+            style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
           >
-            Get Started
+            Build Your Story
           </Link>
         </div>
       </nav>
 
       {/* Hero Section - Centered with Scroll Animation */}
       <section ref={heroRef} className="relative min-h-[150vh] pt-32 pb-64 overflow-hidden">
-        <div className="max-w-4xl mx-auto px-6 text-center">
+        <div className="max-w-6xl mx-auto px-6 text-center">
           {/* Main headline - centered */}
               <motion.div
             initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="mb-16"
+            className="mb-12"
           >
-            <div className="inline-block px-6 py-2 rounded-full text-sm font-semibold mb-6" style={{ background: '#DDEAFF', color: '#111111' }}>
-              <Sparkles className="w-4 h-4 inline mr-2" />
-              One portfolio for all your work
-            </div>
-            
-            <h1 className="text-7xl md:text-8xl font-black mb-8 leading-none tracking-tight" style={{ color: '#111111' }}>
-              Your Resume<br />
-              → Your Story
-            </h1>
-
-            <p className="text-3xl md:text-4xl font-medium mb-12 leading-tight" style={{ color: '#111111' }}>
-              Upload your resume.<br />
-              Get your portfolio in 60 seconds.
+            <h1 className="text-7xl md:text-8xl font-black mb-6 leading-none tracking-tight max-w-5xl mx-auto" style={{ color: '#111111' }}>
+              Turn your experience<br />
+              Into Story
+                </h1>
+                
+            <p className="text-2xl md:text-3xl font-medium mb-8 leading-tight" style={{ color: '#111111' }}>
+              Upload your work history.<br />
+              Get a narrative portfolio in 60 seconds.
             </p>
 
             {/* CTA */}
             <Link
               href="/onboarding-v2/start"
-              className="inline-flex items-center gap-3 px-8 py-5 text-white text-lg font-semibold rounded-full transition-all shadow-xl hover:shadow-2xl hover:scale-105 mb-8"
-              style={{ background: '#0A7C61' }}
+              className="inline-flex items-center gap-3 px-8 py-5 text-lg font-semibold rounded-full transition-all shadow-xl hover:shadow-2xl hover:scale-105 mb-4"
+              style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
             >
-              <Upload className="w-5 h-5" />
-              Upload Resume
+              Build Your Story
             </Link>
 
-            <div className="flex justify-center items-center gap-6 text-sm mb-20" style={{ color: '#666666' }}>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4" style={{ color: '#0A7C61' }} />
-                Free to start
-                          </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4" style={{ color: '#0A7C61' }} />
-                No credit card
-                          </div>
+            <div className="text-sm mb-16" style={{ color: '#666666' }}>
+              PDF or DOCX. We extract roles, outcomes, and dates.
                         </div>
-                      </motion.div>
-
-          {/* Scroll indicator */}
-                      <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="flex flex-col items-center gap-2"
-          >
-            <span className="text-sm font-medium" style={{ color: '#666666' }}>Watch the magic</span>
-            <ArrowDown className="w-5 h-5" style={{ color: '#111111' }} />
           </motion.div>
                         </div>
 
         {/* Scroll Animation: Resume → Portfolio */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="relative w-full max-w-2xl">
+            {/* Scroll indicator above resume */}
+            <motion.div
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="absolute -top-20 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2"
+            >
+              <div className="text-xs font-medium" style={{ color: '#666666' }}>Scroll</div>
+              <ArrowDown className="w-6 h-6" style={{ color: '#111111' }} />
+            </motion.div>
+
             {/* Resume falling */}
                       <motion.div
               style={{ y: resumeY, rotate: resumeRotate, scale: resumeScale }}
@@ -132,14 +116,14 @@ export default function LandingPage() {
             >
               <div className="w-64 h-80 bg-white rounded-2xl shadow-2xl border-2 border-gray-200 p-8">
                 <div className="flex items-center gap-3 mb-4">
-                  <FileText className="w-8 h-8" style={{ color: '#0A7C61' }} />
-                  <div className="text-sm font-bold" style={{ color: '#111111' }}>Resume.pdf</div>
+                  <FileText className="w-8 h-8" style={{ color: '#5BC64A' }} />
+                  <div className="text-sm font-bold" style={{ color: '#111111' }}>updated-resume-final(2).pdf</div>
                 </div>
                 <div className="space-y-2">
-                  {[...Array(8)].map((_, i) => (
+                  {[85, 92, 78, 95, 88, 90, 82, 87].map((width, i) => (
                     <div key={i} className="h-2 rounded" style={{ 
                       background: '#F5F5F5',
-                      width: `${60 + Math.random() * 40}%` 
+                      width: `${width}%` 
                     }} />
                   ))}
                   </div>
@@ -170,7 +154,7 @@ export default function LandingPage() {
                 <div className="p-8" style={{ background: '#FFFFFF' }}>
                   <div className="w-16 h-16 rounded-full mb-4" style={{ background: 'linear-gradient(135deg, #DDEAFF, #FEE7EB)' }} />
                   <div className="h-6 rounded mb-2" style={{ background: '#111111', width: '60%' }} />
-                  <div className="h-4 rounded mb-4" style={{ background: '#0A7C61', width: '40%' }} />
+                  <div className="h-4 rounded mb-4" style={{ background: '#5BC64A', width: '40%' }} />
                   <div className="space-y-2">
                     <div className="h-2 rounded" style={{ background: '#F5F5F5', width: '100%' }} />
                     <div className="h-2 rounded" style={{ background: '#F5F5F5', width: '85%' }} />
@@ -182,8 +166,8 @@ export default function LandingPage() {
           </div>
         </section>
 
-      {/* Story Section */}
-      <section ref={transformRef} id="story" className="relative py-32 px-6" style={{ background: '#FEE7EB' }}>
+      {/* How It Works Section */}
+      <section id="story" className="relative py-32 px-6">
           <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -192,105 +176,312 @@ export default function LandingPage() {
             transition={{ duration: 0.8 }}
             className="text-center mb-20"
           >
-            <div className="inline-block px-6 py-2 rounded-full text-sm font-semibold mb-6" style={{ background: '#FFF5B8', color: '#111111' }}>
-              Your data becomes your story
-            </div>
-            
             <h2 className="text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
-              Turn experience<br />
-              into narrative
+              How It Works
             </h2>
-            
-            <p className="text-2xl max-w-3xl mx-auto" style={{ color: '#111111' }}>
-              We transform resume bullets into compelling case studies with quantifiable metrics. 
-              Your story becomes your brand.
-            </p>
           </motion.div>
 
-          {/* Before vs After */}
-          <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
-            {/* Before - Bullets */}
+          {/* 3 Steps */}
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12">
+            {[
+              {
+                step: '1',
+                title: 'Upload Your Career Profile',
+                desc: 'PDF or DOCX. Roles, dates, outcomes extracted.',
+                bg: '#DDEAFF',
+                icon: Upload
+              },
+              {
+                step: '2',
+                title: 'Review Your Story',
+                desc: 'Clear case studies with one key metric.',
+                bg: '#FEE7EB',
+                icon: Sparkles
+              },
+              {
+                step: '3',
+                title: 'Publish On Your Domain',
+                desc: 'Get a free personalized URL. Share a link that wins replies under a minute.',
+                bg: '#FFF5B8',
+                icon: Globe
+              }
+            ].map((item, idx) => {
+              const Icon = item.icon;
+              return (
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="bg-white rounded-3xl p-8 border-2 border-gray-200"
-            >
-              <div className="text-sm font-bold mb-6 px-4 py-2 rounded-full inline-block" style={{ background: '#F5F5F5', color: '#111111' }}>
-                Before
-              </div>
-              <div className="space-y-3">
-                {[
-                  'Led product initiatives',
-                  'Worked with teams',
-                  'Improved metrics',
-                  'Launched features'
-                ].map((bullet, idx) => (
-                  <div key={idx} className="flex items-start gap-3" style={{ color: '#111111' }}>
-                    <span className="text-gray-400 mt-1">•</span>
-                    <span>{bullet}</span>
+                  transition={{ delay: idx * 0.15 }}
+                  className="rounded-3xl p-8 border-2"
+                  style={{ background: item.bg, borderColor: item.bg }}
+                >
+                  <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-white mb-6 mx-auto border-2 border-gray-200">
+                    <Icon className="w-8 h-8" style={{ color: '#111111' }} />
                   </div>
-                ))}
+                  <h3 className="text-2xl font-black mb-4 text-center" style={{ color: '#111111' }}>
+                    {item.title}
+                  </h3>
+                  <p className="text-center text-lg" style={{ color: '#111111' }}>
+                    {item.desc}
+                  </p>
+                </motion.div>
+              );
+            })}
               </div>
-            </motion.div>
 
-            {/* After - Story */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="rounded-3xl p-8 border-2" style={{ background: '#DDEAFF', borderColor: '#DDEAFF' }}
+          {/* Inline CTA */}
+          <div className="text-center">
+            <Link
+              href="/onboarding-v2/start"
+              className="inline-flex items-center gap-3 px-8 py-4 text-lg font-semibold rounded-full transition-all shadow-xl hover:shadow-2xl hover:scale-105"
+              style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
             >
-              <div className="text-sm font-bold mb-6 px-4 py-2 rounded-full inline-block" style={{ background: '#0A7C61', color: 'white' }}>
-                After
-              </div>
-              <h3 className="text-2xl font-bold mb-4" style={{ color: '#111111' }}>
-                Mobile Growth Initiative
-              </h3>
-              <p className="mb-6" style={{ color: '#111111' }}>
-                Led a 6-month transformation that reimagined the mobile experience, collaborating with design and engineering teams.
-              </p>
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { value: '+47%', label: 'Engagement' },
-                  { value: '2.3M', label: 'Users' },
-                  { value: '35%', label: 'Adoption' }
-                ].map((metric, idx) => (
-                  <div key={idx} className="rounded-xl p-3 text-center" style={{ background: 'white' }}>
-                    <div className="text-xl font-black mb-1" style={{ color: '#0A7C61' }}>{metric.value}</div>
-                    <div className="text-xs" style={{ color: '#111111' }}>{metric.label}</div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
+              Build Your Story
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Features - Simple, Convenient, Connected */}
-      <section id="features" className="py-32 px-6">
+      {/* Live Builder Preview Section */}
+      <section className="relative py-32 px-6" style={{ background: '#F5F5F5' }}>
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-20"
+          >
+            <h2 className="text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
+              See It Build In Real Time
+            </h2>
+            <p className="text-2xl max-w-3xl mx-auto" style={{ color: '#111111' }}>
+              Watch your sections assemble as you upload.
+            </p>
+          </motion.div>
+
+          {/* Preview Steps */}
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-12">
             {[
-              { 
-                icon: Upload, 
-                label: 'Simple', 
-                desc: 'Focus on your story, not design.',
-                bg: '#FFF5B8'
+              {
+                label: 'Pick a layout',
+                icon: BarChart3,
+                color: '#DDEAFF'
+              },
+              {
+                label: 'Edit a headline',
+                icon: FileText,
+                color: '#FEE7EB'
+              },
+              {
+                label: 'Add one result',
+                icon: TrendingUp,
+                color: '#E5F8D6'
+              }
+            ].map((item, idx) => {
+              const Icon = item.icon;
+              return (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="bg-white rounded-3xl p-8 border-2 border-gray-200 hover:shadow-lg transition-all cursor-pointer"
+                >
+                  <div className="flex items-center justify-center w-12 h-12 rounded-2xl mb-4 mx-auto" style={{ background: item.color }}>
+                    <Icon className="w-6 h-6" style={{ color: '#111111' }} />
+                  </div>
+                  <p className="text-xl font-bold text-center" style={{ color: '#111111' }}>
+                    {item.label}
+                  </p>
+                </motion.div>
+              );
+            })}
+            </div>
+
+          {/* Inline CTA */}
+          <div className="text-center">
+            <Link
+              href="/onboarding-v2/start"
+              className="inline-flex items-center gap-3 px-8 py-4 text-lg font-semibold rounded-full transition-all shadow-xl hover:shadow-2xl hover:scale-105"
+              style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
+            >
+              Build Your Story
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Before To After Section */}
+      <section id="examples" className="py-32 px-6" style={{ background: '#FEE7EB' }}>
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-20"
+          >
+            <h2 className="text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
+              From Bullets To Case Studies
+            </h2>
+            <p className="text-2xl max-w-3xl mx-auto" style={{ color: '#111111' }}>
+              We turn raw bullets into clear stories with proof.
+            </p>
+          </motion.div>
+
+          {/* Carousel Results */}
+          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto mb-12">
+            {[
+              { metric: 'Response rate up 42% in 30 days', bg: '#DDEAFF' },
+              { metric: 'Two client intros in seven days', bg: '#FFF5B8' },
+              { metric: 'Profile views up 55% in 14 days', bg: '#E5F8D6' }
+            ].map((item, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className="rounded-3xl p-8 border-2"
+                style={{ background: item.bg, borderColor: item.bg }}
+              >
+                <div className="flex items-center justify-center h-32">
+                  <p className="text-2xl font-black text-center" style={{ color: '#111111' }}>
+                    {item.metric}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Inline CTA */}
+          <div className="text-center">
+            <Link
+              href="/onboarding-v2/start"
+              className="inline-flex items-center gap-3 px-8 py-4 text-lg font-semibold rounded-full transition-all shadow-xl hover:shadow-2xl hover:scale-105"
+              style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
+            >
+              Build Your Story
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Templates For Your Role Section */}
+      <section id="templates" className="py-32 px-6">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
+              Templates For Your Role
+            </h2>
+            <p className="text-2xl max-w-3xl mx-auto mb-8" style={{ color: '#111111' }}>
+              Pick a starting point. Customize every block.
+            </p>
+          </motion.div>
+
+          {/* Filters */}
+          <div className="flex flex-wrap justify-center gap-3 mb-12">
+            {['Product', 'Design', 'Engineering', 'Marketing', 'Data'].map((filter, idx) => (
+              <motion.button
+                key={idx}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.05 }}
+                className="px-6 py-3 rounded-full text-sm font-semibold transition-all hover:shadow-md"
+                style={{ background: '#F5F5F5', color: '#111111', border: '2px solid #E5E5E5' }}
+              >
+                {filter}
+              </motion.button>
+            ))}
+          </div>
+
+          {/* Template Tiles */}
+          <div className="grid md:grid-cols-3 gap-6 mb-12">
+            {[
+              { name: 'Product Manager', sections: 'Hero, Projects, Metrics', tone: 'Data-driven', bg: '#DDEAFF' },
+              { name: 'Designer', sections: 'Hero, Portfolio, Process', tone: 'Visual-first', bg: '#FEE7EB' },
+              { name: 'Engineer', sections: 'Hero, Projects, Tech Stack', tone: 'Technical', bg: '#FFF5B8' },
+              { name: 'Marketer', sections: 'Hero, Campaigns, Results', tone: 'Results-focused', bg: '#E5F8D6' },
+              { name: 'Data Analyst', sections: 'Hero, Insights, Methods', tone: 'Analytical', bg: '#DDEAFF' },
+              { name: 'Content Creator', sections: 'Hero, Work, Impact', tone: 'Story-driven', bg: '#FEE7EB' }
+            ].map((template, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.08 }}
+                className="bg-white rounded-3xl p-8 border-2 border-gray-200 hover:shadow-xl transition-all cursor-pointer group"
+              >
+                <div className="w-full h-32 rounded-2xl mb-6" style={{ background: template.bg }} />
+                <h3 className="text-xl font-black mb-3" style={{ color: '#111111' }}>{template.name}</h3>
+                <div className="space-y-2 text-sm" style={{ color: '#666666' }}>
+                  <p><span className="font-semibold">Sections:</span> {template.sections}</p>
+                  <p><span className="font-semibold">Tone:</span> {template.tone}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Inline CTA */}
+          <div className="text-center">
+            <Link
+              href="/onboarding-v2/start"
+              className="inline-flex items-center gap-3 px-8 py-4 text-lg font-semibold rounded-full transition-all shadow-xl hover:shadow-2xl hover:scale-105"
+              style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
+            >
+              Build Your Story
+            </Link>
+            </div>
+          </div>
+        </section>
+
+      {/* Everything You Need */}
+      <section className="py-32 px-6" style={{ background: '#F5F5F5' }}>
+          <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
+              Everything You Need
+              </h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+              {[
+                {
+                  icon: Upload,
+                title: 'Instant Portfolio Generation', 
+                desc: 'Upload, review, publish under a minute.'
               },
               { 
                 icon: Sparkles, 
-                label: 'Convenient', 
-                desc: 'One portfolio for your entire career.',
-                bg: '#FEE7EB'
+                title: 'AI Generated Case Studies', 
+                desc: 'Outcomes, timelines, stakeholders, and a key metric.'
               },
               { 
-                icon: Globe, 
-                label: 'Connected', 
-                desc: 'Share everywhere, update once.',
-                bg: '#DDEAFF'
+                icon: BarChart3, 
+                title: 'Data Driven Templates', 
+                desc: 'Layouts tuned from real usage. Updated regularly.'
+              },
+              { 
+                icon: TrendingUp, 
+                title: 'Built To Convert', 
+                desc: 'Fast load, clear actions, real domain support.'
+              },
+              { 
+                icon: RefreshCw, 
+                title: 'Build With Blocks', 
+                desc: 'Add only what you need. No token limits. Unlimited edits.'
               }
             ].map((feature, idx) => {
               const Icon = feature.icon;
@@ -301,14 +492,15 @@ export default function LandingPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.1 }}
-                  className="rounded-3xl p-8 border-2"
-                  style={{ background: feature.bg, borderColor: feature.bg }}
+                  className="bg-white rounded-3xl p-8 border-2 border-gray-200 hover:shadow-xl transition-all"
                 >
-                  <div className="flex items-center gap-3 mb-4">
-                    <Icon className="w-6 h-6" style={{ color: '#111111' }} />
-                    <h3 className="text-xl font-bold" style={{ color: '#111111' }}>{feature.label}</h3>
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: '#5BC64A' }}>
+                      <Icon className="w-6 h-6" style={{ color: 'white' }} />
+                    </div>
+                    <h3 className="text-2xl font-black" style={{ color: '#111111' }}>{feature.title}</h3>
                   </div>
-                  <p style={{ color: '#111111' }}>{feature.desc}</p>
+                  <p className="text-lg" style={{ color: '#111111' }}>{feature.desc}</p>
                 </motion.div>
               );
             })}
@@ -316,162 +508,220 @@ export default function LandingPage() {
           </div>
         </section>
 
-      {/* Value Props */}
-      <section className="py-32 px-6" style={{ background: '#F5F5F5' }}>
+      {/* Results That Matter */}
+      <section className="py-32 px-6" style={{ background: '#E5F8D6' }}>
           <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl md:text-6xl font-black mb-6" style={{ color: '#111111' }}>
-              Everything you need
-              </h2>
-            <p className="text-xl" style={{ color: '#111111' }}>
-              Built to help you stand out and close more opportunities
-              </p>
-          </div>
+          <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            className="text-center mb-20"
+          >
+            <h2 className="text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
+              Results That Matter
+            </h2>
+          </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                {
-                  icon: Upload,
-                title: 'Instant portfolio generation', 
-                desc: 'Upload resume. Instantly generate a recruiter-ready, client-ready portfolio.',
-                bg: '#DDEAFF'
-              },
-              { 
-                icon: TrendingUp, 
-                title: 'AI-generated case studies', 
-                desc: 'AI creates case studies with quantifiable metrics from your resume bullets.',
-                bg: '#FEE7EB'
-              },
-              { 
-                icon: BarChart3, 
-                title: 'Data-driven templates', 
-                desc: 'Templates that continually improve based on performance data.',
-                bg: '#FFF5B8'
-              },
-              { 
-                icon: RefreshCw, 
-                title: 'One-click updates', 
-                desc: 'Easy updates. One click edits update every page instantly.',
-                bg: '#E5F8D6'
-              },
-              { 
-                icon: Globe, 
-                title: 'Real domains', 
-                desc: 'No embarrassing subdomains. Use yourname.com for real credibility.',
-                bg: '#DDEAFF'
-              },
-              { 
-                icon: Sparkles, 
-                title: 'Built to convert', 
-                desc: 'Designed to help you stand out and close more leads.',
-                bg: '#FEE7EB'
-              }
-            ].map((feature, idx) => {
-              const Icon = feature.icon;
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12">
+            {[
+              { result: 'More replies', timeframe: 'in seven days', bg: '#DDEAFF' },
+              { result: 'Interviews booked', timeframe: 'in 14 days', bg: '#FFF5B8' },
+              { result: 'Clients closed', timeframe: 'in thirty days', bg: '#FEE7EB' }
+            ].map((item, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className="rounded-3xl p-12 border-2 text-center"
+                style={{ background: item.bg, borderColor: item.bg }}
+              >
+                <div className="text-4xl font-black mb-3" style={{ color: '#111111' }}>{item.result}</div>
+                <div className="text-xl font-semibold" style={{ color: '#111111' }}>{item.timeframe}</div>
+              </motion.div>
+            ))}
+            </div>
+
+          {/* Inline CTA */}
+          <div className="text-center">
+            <Link
+              href="/onboarding-v2/start"
+              className="inline-flex items-center gap-3 px-8 py-4 text-lg font-semibold rounded-full transition-all shadow-xl hover:shadow-2xl hover:scale-105"
+              style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
+            >
+              Build Your Story
+            </Link>
+            </div>
+          </div>
+        </section>
+
+      {/* Domain And SEO */}
+      <section className="py-32 px-6">
+        <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-20"
+          >
+            <h2 className="text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
+              Your Domain From Day One
+              </h2>
+              <p className="text-2xl max-w-3xl mx-auto mb-8" style={{ color: '#111111' }}>
+                Share a clean link with your own slug. No random words.
+              </p>
+              <p className="text-lg max-w-2xl mx-auto" style={{ color: '#666666' }}>
+                Note: Use your own domain when you are ready. Auto SSL.
+              </p>
+            </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-12">
+            {[
+              { step: 'Choose a slug', icon: Globe, bg: '#DDEAFF' },
+              { step: 'Copy your link', icon: Check, bg: '#FFF5B8' },
+              { step: 'Share anywhere', icon: Sparkles, bg: '#E5F8D6' }
+            ].map((item, idx) => {
+              const Icon = item.icon;
               return (
                 <motion.div
                   key={idx}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: idx * 0.08 }}
-                  className="bg-white rounded-3xl p-8 border-2 border-gray-200 hover:shadow-xl transition-all cursor-pointer"
+                  transition={{ delay: idx * 0.1 }}
+                  className="bg-white rounded-3xl p-8 border-2 border-gray-200"
                 >
-                  <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-gray-200">
-                    <Icon className="w-6 h-6" style={{ color: '#111111' }} />
+                  <div className="flex items-center justify-center w-16 h-16 rounded-2xl mx-auto mb-6" style={{ background: item.bg }}>
+                    <Icon className="w-8 h-8" style={{ color: '#111111' }} />
                   </div>
-                  <h3 className="text-xl font-bold mb-3" style={{ color: '#111111' }}>{feature.title}</h3>
-                  <p style={{ color: '#111111' }}>{feature.desc}</p>
+                  <p className="text-xl font-black text-center" style={{ color: '#111111' }}>{item.step}</p>
                 </motion.div>
               );
             })}
-            </div>
+          </div>
+
+          {/* Inline CTA */}
+          <div className="text-center">
+            <Link
+              href="/onboarding-v2/start"
+              className="inline-flex items-center gap-3 px-8 py-4 text-lg font-semibold rounded-full transition-all shadow-xl hover:shadow-2xl hover:scale-105"
+              style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
+            >
+              Build Your Story
+            </Link>
+          </div>
           </div>
         </section>
 
-      {/* 2,500+ roles */}
-      <section className="py-32 px-6" style={{ background: '#E5F8D6' }}>
-          <div className="max-w-7xl mx-auto">
-          <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            className="text-7xl md:text-8xl font-black mb-16 leading-tight"
-            style={{ color: '#111111' }}
+      {/* Privacy And Control */}
+      <section className="py-32 px-6" style={{ background: '#F5F5F5' }}>
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
           >
-            2,500+ roles.<br />
-            One portfolio.
-          </motion.h2>
+            <h2 className="text-5xl md:text-6xl font-black mb-6" style={{ color: '#111111' }}>
+              Your Data, Your Control
+            </h2>
+            <p className="text-2xl mb-6" style={{ color: '#111111' }}>
+              You choose what to store. Delete any time.
+            </p>
+            <a href="#" className="text-lg font-semibold underline hover:opacity-70 transition-opacity" style={{ color: '#111111' }}>
+              Data Policy
+            </a>
+          </motion.div>
+        </div>
+      </section>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-            {[
-              { name: 'PM', color: '#DDEAFF' },
-              { name: 'Design', color: '#FEE7EB' },
-              { name: 'Eng', color: '#FFF5B8' },
-              { name: 'Mktg', color: '#E5F8D6' },
-              { name: 'Sales', color: '#DDEAFF' },
-              { name: 'Content', color: '#FEE7EB' },
-              { name: 'Growth', color: '#FFF5B8' }
-            ].map((role, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.05 }}
-                className="bg-white rounded-2xl p-6 border-2 border-gray-200 text-center hover:shadow-lg transition-all cursor-pointer"
-              >
-                <div className="w-16 h-16 rounded-2xl mx-auto mb-3 flex items-center justify-center text-2xl font-black" style={{ 
-                  background: role.color,
-                  color: '#111111'
-                }}>
-                  {role.name.charAt(0)}
-                </div>
-                <div className="text-sm font-bold" style={{ color: '#111111' }}>{role.name}</div>
-              </motion.div>
-            ))}
-            </div>
-          </div>
-        </section>
+      {/* Pricing */}
+      <section id="pricing" className="py-32 px-6">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-20"
+          >
+            <h2 className="text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
+              Simple Plans Built For You
+            </h2>
+          </motion.div>
 
-      {/* Social Proof */}
-      <section className="py-32 px-6">
-        <div className="max-w-7xl mx-auto text-center">
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-8">
+            {/* Starter Plan */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-          >
-            <div className="inline-block px-6 py-2 rounded-full text-sm font-semibold mb-6" style={{ background: '#FEE7EB', color: '#111111' }}>
-              Join thousands
-            </div>
-            
-            <h2 className="text-7xl md:text-8xl font-black mb-8 leading-tight" style={{ color: '#111111' }}>
-              12,500+<br />
-              professionals<br />
-              trust us
-              </h2>
+              transition={{ delay: 0 }}
+              className="rounded-3xl p-10 border-2"
+              style={{ background: '#DDEAFF', borderColor: '#DDEAFF' }}
+            >
+              <h3 className="text-3xl font-black mb-8" style={{ color: '#111111' }}>Starter</h3>
+              <ul className="space-y-4 mb-8 text-lg" style={{ color: '#111111' }}>
+                <li className="flex items-start gap-3">
+                  <Check className="w-6 h-6 flex-shrink-0 mt-0.5" style={{ color: '#5BC64A' }} />
+                  <span>Generate one portfolio</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="w-6 h-6 flex-shrink-0 mt-0.5" style={{ color: '#5BC64A' }} />
+                  <span>One custom template</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="w-6 h-6 flex-shrink-0 mt-0.5" style={{ color: '#5BC64A' }} />
+                  <span>Connect a domain</span>
+                </li>
+              </ul>
+              <Link
+                href="/onboarding-v2/start"
+                className="block text-center px-8 py-4 text-lg font-semibold rounded-full transition-all shadow-lg hover:shadow-xl hover:scale-105"
+                style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
+              >
+                Build Your Story
+              </Link>
             </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8 mt-16 max-w-5xl mx-auto">
-            {[
-              { metric: '4.9★', label: 'Average rating', bg: '#DDEAFF' },
-              { metric: '48s', label: 'Avg. time to publish', bg: '#FFF5B8' },
-              { metric: '94%', label: 'Better responses', bg: '#E5F8D6' }
-            ].map((stat, idx) => (
+            {/* Pro Plan */}
             <motion.div
-                key={idx}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
-                className="rounded-3xl p-8 border-2"
-                style={{ background: stat.bg, borderColor: stat.bg }}
+              transition={{ delay: 0.1 }}
+              className="rounded-3xl p-10 border-2"
+              style={{ background: '#FEE7EB', borderColor: '#FEE7EB' }}
+            >
+              <h3 className="text-3xl font-black mb-8" style={{ color: '#111111' }}>Pro</h3>
+              <ul className="space-y-4 mb-8 text-lg" style={{ color: '#111111' }}>
+                <li className="flex items-start gap-3">
+                  <Check className="w-6 h-6 flex-shrink-0 mt-0.5" style={{ color: '#5BC64A' }} />
+                  <span>Unlimited case studies</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="w-6 h-6 flex-shrink-0 mt-0.5" style={{ color: '#5BC64A' }} />
+                  <span>All templates and updates</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="w-6 h-6 flex-shrink-0 mt-0.5" style={{ color: '#5BC64A' }} />
+                  <span>Priority support</span>
+                </li>
+              </ul>
+              <Link
+                href="/onboarding-v2/start"
+                className="block text-center px-8 py-4 text-lg font-semibold rounded-full transition-all shadow-lg hover:shadow-xl hover:scale-105"
+                style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
               >
-                <div className="text-5xl font-black mb-2" style={{ color: '#111111' }}>{stat.metric}</div>
-                <div className="text-lg" style={{ color: '#111111' }}>{stat.label}</div>
+                Build Your Story
+              </Link>
             </motion.div>
-            ))}
+          </div>
+
+          <div className="text-center">
+            <p className="text-sm" style={{ color: '#666666' }}>
+              Use your own domain when you are ready.
+            </p>
           </div>
           </div>
         </section>
@@ -480,20 +730,23 @@ export default function LandingPage() {
       <section id="faq" className="py-32 px-6" style={{ background: '#F5F5F5' }}>
           <div className="max-w-3xl mx-auto">
           <div className="text-center mb-16">
-            <div className="inline-block px-6 py-2 rounded-full text-sm font-semibold mb-6" style={{ background: '#FFF5B8', color: '#111111' }}>
-              Questions?
-            </div>
-            <h2 className="text-6xl font-black mb-4" style={{ color: '#111111' }}>
+            <h2 className="text-6xl md:text-7xl font-black mb-4 leading-tight" style={{ color: '#111111' }}>
               FAQ
               </h2>
           </div>
 
             <div className="space-y-4">
               {[
-              { q: 'How do I create my portfolio?', a: 'Upload your resume or connect LinkedIn. Our AI generates a complete portfolio in under 60 seconds.' },
-              { q: 'Can I use my own domain?', a: 'Yes! Pro plans support custom domains like yourname.com with automatic SSL setup.' },
-              { q: 'What does AI write vs what I control?', a: 'AI drafts structure and content. You review and approve everything before it goes live.' },
-              { q: 'Is my data secure?', a: 'Yes. Your data is encrypted and stored securely. We never share with third parties.' }
+              { q: 'What Files Can I Upload', a: 'PDF or DOCX of your work history. Max 10 MB per file.' },
+              { q: 'How Do You Turn Experience Into Story', a: 'We extract roles, dates, outcomes, and skills, then draft case studies you can edit.' },
+              { q: 'Can I Edit The AI Draft', a: 'Yes. Change headlines, metrics, images, and sections.' },
+              { q: 'Do I Need A Custom Domain', a: 'No. You get a clean link with your own slug. You can add your domain later.' },
+              { q: 'Will My Data Train Your Models', a: 'No, unless you give consent. You can delete your data any time.' },
+              { q: 'Can I Import Projects From A File Or Link', a: 'Yes. Add attachments or links to demos, videos, and designs.' },
+              { q: 'How Many Case Studies Can I Create', a: 'Starter includes one portfolio. Pro supports unlimited case studies.' },
+              { q: 'Can I Export My Portfolio', a: 'Yes. Export a shareable link. File export options are coming soon.' },
+              { q: 'How Fast Is It', a: 'Most users publish under a minute after upload.' },
+              { q: 'Who Owns The Content', a: 'You do. You can edit or delete any time.' }
             ].map((faq, idx) => (
                 <motion.div
                 key={idx}
@@ -503,8 +756,8 @@ export default function LandingPage() {
                 transition={{ delay: idx * 0.05 }}
                 className="bg-white rounded-2xl p-6 border-2 border-gray-200"
               >
-                <h3 className="font-bold text-lg mb-2" style={{ color: '#111111' }}>{faq.q}</h3>
-                <p style={{ color: '#111111' }}>{faq.a}</p>
+                <h3 className="font-bold text-xl mb-2" style={{ color: '#111111' }}>{faq.q}</h3>
+                <p className="text-lg" style={{ color: '#111111' }}>{faq.a}</p>
                 </motion.div>
               ))}
             </div>
@@ -512,24 +765,23 @@ export default function LandingPage() {
         </section>
 
       {/* Final CTA */}
-      <section className="py-32 px-6" style={{ background: '#E5F8D6' }}>
+      <section className="py-32 px-6" style={{ background: '#DDEAFF' }}>
         <div className="max-w-4xl mx-auto text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-            <h2 className="text-7xl md:text-9xl font-black mb-12 leading-none" style={{ color: '#111111' }}>
-              Your Story<span className="text-6xl">.</span>
+              <h2 className="text-7xl md:text-9xl font-black mb-12 leading-none" style={{ color: '#111111' }}>
+              Your Story
               </h2>
-            <Link
-              href="/onboarding-v2/start"
-              className="inline-flex items-center gap-3 px-10 py-6 text-white text-xl font-semibold rounded-full transition-all shadow-xl hover:shadow-2xl hover:scale-105"
-              style={{ background: '#0A7C61' }}
+                <Link
+                  href="/onboarding-v2/start"
+              className="inline-flex items-center gap-3 px-10 py-6 text-xl font-semibold rounded-full transition-all shadow-xl hover:shadow-2xl hover:scale-105"
+              style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
             >
-              <Upload className="w-6 h-6" />
-              Upload Resume
-            </Link>
+              Build Your Story
+                </Link>
             </motion.div>
           </div>
         </section>
@@ -556,13 +808,12 @@ export default function LandingPage() {
               <h3 className="font-bold mb-4" style={{ color: '#111111' }}>Resources</h3>
               <ul className="space-y-2 text-sm" style={{ color: '#111111' }}>
                 <li><a href="#" className="hover:opacity-70">Docs</a></li>
-                <li><a href="/design-system" className="hover:opacity-70">Design System</a></li>
               </ul>
             </div>
           </div>
 
           <div className="pt-8 border-t border-gray-200 text-center text-sm" style={{ color: '#666666' }}>
-            <p>© 2025 Portfolio Builder. Your data, your story, your brand.</p>
+            <p>© 2025 BuildSpace. Your data, your story, your brand.</p>
           </div>
         </div>
       </footer>

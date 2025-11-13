@@ -80,22 +80,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function PublicPortfolioPage({ params }: PageProps) {
   const { slug } = await params;
   
-  // Enhanced logging for debugging
-  console.log('[Public Portfolio] Attempting to load slug:', slug);
-  
   const portfolio = await getPublishedPortfolio(slug);
 
   if (!portfolio) {
-    console.error('[Public Portfolio] Portfolio not found for slug:', slug);
-    console.error('[Public Portfolio] This could mean:');
-    console.error('  1. The slug has not been claimed by any user');
-    console.error('  2. The portfolio has not been published yet');
-    console.error('  3. The portfolio was unpublished (is_active = false)');
-    console.error('  4. There is a database connection issue');
     notFound();
   }
-  
-  console.log('[Public Portfolio] Successfully loaded portfolio for:', slug);
 
   // Handle both formats: legacy (flat) and new (nested with profile object)
   const profile = (portfolio as any).profile || {
@@ -116,7 +105,6 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
   };
 
   if (!profile.full_name && !profile.profession) {
-    console.error('[Public Portfolio] Profile data invalid:', { portfolio });
     notFound();
   }
 
@@ -182,19 +170,6 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
   const socialLinks = (portfolio as any).socialLinks || [];
   const sectionOrder = (portfolio as any).sectionOrder;
 
-  // Debug logging
-  console.log('[Public Portfolio] Data counts (valid/total):', {
-    projects: `${projects.length}/${allProjects.length}`,
-    careerHighlights: `${careerHighlights.length}/${allCareers.length}`,
-    strengths: `${strengths.length}/${allStrengths.length}`,
-    testimonials: `${testimonials.length}/${allTestimonials.length}`,
-    faqs: `${faqs.length}/${allFaqs.length}`,
-    services: `${services.length}/${allServices.length}`,
-  });
-  
-  if (careerHighlights.length > 0) {
-    console.log('[Public Portfolio] First career:', careerHighlights[0]);
-  }
 
   // Render sections in order
   const orderedSections = sectionOrder || ['career', 'projects', 'strengths', 'services', 'testimonials', 'faqs', 'resume'];

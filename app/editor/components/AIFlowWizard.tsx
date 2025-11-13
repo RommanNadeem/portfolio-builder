@@ -429,7 +429,8 @@ export function AIFlowWizard({ isOpen, projectTitle, onClose, onGenerate }: AIFl
           {step < 4 ? (
             <button
               onClick={handleNext}
-              className="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-medium rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all flex items-center gap-2"
+              className="px-6 py-2 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+              style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
             >
               Continue
               <ArrowRight className="w-4 h-4" />
@@ -438,7 +439,8 @@ export function AIFlowWizard({ isOpen, projectTitle, onClose, onGenerate }: AIFl
             <button
               onClick={handleGenerate}
               disabled={files.length === 0 && !userNotes.trim()}
-              className="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-medium rounded-lg hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+              className="px-6 py-2 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg disabled:bg-gray-300 disabled:cursor-not-allowed disabled:shadow-none flex items-center gap-2"
+              style={{ background: (files.length === 0 && !userNotes.trim()) ? '' : '#5BC64A', border: (files.length === 0 && !userNotes.trim()) ? '' : '2px solid #111111', color: (files.length === 0 && !userNotes.trim()) ? '' : '#111111' }}
             >
               <Sparkles className="w-4 h-4" />
               Generate Case Study

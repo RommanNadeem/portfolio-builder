@@ -6,7 +6,7 @@ import { OnboardingLayout } from '../components/OnboardingLayout';
 import { PortfolioPreview } from '../components/PortfolioPreview';
 import { track } from '@/lib/telemetry';
 import { parseResume, generateTaglines, generateAbout } from '@/lib/railway-api';
-import { User, Upload, X, Sparkles, Mail, Phone, Plus, Check, Linkedin, Github, Twitter, Instagram, Globe, Calendar, Link, Edit2, Save } from 'lucide-react';
+import { User, Upload, X, Sparkles, Mail, Phone, Plus, Check, Linkedin, Github, Twitter, Instagram, Globe, Calendar, Link, Edit2, Save, AlertCircle, XCircle, Loader2 } from 'lucide-react';
 import ImportPicker from '@/components/onboarding/ImportPicker';
 import { InteractiveQuiz } from '../components/InteractiveQuiz';
 import type { QuizData, GeneratedPortfolioData } from '@/lib/railway-api';
@@ -20,6 +20,9 @@ interface OnboardingData {
   email: string;
   phone: string;
   profileImage: string | null;
+  resume: string | null; // Resume URL after upload
+  resumeFileName: string | null; // Original filename
+  resumeFile: File | null; // Store file to upload during signup
   socialLinks: Array<{
     id: string;
     platform: string;
@@ -65,6 +68,7 @@ export default function OnboardingFlowPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
+  const [activeFocusSection, setActiveFocusSection] = useState<'heading' | 'tagline' | 'about' | 'career' | 'links' | 'contact' | 'image' | null>(null);
 
   const [data, setData] = useState<OnboardingData>({
     fullName: '',
@@ -75,6 +79,9 @@ export default function OnboardingFlowPage() {
     email: '',
     phone: '',
     profileImage: null,
+    resume: null,
+    resumeFileName: null,
+    resumeFile: null,
     socialLinks: [],
     careerHighlights: [],
     source: 'manual',
@@ -137,12 +144,19 @@ export default function OnboardingFlowPage() {
     });
 
     try {
+      // Store the resume file to upload later during signup
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Onboarding] Processing resume file');
+      }
+      
       const { data: parsed, error: parseError } = await parseResume(file);
       
       if (parseError || !parsed) {
-        console.warn('Resume parse failed, using mock data:', parseError);
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Resume parse failed, using mock data');
+        }
         
-        // Mock data fallback
+        // Mock data fallback - with resume file stored
         const mockData = {
           fullName: data.fullName,
           heading: `Hi, I'm ${data.fullName} — Product Designer`,
@@ -165,6 +179,8 @@ export default function OnboardingFlowPage() {
         whoAreYou: mockData.whoAreYou,
         email: mockData.email,
         phone: mockData.phone,
+        resumeFile: file, // Store file to upload during signup
+        resumeFileName: file.name,
         careerHighlights: [
           {
             id: crypto.randomUUID(),
@@ -219,6 +235,8 @@ export default function OnboardingFlowPage() {
         whoAreYou: whoAreYou,
         email: parsed.email || '',
         phone: parsed.phone || '',
+        resumeFile: file, // Store file to upload during signup
+        resumeFileName: file.name,
         socialLinks: (parsed.socialLinks || []).map((link: any) => ({
           ...link,
           id: link.id || crypto.randomUUID()
@@ -250,8 +268,8 @@ export default function OnboardingFlowPage() {
       setCurrentStep(3);
       
     } catch (error) {
-      console.error('Resume parsing error:', error);
-      alert('Failed to parse resume. Please try again or skip.');
+      console.error('Resume parsing error');
+      alert('That did not work. Sorry about that. Try again or start from scratch');
       setIsProcessing(false);
     }
   };
@@ -293,7 +311,7 @@ export default function OnboardingFlowPage() {
       setShowQuiz(false);
       setCurrentStep(3); // Move to heading step with AI-generated content
     } catch (error) {
-      console.error('Quiz generation error:', error);
+      console.error('Quiz generation error');
       
       // Fallback to generic data
       const { data: taglineData } = await generateTaglines({
@@ -328,21 +346,25 @@ export default function OnboardingFlowPage() {
     if (!data.heading.trim()) {
       setData(prev => ({ ...prev, heading: `Hi, I'm ${prev.fullName}` }));
     }
+    setActiveFocusSection(null);
     setCurrentStep(4);
   };
 
   // Step 4: Select Tagline
   const handleTaglineNext = () => {
+    setActiveFocusSection(null);
     setCurrentStep(5);
   };
 
   // Step 5: About Section
   const handleAboutNext = () => {
+    setActiveFocusSection(null);
     setCurrentStep(6);
   };
 
   // Step 6: Career Highlights
   const handleCareerNext = () => {
+    setActiveFocusSection(null);
     setCurrentStep(7);
   };
 
@@ -478,6 +500,7 @@ export default function OnboardingFlowPage() {
   };
 
   const handleLinksNext = () => {
+    setActiveFocusSection(null);
     setCurrentStep(8);
   };
 
@@ -487,13 +510,13 @@ export default function OnboardingFlowPage() {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file');
+      alert('That file type is not supported. Upload an image file');
       event.target.value = ''; // Reset input
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image size should be less than 5MB');
+      alert('Image too large. Max 5 MB');
       event.target.value = ''; // Reset input
       return;
     }
@@ -511,6 +534,7 @@ export default function OnboardingFlowPage() {
   };
 
   const handlePictureNext = () => {
+    setActiveFocusSection(null);
     setCurrentStep(9);
   };
 
@@ -521,12 +545,12 @@ export default function OnboardingFlowPage() {
   // Step 10: Signup
   const handleSignup = async () => {
     if (!signupEmail.trim() || !signupPassword.trim()) {
-      setSignupError('Please fill in all fields');
+      setSignupError('Email and password required');
       return;
     }
 
     if (signupPassword.length < 6) {
-      setSignupError('Password must be at least 6 characters');
+      setSignupError('Password too short. At least 6 characters required');
       return;
     }
 
@@ -536,6 +560,7 @@ export default function OnboardingFlowPage() {
     try {
       const { supabase } = await import('@/lib/supabase');
       const { saveCompletePortfolio } = await import('@/lib/database');
+      const { uploadFile } = await import('@/lib/storage');
 
       // 1. Sign up the user
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
@@ -556,8 +581,37 @@ export default function OnboardingFlowPage() {
         payload: { source: data.source } as any
       });
 
-      // 2. Save portfolio data to Supabase
-      console.log('[Signup Debug] Saving portfolio to Supabase for user:', authData.user.id);
+      // 2. Upload resume file if exists
+      let resumeUrl: string | null = null;
+      if (data.resumeFile) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Signup] Uploading resume file');
+        }
+        
+        const uploadResult = await uploadFile({
+          userId: authData.user.id,
+          file: data.resumeFile,
+          type: 'resume',
+          isPublic: true,
+        });
+
+        if (uploadResult.error) {
+          if (process.env.NODE_ENV === 'development') {
+            console.error('[Signup] Resume upload failed');
+          }
+          // Continue anyway - don't fail signup if resume upload fails
+        } else {
+          resumeUrl = uploadResult.publicUrl || null;
+          if (process.env.NODE_ENV === 'development') {
+            console.log('[Signup] Resume uploaded successfully');
+          }
+        }
+      }
+
+      // 3. Save portfolio data to Supabase
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Signup] Saving portfolio to Supabase');
+      }
       
       // Extract profession from first career highlight role if available
       const profession = data.careerHighlights && data.careerHighlights.length > 0 
@@ -603,20 +657,22 @@ export default function OnboardingFlowPage() {
         companies: companies,
         sliderCompanies: companies,
         profileImage: data.profileImage,
+        resume: resumeUrl, // Include uploaded resume URL
+        resumeFileName: data.resumeFileName, // Include original filename
         socialLinks: allSocialLinks,
         careerHighlights: data.careerHighlights,
       };
-
-      console.log('[Signup Debug] Portfolio to save:', portfolioToSave);
       
       const { error: saveError } = await saveCompletePortfolio(authData.user.id, portfolioToSave);
       
       if (saveError) {
-        console.error('[Signup Debug] Failed to save portfolio:', saveError);
+        console.error('[Signup] Failed to save portfolio');
         throw new Error('Failed to save your portfolio data. Please try again.');
       }
       
-      console.log('[Signup Debug] ✅ Portfolio saved successfully');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Signup] Portfolio saved successfully');
+      }
 
       // Set auth flags
       localStorage.setItem('freshAuth', 'true');
@@ -631,12 +687,11 @@ export default function OnboardingFlowPage() {
       } as any);
 
       // Navigate directly to editor
-      console.log('[Signup Debug] Redirecting to editor');
       router.push('/editor');
 
     } catch (err: any) {
-      console.error('Signup error:', err);
-      setSignupError(err.message || 'Failed to create account. Please try again.');
+      console.error('Signup error');
+      setSignupError(err.message || 'That did not work. Sorry about that. Try again or contact support');
       setIsSigningUp(false);
     }
   };
@@ -693,18 +748,21 @@ export default function OnboardingFlowPage() {
       <div className="min-h-screen bg-white flex items-center justify-center p-8">
         <div className="w-full max-w-md">
           <div className="mb-12 text-center">
-            <h1 className="text-3xl font-medium text-black mb-2">
-              Portfolio Builder
-            </h1>
-            <p className="text-sm text-gray-500">
-              Let's start with your name
+            <div className="flex items-center gap-2 justify-center mb-6">
+              <img src="/icon.svg" alt="BuildSpace" className="h-8" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900 mb-4">
+              Build Your Story
+            </p>
+            <p className="text-base text-gray-800">
+              Let us start with your name
             </p>
           </div>
 
           <div className="space-y-6">
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
-                Full Name
+              <label className="block text-sm font-bold text-gray-900 mb-2">
+                Full Name <span className="text-red-600">*</span>
               </label>
               <input
                 type="text"
@@ -712,15 +770,18 @@ export default function OnboardingFlowPage() {
                 onChange={(e) => setData(prev => ({ ...prev, fullName: e.target.value }))}
                 onKeyDown={(e) => e.key === 'Enter' && handleNameSubmit()}
                 placeholder="Enter your name"
-                className="w-full px-4 py-3 text-base border border-gray-200 focus:border-black focus:outline-none transition-colors placeholder:text-gray-400"
+                className="onboarding-input"
+                style={{ color: '#111111' }}
                 autoFocus
+                required
               />
             </div>
 
             <button
               onClick={handleNameSubmit}
               disabled={!data.fullName.trim()}
-              className="w-full py-3 bg-black text-white text-sm font-medium hover:bg-gray-800 disabled:bg-gray-100 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
+              className="btn-primary w-full"
+              style={{ color: '#111111' }}
             >
               Continue
             </button>
@@ -730,17 +791,17 @@ export default function OnboardingFlowPage() {
     );
   }
 
-  // Step 2: Resume Upload
+  // Step 2: Work History Upload
   if (currentStep === 2) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center p-8">
         <div className="w-full max-w-md">
           <div className="mb-12">
-            <p className="text-2xl font-medium text-black mb-2">
+            <p className="text-2xl font-bold text-gray-900 mb-2">
               Hi {data.fullName}
             </p>
-            <p className="text-sm text-gray-500">
-              Upload your resume to auto-fill, or start from scratch
+            <p className="text-base text-gray-800">
+              Upload your work history to auto-fill, or start from scratch
             </p>
           </div>
 
@@ -764,27 +825,29 @@ export default function OnboardingFlowPage() {
         onBack={() => setCurrentStep(2)}
         nextLabel="Continue"
         nextDisabled={!data.heading.trim()}
-        preview={<PortfolioPreview data={previewData} focusSection="heading" />}
+        preview={<PortfolioPreview data={previewData} focusSection={activeFocusSection || "heading"} />}
       >
         <div className="space-y-8">
           <div>
-            <h2 className="text-xl font-medium text-black mb-2">Choose Your Heading</h2>
-            <p className="text-sm text-gray-500">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Choose Your Heading</h2>
+            <p className="text-base text-gray-800">
               Main headline for your portfolio
             </p>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-3 uppercase tracking-wide">
+            <label className="block text-sm font-bold text-gray-900 mb-2">
               Heading
             </label>
-            <input
-              type="text"
-              value={data.heading}
-              onChange={(e) => setData(prev => ({ ...prev, heading: e.target.value }))}
-              placeholder={`Hi, I'm ${data.fullName}`}
-              className="w-full px-4 py-3 text-base border border-gray-200 focus:border-black focus:outline-none transition-colors placeholder:text-gray-400"
-            />
+              <input
+                type="text"
+                value={data.heading}
+                onChange={(e) => setData(prev => ({ ...prev, heading: e.target.value }))}
+                onFocus={() => setActiveFocusSection('heading')}
+                placeholder={`Hi, I am ${data.fullName}`}
+                className="onboarding-input"
+                style={{ color: '#111111' }}
+              />
           </div>
         </div>
       </OnboardingLayout>
@@ -800,29 +863,33 @@ export default function OnboardingFlowPage() {
         onNext={handleTaglineNext}
         onBack={() => setCurrentStep(3)}
         nextLabel="Continue"
-        preview={<PortfolioPreview data={previewData} focusSection="tagline" />}
+        preview={<PortfolioPreview data={previewData} focusSection={activeFocusSection || "tagline"} />}
       >
         <div className="space-y-8">
           <div>
-            <h2 className="text-xl font-medium text-black mb-2">Tagline</h2>
-            <p className="text-sm text-gray-500">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Tagline</h2>
+            <p className="text-base text-gray-800">
               Short description of what you do
             </p>
           </div>
 
           {data.taglineSuggestions.length > 0 && (
             <div>
-              <label className="block text-xs font-medium text-gray-400 mb-3 uppercase tracking-wide">
+              <label className="block text-sm font-bold text-gray-900 mb-3">
                 Suggestions
               </label>
               <div className="space-y-2">
                 {data.taglineSuggestions.map((suggestion, idx) => (
                   <button
                     key={idx}
-                    onClick={() => setData(prev => ({ ...prev, tagline: suggestion }))}
-                    className={`w-full text-left px-4 py-3 border text-sm transition-colors ${
+                    onClick={() => {
+                      setData(prev => ({ ...prev, tagline: suggestion }));
+                      setActiveFocusSection('tagline');
+                    }}
+                    onFocus={() => setActiveFocusSection('tagline')}
+                    className={`w-full text-left px-4 py-3 border-2 text-sm transition-colors rounded-xl font-medium ${
                       data.tagline === suggestion
-                        ? 'border-black bg-gray-50 text-black'
+                        ? 'border-emerald-500 bg-emerald-50 text-gray-900'
                         : 'border-gray-200 hover:border-gray-400 text-gray-900'
                     }`}
                   >
@@ -834,16 +901,18 @@ export default function OnboardingFlowPage() {
           )}
 
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-3 uppercase tracking-wide">
+            <label className="block text-sm font-bold text-gray-900 mb-2">
               Custom
             </label>
-            <textarea
-              value={data.tagline}
-              onChange={(e) => setData(prev => ({ ...prev, tagline: e.target.value }))}
-              placeholder="Write your own tagline"
-              rows={3}
-              className="w-full px-4 py-3 text-sm border border-gray-200 focus:border-black focus:outline-none transition-colors resize-none placeholder:text-gray-400"
-            />
+              <textarea
+                value={data.tagline}
+                onChange={(e) => setData(prev => ({ ...prev, tagline: e.target.value }))}
+                onFocus={() => setActiveFocusSection('tagline')}
+                placeholder="Write your own tagline"
+                rows={3}
+                className="onboarding-textarea"
+                style={{ color: '#111111' }}
+              />
           </div>
         </div>
       </OnboardingLayout>
@@ -859,31 +928,36 @@ export default function OnboardingFlowPage() {
         onNext={handleAboutNext}
         onBack={() => setCurrentStep(4)}
         nextLabel="Continue"
-        preview={<PortfolioPreview data={previewData} focusSection="about" />}
+        preview={<PortfolioPreview data={previewData} focusSection={activeFocusSection || "about"} />}
       >
         <div className="space-y-8">
           <div>
-            <h2 className="text-xl font-medium text-black mb-2">About</h2>
-            <p className="text-sm text-gray-500">
-              Tell more about yourself (optional)
+            <h2 className="text-xl font-bold text-gray-900 mb-2">About</h2>
+            <p className="text-base text-gray-800">
+              Tell more about yourself <span className="text-gray-600 font-medium">(Optional)</span>
             </p>
           </div>
 
           <div>
-            <textarea
-              value={data.whoAreYou}
-              onChange={(e) => setData(prev => ({ ...prev, whoAreYou: e.target.value }))}
-              placeholder="Share your background and what drives you..."
-              rows={10}
-              className="w-full px-4 py-3 text-sm border border-gray-200 focus:border-black focus:outline-none transition-colors resize-none placeholder:text-gray-400"
-            />
+            <label className="block text-sm font-bold text-gray-900 mb-2">
+              Your Story
+            </label>
+              <textarea
+                value={data.whoAreYou}
+                onChange={(e) => setData(prev => ({ ...prev, whoAreYou: e.target.value }))}
+                onFocus={() => setActiveFocusSection('about')}
+                placeholder="Share your background and what drives you"
+                rows={10}
+                className="onboarding-textarea"
+                style={{ color: '#111111' }}
+              />
           </div>
 
           <button
             onClick={handleAboutNext}
-            className="text-xs text-gray-400 hover:text-black transition-colors"
+            className="text-gray-900 hover:text-emerald-600 font-medium transition-colors"
           >
-            Skip
+            skip for now
           </button>
         </div>
       </OnboardingLayout>
@@ -899,13 +973,13 @@ export default function OnboardingFlowPage() {
         onNext={handleCareerNext}
         onBack={() => setCurrentStep(5)}
         nextLabel="Continue"
-        preview={<PortfolioPreview data={previewData} focusSection="career" />}
+        preview={<PortfolioPreview data={previewData} focusSection={activeFocusSection || "career"} />}
       >
         <div className="space-y-8">
           <div>
-            <h2 className="text-xl font-medium text-black mb-2">Career Highlights</h2>
-            <p className="text-sm text-gray-500">
-              Your work experience (optional)
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Career Highlights</h2>
+            <p className="text-base text-gray-800">
+              Your work experience <span className="text-gray-600 font-medium">(Optional)</span>
             </p>
           </div>
 
@@ -921,29 +995,33 @@ export default function OnboardingFlowPage() {
                       // Edit Mode
                       <div className="space-y-3">
                         <div>
-                          <label className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
+                          <label className="block text-sm font-bold text-gray-900 mb-2">
                             Role
                           </label>
-                          <input
-                            type="text"
-                            value={highlight.role}
-                            onChange={(e) => handleUpdateCareer(highlight.id, { role: e.target.value })}
-                            placeholder="e.g. Senior Product Designer"
-                            className="w-full px-3 py-2 text-sm border border-gray-200 focus:border-black focus:outline-none transition-colors placeholder:text-gray-400"
-                          />
+                            <input
+                              type="text"
+                              value={highlight.role}
+                              onChange={(e) => handleUpdateCareer(highlight.id, { role: e.target.value })}
+                              onFocus={() => setActiveFocusSection('career')}
+                              placeholder="Senior Product Designer"
+                              className="onboarding-input"
+                              style={{ color: '#111111' }}
+                            />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
+                          <label className="block text-sm font-bold text-gray-900 mb-2">
                             Company
                           </label>
-                          <input
-                            type="text"
-                            value={highlight.organization}
-                            onChange={(e) => handleUpdateCareer(highlight.id, { organization: e.target.value })}
-                            placeholder="e.g. Google"
-                            className="w-full px-3 py-2 text-sm border border-gray-200 focus:border-black focus:outline-none transition-colors placeholder:text-gray-400"
-                          />
+                            <input
+                              type="text"
+                              value={highlight.organization}
+                              onChange={(e) => handleUpdateCareer(highlight.id, { organization: e.target.value })}
+                              onFocus={() => setActiveFocusSection('career')}
+                              placeholder="Google"
+                              className="onboarding-input"
+                              style={{ color: '#111111' }}
+                            />
                         </div>
 
                         {highlight.startDate && (
@@ -953,37 +1031,39 @@ export default function OnboardingFlowPage() {
                         )}
 
                         <div>
-                          <label className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
+                          <label className="block text-sm font-bold text-gray-900 mb-2">
                             Achievements
                           </label>
                           <div className="space-y-2">
                             {(highlight.achievements && highlight.achievements.length > 0) ? (
                               highlight.achievements.map((achievement, idx) => (
                                 <div key={idx} className="flex gap-2">
-                                  <input
-                                    type="text"
-                                    value={achievement}
-                                    onChange={(e) => handleUpdateExistingAchievement(highlight.id, idx, e.target.value)}
-                                    placeholder={`Achievement ${idx + 1}`}
-                                    className="flex-1 px-3 py-2 text-sm border border-gray-200 focus:border-black focus:outline-none transition-colors placeholder:text-gray-400"
-                                  />
+                                    <input
+                                      type="text"
+                                      value={achievement}
+                                      onChange={(e) => handleUpdateExistingAchievement(highlight.id, idx, e.target.value)}
+                                      onFocus={() => setActiveFocusSection('career')}
+                                      placeholder={`Achievement ${idx + 1}`}
+                                      className="onboarding-input flex-1"
+                                      style={{ color: '#111111' }}
+                                    />
                                   <button
                                     onClick={() => handleRemoveExistingAchievement(highlight.id, idx)}
-                                    className="px-2 text-gray-400 hover:text-red-600"
+                                    className="px-3 text-gray-600 hover:text-red-600 transition-colors"
                                   >
-                                    <X className="w-4 h-4" />
+                                    <X className="w-5 h-5" />
                                   </button>
                                 </div>
                               ))
                             ) : (
-                              <p className="text-xs text-gray-400 italic">No achievements added</p>
+                              <p className="text-sm text-gray-700 italic">No achievements added</p>
                             )}
                             <button
                               onClick={() => handleAddExistingAchievement(highlight.id)}
-                              className="text-xs text-gray-600 hover:text-black flex items-center gap-1"
+                              className="text-sm text-gray-900 hover:text-emerald-600 flex items-center gap-1 font-medium"
                             >
-                              <Plus className="w-3 h-3" />
-                              Add achievement
+                              <Plus className="w-4 h-4" />
+                              Add Achievement
                             </button>
                           </div>
                         </div>
@@ -996,16 +1076,17 @@ export default function OnboardingFlowPage() {
                               handleUpdateCareer(highlight.id, { achievements: validAchievements });
                               setEditingCareerId(null);
                             }}
-                            className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-black text-white text-xs hover:bg-gray-800"
+                            className="btn-primary flex-1"
+                            style={{ color: '#111111' }}
                           >
-                            <Save className="w-3 h-3" />
+                            <Save className="w-4 h-4" />
                             Save
                           </button>
                           <button
                             onClick={() => handleDeleteCareer(highlight.id)}
-                            className="px-3 py-2 border border-gray-200 text-xs text-gray-600 hover:border-red-500 hover:text-red-600"
+                            className="px-4 py-3 border-2 border-gray-200 text-sm text-gray-900 hover:border-red-500 hover:text-red-600 rounded-full font-semibold transition-colors"
                           >
-                            <X className="w-4 h-4" />
+                            <X className="w-5 h-5" />
                           </button>
                         </div>
                       </div>
@@ -1013,10 +1094,10 @@ export default function OnboardingFlowPage() {
                       // View Mode
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 space-y-2">
-                          <h3 className="text-sm font-medium text-black">{highlight.role}</h3>
-                          <p className="text-xs text-gray-500">{highlight.organization}</p>
+                          <h3 className="text-base font-bold text-gray-900">{highlight.role}</h3>
+                          <p className="text-sm text-gray-800">{highlight.organization}</p>
                           {highlight.startDate && (
-                            <p className="text-xs text-gray-400">
+                            <p className="text-sm text-gray-700">
                               {highlight.startDate} - {highlight.current ? 'Present' : highlight.endDate}
                             </p>
                           )}
@@ -1024,12 +1105,12 @@ export default function OnboardingFlowPage() {
                             <div className="mt-2">
                               <ul className="space-y-1">
                                 {highlight.achievements.slice(0, 3).map((achievement, idx) => (
-                                  <li key={idx} className="text-xs text-gray-600 pl-3 relative before:content-['•'] before:absolute before:left-0">
+                                  <li key={idx} className="text-sm text-gray-800 pl-3 relative before:content-['•'] before:absolute before:left-0">
                                     {achievement}
                                   </li>
                                 ))}
                                 {highlight.achievements.length > 3 && (
-                                  <li className="text-xs text-gray-400 italic pl-3">
+                                  <li className="text-sm text-gray-700 italic pl-3">
                                     +{highlight.achievements.length - 3} more
                                   </li>
                                 )}
@@ -1040,9 +1121,9 @@ export default function OnboardingFlowPage() {
                         
                         <button
                           onClick={() => setEditingCareerId(highlight.id)}
-                          className="text-gray-400 hover:text-black flex-shrink-0"
+                          className="text-gray-600 hover:text-emerald-600 flex-shrink-0 transition-colors"
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="w-5 h-5" />
                         </button>
                       </div>
                     )}
@@ -1054,82 +1135,92 @@ export default function OnboardingFlowPage() {
 
           {/* Add New Career Highlight */}
           {isAddingCareer ? (
-            <div className="border-2 border-black p-4 space-y-3">
+            <div className="border-2 border-emerald-500 rounded-2xl p-6 space-y-4">
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
-                  Role
+                <label className="block text-sm font-bold text-gray-900 mb-2">
+                  Role <span className="text-red-600">*</span>
                 </label>
-                <input
-                  type="text"
-                  value={newCareer.role}
-                  onChange={(e) => setNewCareer(prev => ({ ...prev, role: e.target.value }))}
-                  placeholder="e.g. Product Manager"
-                  className="w-full px-3 py-2 text-sm border border-gray-200 focus:border-black focus:outline-none transition-colors placeholder:text-gray-400"
-                  autoFocus
-                />
+                  <input
+                    type="text"
+                    value={newCareer.role}
+                    onChange={(e) => setNewCareer(prev => ({ ...prev, role: e.target.value }))}
+                    onFocus={() => setActiveFocusSection('career')}
+                    placeholder="Product Manager"
+                    className="onboarding-input"
+                    style={{ color: '#111111' }}
+                    autoFocus
+                    required
+                  />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
-                  Company
+                <label className="block text-sm font-bold text-gray-900 mb-2">
+                  Company <span className="text-red-600">*</span>
                 </label>
-                <input
-                  type="text"
-                  value={newCareer.organization}
-                  onChange={(e) => setNewCareer(prev => ({ ...prev, organization: e.target.value }))}
-                  placeholder="e.g. Apple"
-                  className="w-full px-3 py-2 text-sm border border-gray-200 focus:border-black focus:outline-none transition-colors placeholder:text-gray-400"
-                />
+                  <input
+                    type="text"
+                    value={newCareer.organization}
+                    onChange={(e) => setNewCareer(prev => ({ ...prev, organization: e.target.value }))}
+                    onFocus={() => setActiveFocusSection('career')}
+                    placeholder="Apple"
+                    className="onboarding-input"
+                    style={{ color: '#111111' }}
+                    required
+                  />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
-                  Achievements (Optional)
+                <label className="block text-sm font-bold text-gray-900 mb-2">
+                  Achievements <span className="text-gray-600 font-medium">(Optional)</span>
                 </label>
                 <div className="space-y-2">
                   {newCareer.achievements.map((achievement, index) => (
                     <div key={index} className="flex gap-2">
-                      <input
-                        type="text"
-                        value={achievement}
-                        onChange={(e) => handleUpdateAchievement(index, e.target.value)}
-                        placeholder={`Achievement ${index + 1}`}
-                        className="flex-1 px-3 py-2 text-sm border border-gray-200 focus:border-black focus:outline-none transition-colors placeholder:text-gray-400"
-                      />
+                        <input
+                          type="text"
+                          value={achievement}
+                          onChange={(e) => handleUpdateAchievement(index, e.target.value)}
+                          onFocus={() => setActiveFocusSection('career')}
+                          placeholder={`Achievement ${index + 1}`}
+                          className="onboarding-input flex-1"
+                          style={{ color: '#111111' }}
+                        />
                       {newCareer.achievements.length > 1 && (
                         <button
                           onClick={() => handleRemoveAchievement(index)}
-                          className="px-2 text-gray-400 hover:text-red-600"
+                          className="px-3 text-gray-600 hover:text-red-600 transition-colors"
                         >
-                          <X className="w-4 h-4" />
+                          <X className="w-5 h-5" />
                         </button>
                       )}
                     </div>
                   ))}
                   <button
                     onClick={handleAddAchievement}
-                    className="text-xs text-gray-600 hover:text-black flex items-center gap-1"
+                    className="text-sm text-gray-900 hover:text-emerald-600 flex items-center gap-1 font-medium"
                   >
-                    <Plus className="w-3 h-3" />
-                    Add another achievement
+                    <Plus className="w-4 h-4" />
+                    Add Another Achievement
                   </button>
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 pt-2">
                 <button
                   onClick={() => {
                     setIsAddingCareer(false);
                     setNewCareer({ role: '', organization: '', achievements: [''] });
                   }}
-                  className="flex-1 px-3 py-2 border border-gray-200 text-xs text-gray-900 hover:border-black"
+                  className="btn-secondary flex-1"
+                  style={{ color: '#111111' }}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAddCareer}
                   disabled={!newCareer.role.trim() || !newCareer.organization.trim()}
-                  className="flex-1 px-3 py-2 bg-black text-white text-xs disabled:bg-gray-200 disabled:text-gray-400"
+                  className="btn-primary flex-1"
+                  style={{ color: '#111111' }}
                 >
                   Add
                 </button>
@@ -1138,18 +1229,18 @@ export default function OnboardingFlowPage() {
           ) : (
             <button
               onClick={() => setIsAddingCareer(true)}
-              className="w-full px-4 py-3 border border-gray-200 text-sm text-gray-900 hover:border-black transition-colors flex items-center justify-center gap-2"
+              className="w-full py-4 border-2 border-dashed border-gray-300 rounded-2xl text-sm text-gray-900 hover:border-emerald-500 hover:text-emerald-600 transition-colors flex items-center justify-center gap-2 font-semibold"
             >
-              <Plus className="w-4 h-4" />
-              Add Experience
+              <Plus className="w-5 h-5" />
+              Add Career Highlight
             </button>
           )}
 
           <button
             onClick={handleCareerNext}
-            className="text-xs text-gray-400 hover:text-black transition-colors"
+            className="text-gray-900 hover:text-emerald-600 font-medium transition-colors"
           >
-            Continue
+            skip for now
           </button>
         </div>
       </OnboardingLayout>
@@ -1169,12 +1260,12 @@ export default function OnboardingFlowPage() {
         onNext={handleLinksNext}
         onBack={() => setCurrentStep(6)}
         nextLabel="Continue"
-        preview={<PortfolioPreview data={previewData} focusSection="links" />}
+        preview={<PortfolioPreview data={previewData} focusSection={activeFocusSection || "links"} />}
       >
         <div className="space-y-8">
           <div>
-            <h2 className="text-xl font-medium text-black mb-2">Links & Contact</h2>
-            <p className="text-sm text-gray-500">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Links and Contact</h2>
+            <p className="text-base text-gray-800">
               Add your contact info and social profiles
             </p>
           </div>
@@ -1182,29 +1273,35 @@ export default function OnboardingFlowPage() {
           {/* Email & Phone */}
           <div className="space-y-4 pb-6 border-b border-gray-100">
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-3 uppercase tracking-wide">
-                Email
+              <label className="block text-sm font-bold text-gray-900 mb-2">
+                <Mail className="w-4 h-4 inline mr-2" />
+                Email Address
               </label>
-              <input
-                type="email"
-                value={data.email}
-                onChange={(e) => setData(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="your@email.com"
-                className="w-full px-4 py-3 text-sm border border-gray-200 focus:border-black focus:outline-none transition-colors placeholder:text-gray-400"
-              />
+                <input
+                  type="email"
+                  value={data.email}
+                  onChange={(e) => setData(prev => ({ ...prev, email: e.target.value }))}
+                  onFocus={() => setActiveFocusSection('contact')}
+                  placeholder="you@example.com"
+                  className="onboarding-input"
+                  style={{ color: '#111111' }}
+                />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-3 uppercase tracking-wide">
-                Phone
+              <label className="block text-sm font-bold text-gray-900 mb-2">
+                <Phone className="w-4 h-4 inline mr-2" />
+                Phone Number <span className="text-gray-600 font-medium">(Optional)</span>
               </label>
-              <input
-                type="tel"
-                value={data.phone}
-                onChange={(e) => setData(prev => ({ ...prev, phone: e.target.value }))}
-                placeholder="+1 (555) 123-4567"
-                className="w-full px-4 py-3 text-sm border border-gray-200 focus:border-black focus:outline-none transition-colors placeholder:text-gray-400"
-              />
+                <input
+                  type="tel"
+                  value={data.phone}
+                  onChange={(e) => setData(prev => ({ ...prev, phone: e.target.value }))}
+                  onFocus={() => setActiveFocusSection('contact')}
+                  placeholder="+1 (555) 000-0000"
+                  className="onboarding-input"
+                  style={{ color: '#111111' }}
+                />
             </div>
           </div>
 
@@ -1212,21 +1309,21 @@ export default function OnboardingFlowPage() {
           {data.socialLinks.length > 0 && (
             <div className="space-y-2">
               {data.socialLinks.map((link) => (
-                <div key={link.id} className="border border-gray-200 p-3 flex items-center justify-between">
+                <div key={link.id} className="border-2 border-gray-200 rounded-xl p-4 flex items-center justify-between hover:border-gray-300 transition-colors">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="flex-shrink-0">
+                    <div className="flex-shrink-0 text-gray-700">
                       {getIcon(link.icon)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-black">{link.platform}</p>
-                      <p className="text-xs text-gray-400 truncate">{link.url}</p>
+                      <p className="text-sm font-bold text-gray-900">{link.platform}</p>
+                      <p className="text-sm text-gray-800 truncate">{link.url}</p>
                     </div>
                   </div>
                   <button
                     onClick={() => handleDeleteLink(link.id)}
-                    className="text-gray-400 hover:text-black flex-shrink-0"
+                    className="text-gray-600 hover:text-red-600 flex-shrink-0 transition-colors"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
               ))}
@@ -1235,30 +1332,36 @@ export default function OnboardingFlowPage() {
 
           {/* Add New Link */}
           {isAddingLink ? (
-            <div className="border border-black p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                {getIcon(newLinkIcon)}
-                <p className="text-xs font-medium text-black">{newLinkPlatform}</p>
+            <div className="border-2 border-emerald-500 rounded-2xl p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="text-emerald-600">
+                  {getIcon(newLinkIcon)}
+                </div>
+                <p className="text-base font-bold text-gray-900">{newLinkPlatform}</p>
               </div>
-              <input
-                type="url"
-                value={newLinkUrl}
-                onChange={(e) => setNewLinkUrl(e.target.value)}
-                placeholder="https://"
-                autoFocus
-                className="w-full px-3 py-2 text-sm border border-gray-200 focus:border-black focus:outline-none placeholder:text-gray-400"
-              />
+                <input
+                  type="url"
+                  value={newLinkUrl}
+                  onChange={(e) => setNewLinkUrl(e.target.value)}
+                  onFocus={() => setActiveFocusSection('links')}
+                  placeholder="https://"
+                  autoFocus
+                  className="onboarding-input"
+                  style={{ color: '#111111' }}
+                />
               <div className="flex gap-2">
                 <button
                   onClick={() => setIsAddingLink(false)}
-                  className="flex-1 px-3 py-2 border border-gray-200 text-xs text-gray-900 hover:border-black"
+                  className="btn-secondary flex-1"
+                  style={{ color: '#111111' }}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAddLink}
                   disabled={!newLinkUrl.trim()}
-                  className="flex-1 px-3 py-2 bg-black text-white text-xs disabled:bg-gray-200 disabled:text-gray-400"
+                  className="btn-primary flex-1"
+                  style={{ color: '#111111' }}
                 >
                   Add
                 </button>
@@ -1268,6 +1371,9 @@ export default function OnboardingFlowPage() {
             <>
               {availablePlatforms.length > 0 && (
                 <div>
+                  <label className="block text-sm font-bold text-gray-900 mb-3">
+                    Add Social Link
+                  </label>
                   <div className="grid grid-cols-2 gap-2">
                     {availablePlatforms.map(({ platform, icon }) => (
                       <button
@@ -1277,7 +1383,7 @@ export default function OnboardingFlowPage() {
                           setNewLinkIcon(icon);
                           setIsAddingLink(true);
                         }}
-                        className="flex items-center gap-2 px-3 py-2 text-xs text-gray-900 border border-gray-200 hover:border-black transition-colors"
+                        className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-900 border-2 border-gray-200 hover:border-emerald-500 hover:text-emerald-600 transition-colors rounded-xl"
                       >
                         {getIcon(icon)}
                         <span>{platform}</span>
@@ -1291,9 +1397,9 @@ export default function OnboardingFlowPage() {
 
           <button
             onClick={handleLinksNext}
-            className="text-xs text-gray-400 hover:text-black transition-colors"
+            className="text-gray-900 hover:text-emerald-600 font-medium transition-colors"
           >
-            Skip
+            skip for now
           </button>
         </div>
       </OnboardingLayout>
@@ -1309,22 +1415,22 @@ export default function OnboardingFlowPage() {
         onNext={handlePictureNext}
         onBack={() => setCurrentStep(7)}
         nextLabel="Continue"
-        preview={<PortfolioPreview data={previewData} focusSection="image" />}
+        preview={<PortfolioPreview data={previewData} focusSection={activeFocusSection || "image"} />}
       >
         <div className="space-y-8">
           <div>
-            <h2 className="text-xl font-medium text-black mb-2">Profile Picture</h2>
-            <p className="text-sm text-gray-500">
-              Add a face to the name (optional)
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Profile Picture</h2>
+            <p className="text-base text-gray-800">
+              Add a face to the name <span className="text-gray-600 font-medium">(Optional)</span>
             </p>
           </div>
 
           <div className="space-y-4">
-            <div className="w-48 h-48 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+            <div className="w-48 h-48 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-4 border-gray-200">
               {data.profileImage ? (
                 <img src={data.profileImage} alt="Profile" className="w-full h-full object-cover" />
               ) : (
-                <User className="w-24 h-24 text-gray-300" />
+                <User className="w-24 h-24 text-gray-400" />
               )}
             </div>
 
@@ -1332,13 +1438,14 @@ export default function OnboardingFlowPage() {
               {data.profileImage ? (
                 <button
                   onClick={handleRemoveImage}
-                  className="text-xs text-gray-600 hover:text-black transition-colors"
+                  className="text-gray-900 hover:text-red-600 font-medium transition-colors"
                 >
-                  Remove
+                  remove photo
                 </button>
               ) : (
-                <label className="inline-block px-4 py-2 text-xs text-gray-900 border border-gray-200 hover:border-black cursor-pointer transition-colors">
-                  Upload Photo
+                <label className="inline-flex items-center gap-2 px-4 py-2 border-2 border-gray-200 hover:border-emerald-500 rounded-xl text-gray-900 hover:text-emerald-600 font-medium cursor-pointer transition-colors">
+                  <Upload className="w-4 h-4" />
+                  upload photo
                   <input
                     type="file"
                     accept="image/*"
@@ -1352,9 +1459,9 @@ export default function OnboardingFlowPage() {
 
           <button
             onClick={handlePictureNext}
-            className="text-xs text-gray-400 hover:text-black transition-colors"
+            className="text-gray-900 hover:text-emerald-600 font-medium transition-colors"
           >
-            Skip
+            skip for now
           </button>
         </div>
       </OnboardingLayout>
@@ -1367,23 +1474,22 @@ export default function OnboardingFlowPage() {
       <OnboardingLayout
         currentStep={9}
         totalSteps={totalSteps}
-        onNext={handleSignup}
         onBack={() => setCurrentStep(8)}
-        nextLabel={isSigningUp ? "Creating Account..." : "Create Account & Continue"}
-        nextDisabled={!signupEmail.trim() || !signupPassword.trim() || signupPassword.length < 6 || isSigningUp}
+        showNext={false}
         preview={<PortfolioPreview data={previewData} />}
       >
         <div className="space-y-8">
           <div>
-            <h2 className="text-xl font-medium text-black mb-2">Create Account</h2>
-            <p className="text-sm text-gray-500">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Create Account</h2>
+            <p className="text-base text-gray-800">
               Save and publish your portfolio
             </p>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-3 uppercase tracking-wide">
-              Email
+            <label className="block text-sm font-bold text-gray-900 mb-2">
+              <Mail className="w-4 h-4 inline mr-2" />
+              Email Address <span className="text-red-600">*</span>
             </label>
             <input
               type="email"
@@ -1392,15 +1498,17 @@ export default function OnboardingFlowPage() {
                 setSignupEmail(e.target.value);
                 setSignupError('');
               }}
-              placeholder="your@email.com"
-              className="w-full px-4 py-3 text-sm border border-gray-200 focus:border-black focus:outline-none transition-colors placeholder:text-gray-400"
+              placeholder="you@example.com"
+              className="onboarding-input"
+              style={{ color: '#111111' }}
               disabled={isSigningUp}
+              required
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-3 uppercase tracking-wide">
-              Password
+            <label className="block text-sm font-bold text-gray-900 mb-2">
+              Password <span className="text-red-600">*</span>
             </label>
             <input
               type="password"
@@ -1409,20 +1517,44 @@ export default function OnboardingFlowPage() {
                 setSignupPassword(e.target.value);
                 setSignupError('');
               }}
-              placeholder="Min. 6 characters"
-              className="w-full px-4 py-3 text-sm border border-gray-200 focus:border-black focus:outline-none transition-colors placeholder:text-gray-400"
+              placeholder="Minimum 6 characters"
+              className="onboarding-input"
+              style={{ color: '#111111' }}
               disabled={isSigningUp}
+              required
             />
             {signupPassword.length > 0 && signupPassword.length < 6 && (
-              <p className="mt-2 text-xs text-gray-400">At least 6 characters required</p>
+              <p className="mt-2 text-sm text-red-700 font-medium flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                At least 6 characters required
+              </p>
             )}
           </div>
 
           {signupError && (
-            <div className="p-4 border border-red-200 bg-red-50">
-              <p className="text-xs text-red-600">{signupError}</p>
+            <div className="flex items-start gap-4 p-6 bg-red-50 border-2 border-red-200 rounded-2xl">
+              <XCircle className="w-6 h-6 text-red-700 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-gray-900">{signupError}</p>
+              </div>
             </div>
           )}
+
+          <button
+            onClick={handleSignup}
+            disabled={!signupEmail.trim() || !signupPassword.trim() || signupPassword.length < 6 || isSigningUp}
+            className="btn-primary w-full"
+            style={{ color: '#111111' }}
+          >
+            {isSigningUp ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Creating Account...
+              </>
+            ) : (
+              'Create Account and Continue'
+            )}
+          </button>
         </div>
       </OnboardingLayout>
     );

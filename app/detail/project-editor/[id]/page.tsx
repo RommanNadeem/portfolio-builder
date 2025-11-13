@@ -58,6 +58,7 @@ export default function ProjectEditor() {
     templateType && blocks.length > 0 ? 'editing' : 'select-template'
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitializingTemplate, setIsInitializingTemplate] = useState(false);
 
   // AI Generation State
   const [showAIWizard, setShowAIWizard] = useState(false);
@@ -65,6 +66,13 @@ export default function ProjectEditor() {
   const [aiProgress, setAiProgress] = useState(0);
   const [aiCurrentStep, setAiCurrentStep] = useState('');
   const [aiError, setAiError] = useState<string | null>(null);
+  
+  // Template Change State
+  const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
+  const [isChangingTemplate, setIsChangingTemplate] = useState(false);
+  
+  // Real-time title update
+  const [displayTitle, setDisplayTitle] = useState((document?.entity_data as any)?.title || 'Untitled Project');
 
   // Initialize from URL params
   useEffect(() => {
@@ -76,29 +84,16 @@ export default function ProjectEditor() {
   // Sync UI state with document (only on initial load)
   useEffect(() => {
     if (!loading && document && isLoading) {
-      console.log('[ProjectEditor V3] 🔍 Determining flow state:', {
-        documentId: document.id,
-        templateType: templateType,
-        blocksLength: blocks.length,
-        hasBlocks: blocks.length > 0,
-        entityTemplateType: (document.entity_data as any).template_type,
-        entityBlocksCount: (document.entity_data as any).blocks?.length || 0,
-      });
-
       // Check if we should show template selector or editor
       if (blocks.length > 0) {
         // Has blocks - go to editing mode
-        console.log('[ProjectEditor V3] ✅ Has blocks, showing editor');
         setFlowState('editing');
       } else if (templateType) {
         // Has template_type but no blocks - initialize
-        console.log('[ProjectEditor V3] 🎨 Has template_type, initializing blocks');
-        console.log('[ProjectEditor V3] Template to initialize:', templateType);
         initializeTemplate(templateType);
         setFlowState('editing');
       } else {
         // No blocks and no template - show selector
-        console.log('[ProjectEditor V3] 🆕 No blocks or template, showing selector');
         setFlowState('select-template');
       }
 
@@ -114,21 +109,98 @@ export default function ProjectEditor() {
     }
   }, [loading, document]); // ← Run only on initial load, not when blocks change
 
-  // Handle template selection
+  // Handle template selection (for initial setup)
   const handleTemplateSelect = useCallback(async (template: TemplateType | 'ai') => {
-    console.log('[ProjectEditor V3] Template selected:', template);
-    
     if (template === 'ai') {
       // User selected AI mode - show wizard
       setShowAIWizard(true);
     } else {
       // Traditional template - initialize and go to editing
-      await setTemplateType(template);
-      await initializeTemplate(template);
-      setFlowState('editing');
-      setViewMode('edit');
+      // Note: initializeTemplate already sets template_type, so no need to call setTemplateType separately
+      setIsInitializingTemplate(true);
+      try {
+        await initializeTemplate(template);
+        setFlowState('editing');
+        setViewMode('edit');
+      } finally {
+        setIsInitializingTemplate(false);
+      }
     }
-  }, [setTemplateType, initializeTemplate]);
+  }, [initializeTemplate]);
+  
+  // Handle template change request (opens dropdown)
+  const handleChangeTemplateRequest = useCallback(() => {
+    setShowTemplateDropdown(true);
+  }, []);
+  
+  // Handle template change from dropdown - preserves user data
+  const handleTemplateChange = useCallback(async (newTemplate: TemplateType) => {
+    if (newTemplate === templateType) {
+      setShowTemplateDropdown(false);
+      return;
+    }
+    
+    console.log('[ProjectEditor V3] Changing template:', { from: templateType, to: newTemplate });
+    setIsChangingTemplate(true);
+    setIsInitializingTemplate(true);
+    setShowTemplateDropdown(false);
+    
+    try {
+      // Get current hero block data to preserve it
+      const currentHeroBlock = blocks.find(b => b.type === 'hero');
+      const preservedData = (currentHeroBlock?.data || {}) as any;
+      
+      // Initialize new template
+      await initializeTemplate(newTemplate);
+      
+      // Wait a bit for state to update, then merge preserved data
+      setTimeout(() => {
+        const heroIndex = blocks.findIndex(b => b.type === 'hero');
+        
+        if (heroIndex !== -1 && currentHeroBlock && currentHeroBlock.type === 'hero') {
+          const newBlocks = [...blocks];
+          const heroBlock = newBlocks[heroIndex];
+          
+          if (heroBlock.type === 'hero') {
+            // Preserve title, subtitle, description, and relevant meta
+            newBlocks[heroIndex] = {
+              ...heroBlock,
+              data: {
+                ...heroBlock.data,
+                title: preservedData.title || heroBlock.data.title,
+                subtitle: preservedData.subtitle || heroBlock.data.subtitle,
+                description: preservedData.description || heroBlock.data.description,
+                imageUrl: preservedData.imageUrl || heroBlock.data.imageUrl,
+                logoUrl: preservedData.logoUrl || heroBlock.data.logoUrl,
+                meta: {
+                  ...(heroBlock.data.meta || {}),
+                  // Preserve relevant meta fields
+                  role: preservedData.meta?.role || heroBlock.data.meta?.role,
+                  timeline: preservedData.meta?.timeline || heroBlock.data.meta?.timeline,
+                  year: preservedData.meta?.year || heroBlock.data.meta?.year,
+                }
+              }
+            };
+            
+            updateBlocks(newBlocks, true); // Skip auto-save
+          }
+        }
+        
+        setIsChangingTemplate(false);
+        setIsInitializingTemplate(false);
+      }, 500);
+      
+    } catch (err) {
+      console.error('[ProjectEditor V3] Template change failed:', err);
+      setIsChangingTemplate(false);
+      setIsInitializingTemplate(false);
+    }
+  }, [templateType, blocks, initializeTemplate, updateBlocks]);
+  
+  // Handle real-time title updates
+  const handleTitleChange = useCallback((newTitle: string) => {
+    setDisplayTitle(newTitle || 'Untitled Project');
+  }, []);
 
   // Check if AI generation in progress from URL
   useEffect(() => {
@@ -300,13 +372,17 @@ export default function ProjectEditor() {
   }, []);
 
   // Loading state
-  if (loading || isLoading) {
+  if (loading || isLoading || isInitializingTemplate) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-gray-300 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <div className="text-gray-600 mb-2">Loading project...</div>
-          <div className="text-xs text-gray-400">V3 Architecture</div>
+          <div className="text-gray-600 mb-2">
+            {isInitializingTemplate ? 'Preparing your template...' : 'Loading project...'}
+          </div>
+          <div className="text-xs text-gray-400">
+            {isInitializingTemplate ? 'This will only take a moment' : 'V3 Architecture'}
+          </div>
         </div>
       </div>
     );
@@ -335,7 +411,7 @@ export default function ProjectEditor() {
     );
   }
 
-  // Template Selector
+  // Template Selector (initial setup only)
   if (flowState === 'select-template') {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -439,7 +515,7 @@ export default function ProjectEditor() {
       ) : (
         <>
           <TemplateEditorHeader
-            title={(document.entity_data as any).title || 'Untitled Project'}
+            title={displayTitle}
             templateName={templateType ? (TEMPLATE_CONFIGS.find(t => t.id === templateType)?.name || 'AI-Designed Case Study') : 'Template'}
             saveStatus={saveStatus}
             lastSaved={lastSaved}
@@ -448,6 +524,12 @@ export default function ProjectEditor() {
             onBack={() => router.push('/editor?mode=edit')}
             onViewModeChange={setViewMode}
             onDeviceModeChange={setDeviceMode}
+            onChangeTemplate={handleChangeTemplateRequest}
+            isAIGenerated={!templateType || templateType === 'ai' as any}
+            showTemplateDropdown={showTemplateDropdown}
+            onCloseTemplateDropdown={() => setShowTemplateDropdown(false)}
+            currentTemplateType={templateType}
+            onTemplateChange={handleTemplateChange}
           />
 
           <TemplateEditorContent
@@ -463,6 +545,7 @@ export default function ProjectEditor() {
             onToggleSection={handleToggleSection}
             onSave={forceSave}
             entityType="project"
+            onTitleChange={handleTitleChange}
           />
         </>
       )}

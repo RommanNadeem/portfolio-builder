@@ -113,29 +113,29 @@ body {
   animation-delay: 4s;
 }
 
-/* Input and Textarea Text Styling */
+/* Input and Textarea Text Styling - Design System Aligned */
 input,
 textarea {
-  color: #111827; /* gray-900 - dark text for readability */
+  color: #111111; /* Design system primary text color */
 }
 
 /* Placeholder Text Styling */
 input::placeholder,
 textarea::placeholder {
-  color: #9ca3af; /* gray-400 */
+  color: #666666; /* Design system secondary text color */
   opacity: 1;
 }
 
 input:focus::placeholder,
 textarea:focus::placeholder {
-  color: #d1d5db; /* gray-300 - lighter when focused */
+  color: #999999; /* Lighter gray when focused */
   opacity: 1;
 }
 
 /* Disabled Input Text */
 input:disabled,
 textarea:disabled {
-  color: #6b7280; /* gray-500 - medium gray for disabled */
+  color: #999999; /* Medium gray for disabled */
 }
 
 /* ============================================
@@ -150,8 +150,8 @@ textarea:disabled {
   --pastel-green: #E5F8D6;
   
   /* Primary CTA Color */
-  --cta-green: #0A7C61;
-  --cta-green-hover: #086B52;
+  --cta-green: #5BC64A;
+  --cta-green-hover: #4AB33D;
   
   /* Text Colors */
   --text-primary: #111111;

@@ -29,7 +29,8 @@ export function SectionEmpty({
       {onAdd && (
         <button
           onClick={onAdd}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg"
+          style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
         >
           <Plus className="w-5 h-5" />
           {addLabel}

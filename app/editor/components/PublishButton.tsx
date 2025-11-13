@@ -29,7 +29,7 @@ export function PublishButton({
         return {
           icon: <Upload className="w-4 h-4" />,
           text: 'Publish Portfolio',
-          className: 'bg-green-600 hover:bg-green-700 text-white',
+          style: { background: '#5BC64A', border: '2px solid #111111', color: '#111111' },
           disabled: disabled,
         };
       
@@ -37,7 +37,7 @@ export function PublishButton({
         return {
           icon: <Loader2 className="w-4 h-4 animate-spin" />,
           text: 'Publishing...',
-          className: 'bg-blue-600 text-white cursor-wait',
+          style: { background: '#5BC64A', border: '2px solid #111111', color: '#111111' },
           disabled: true,
         };
       
@@ -45,7 +45,7 @@ export function PublishButton({
         return {
           icon: <CheckCircle className="w-4 h-4" />,
           text: 'Published',
-          className: 'bg-green-600 text-white',
+          style: { background: '#5BC64A', border: '2px solid #111111', color: '#111111' },
           disabled: true,
         };
       
@@ -53,7 +53,7 @@ export function PublishButton({
         return {
           icon: <RefreshCw className="w-4 h-4" />,
           text: hasUnpublishedChanges ? 'Publish Changes' : 'Republish',
-          className: 'bg-blue-600 hover:bg-blue-700 text-white',
+          style: { background: '#5BC64A', border: '2px solid #111111', color: '#111111' },
           disabled: disabled,
         };
       
@@ -61,7 +61,7 @@ export function PublishButton({
         return {
           icon: <Upload className="w-4 h-4" />,
           text: 'Retry Publishing',
-          className: 'bg-red-600 hover:bg-red-700 text-white',
+          style: { background: '#ef4444', border: '2px solid #111111', color: '#ffffff' },
           disabled: disabled,
         };
       
@@ -69,7 +69,7 @@ export function PublishButton({
         return {
           icon: <Upload className="w-4 h-4" />,
           text: 'Publish',
-          className: 'bg-gray-600 hover:bg-gray-700 text-white',
+          style: { background: '#5BC64A', border: '2px solid #111111', color: '#111111' },
           disabled: disabled,
         };
     }
@@ -81,9 +81,10 @@ export function PublishButton({
     <button
       onClick={onClick}
       disabled={config.disabled}
-      className={`w-full px-6 py-3 rounded-lg transition-all duration-200 font-semibold text-sm flex items-center justify-center gap-2 ${
-        config.className
-      } ${config.disabled ? 'opacity-60 cursor-not-allowed' : 'shadow-sm hover:shadow-md'}`}
+      className={`w-full px-6 py-3 rounded-full transition-all duration-200 font-semibold text-sm flex items-center justify-center gap-2 ${
+        config.disabled ? 'opacity-60 cursor-not-allowed' : 'shadow-md hover:shadow-lg'
+      }`}
+      style={config.style}
     >
       {config.icon}
       {config.text}
@@ -107,35 +108,35 @@ export function CompactPublishButton({ state, onClick, disabled = false }: Compa
         return {
           icon: <Upload className="w-4 h-4" />,
           text: 'Publish',
-          className: 'bg-green-600 hover:bg-green-700 text-white',
+          style: { background: '#5BC64A', border: '2px solid #111111', color: '#111111' },
         };
       
       case 'loading':
         return {
           icon: <Loader2 className="w-4 h-4 animate-spin" />,
           text: 'Publishing...',
-          className: 'bg-blue-600 text-white cursor-wait',
+          style: { background: '#5BC64A', border: '2px solid #111111', color: '#111111' },
         };
       
       case 'published':
         return {
           icon: <CheckCircle className="w-4 h-4" />,
           text: 'Published',
-          className: 'bg-green-600 text-white',
+          style: { background: '#5BC64A', border: '2px solid #111111', color: '#111111' },
         };
       
       case 'update':
         return {
           icon: <RefreshCw className="w-4 h-4" />,
           text: 'Update',
-          className: 'bg-blue-600 hover:bg-blue-700 text-white',
+          style: { background: '#5BC64A', border: '2px solid #111111', color: '#111111' },
         };
       
       default:
         return {
           icon: <Upload className="w-4 h-4" />,
           text: 'Publish',
-          className: 'bg-gray-600 hover:bg-gray-700 text-white',
+          style: { background: '#5BC64A', border: '2px solid #111111', color: '#111111' },
         };
     }
   };
@@ -146,9 +147,10 @@ export function CompactPublishButton({ state, onClick, disabled = false }: Compa
     <button
       onClick={onClick}
       disabled={disabled || state === 'loading' || state === 'published'}
-      className={`px-4 py-2 rounded-lg transition-colors text-sm font-medium flex items-center gap-2 ${
-        config.className
-      } ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
+      className={`px-4 py-2 rounded-full transition-all text-sm font-semibold flex items-center gap-2 shadow-md hover:shadow-lg ${
+        disabled ? 'opacity-60 cursor-not-allowed' : ''
+      }`}
+      style={config.style}
     >
       {config.icon}
       <span className="hidden sm:inline">{config.text}</span>

@@ -29,13 +29,14 @@ export default function SettingsPage() {
         }
 
         setUserId(user.id);
+        // Set email from authentication account
+        setEmail(user.email || '');
         
         const { data: portfolioData, error } = await getCompletePortfolio(user.id);
         if (!error && portfolioData) {
           const parsedData = convertToLegacyFormat(portfolioData);
           setFullName(parsedData.fullName || '');
           setProfession(parsedData.profession || '');
-          setEmail(parsedData.email || '');
         }
       } catch (err) {
         console.error('Error loading settings:', err);
@@ -57,12 +58,11 @@ export default function SettingsPage() {
       if (portfolioData) {
         const parsedData = convertToLegacyFormat(portfolioData);
         
-        // Update only account fields
+        // Update only editable account fields (email comes from auth and is read-only)
         const updatedData = {
           ...parsedData,
           fullName,
           profession,
-          email,
         };
 
         await saveCompletePortfolio(userId, updatedData);
@@ -205,12 +205,12 @@ export default function SettingsPage() {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                disabled
                 placeholder="sarah@example.com"
-                className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 placeholder:text-gray-500"
+                className="w-full px-4 py-3 text-gray-600 bg-gray-50 border border-gray-300 rounded-lg cursor-not-allowed placeholder:text-gray-400"
               />
               <p className="mt-1 text-xs text-gray-500">
-                Primary email for account, notifications, and system communications
+                This is the email you used to sign up. It cannot be changed from here.
               </p>
             </div>
 

@@ -97,7 +97,7 @@ export default function MonthYearPicker({ value, onChange, placeholder = 'Select
         readOnly
         placeholder={placeholder}
         disabled={disabled}
-        className={`w-full px-2 py-1.5 text-xs text-gray-900 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 placeholder:text-gray-400 ${
+        className={`w-full px-2 py-1.5 text-xs font-medium text-gray-900 bg-gray-50 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-700 placeholder:text-gray-600 ${
           disabled 
             ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
             : 'cursor-pointer hover:bg-gray-100'
@@ -131,9 +131,9 @@ export default function MonthYearPicker({ value, onChange, placeholder = 'Select
                   <button
                     key={year}
                     onClick={() => handleYearSelect(year)}
-                    className={`px-3 py-2 text-xs font-medium rounded-lg transition-all ${
+                    className={`px-3 py-2 text-xs font-semibold rounded-lg transition-all ${
                       year === selectedYear
-                        ? 'bg-gray-900 text-white'
+                        ? 'bg-emerald-600 text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -172,9 +172,9 @@ export default function MonthYearPicker({ value, onChange, placeholder = 'Select
                   <button
                     key={month}
                     onClick={() => handleMonthSelect(index)}
-                    className={`px-3 py-2 text-xs font-medium rounded-lg transition-all ${
+                    className={`px-3 py-2 text-xs font-semibold rounded-lg transition-all ${
                       value === `${month} ${selectedYear}`
-                        ? 'bg-gray-900 text-white'
+                        ? 'bg-emerald-600 text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >

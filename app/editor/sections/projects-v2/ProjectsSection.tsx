@@ -69,7 +69,6 @@ export function ProjectsSection({
     );
     
     if (hasEmptyProject) {
-      console.log('[ProjectsSection] Empty project already exists, not adding new one');
       return; // Don't add new one, user should fill existing
     }
     
@@ -108,10 +107,10 @@ export function ProjectsSection({
         <div id="projects" className={`w-full ${isMobile ? 'mb-6' : 'mb-12 sm:mb-16 lg:mb-20'}`}>
           {/* Section Header */}
           <div className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-8'}`}>
-            <div className={`rounded-lg bg-purple-100 flex items-center justify-center ${
+            <div className={`rounded-lg bg-emerald-100 flex items-center justify-center ${
               isMobile ? 'w-6 h-6' : 'w-8 h-8'
             }`}>
-              <Briefcase className={isMobile ? 'w-3.5 h-3.5 text-purple-600' : 'w-5 h-5 text-purple-600'} />
+              <Briefcase className={isMobile ? 'w-3.5 h-3.5 text-emerald-600' : 'w-5 h-5 text-emerald-600'} />
             </div>
             <h2 className={`font-bold text-gray-900 ${
               isMobile ? 'text-lg' : 'text-3xl'
@@ -119,10 +118,10 @@ export function ProjectsSection({
           </div>
           
           {/* Empty State */}
-          <div className={`bg-purple-50 border-2 border-dashed border-purple-200 rounded-xl flex flex-col items-center justify-center ${
+          <div className={`bg-emerald-50 border-2 border-dashed border-emerald-200 rounded-xl flex flex-col items-center justify-center ${
             isMobile ? 'p-6' : 'p-8'
           }`}>
-            <Briefcase className={`text-purple-300 ${isMobile ? 'w-10 h-10 mb-2' : 'w-12 h-12 mb-3'}`} />
+            <Briefcase className={`text-emerald-600 ${isMobile ? 'w-10 h-10 mb-2' : 'w-12 h-12 mb-3'}`} />
             <p className={`text-gray-600 mb-3 text-center ${isMobile ? 'text-sm' : 'text-base'}`}>
               No projects added yet
             </p>
@@ -131,9 +130,10 @@ export function ProjectsSection({
                 handleAdd();
                 onScrollToSection?.('projects');
               }}
-              className={`flex items-center gap-2 px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors ${
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg ${
                 isMobile ? 'text-xs' : 'text-sm'
               }`}
+              style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
             >
               <Plus className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
               <span>Add Your First Project</span>
@@ -147,10 +147,10 @@ export function ProjectsSection({
       <div id="projects" className={`w-full ${isMobile ? 'mb-6' : 'mb-12 sm:mb-16 lg:mb-20'}`}>
         {/* Section Header */}
         <div className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-8'}`}>
-          <div className={`rounded-lg bg-purple-100 flex items-center justify-center ${
+          <div className={`rounded-lg bg-emerald-100 flex items-center justify-center ${
             isMobile ? 'w-6 h-6' : 'w-8 h-8'
           }`}>
-            <Briefcase className={isMobile ? 'w-3.5 h-3.5 text-purple-600' : 'w-5 h-5 text-purple-600'} />
+            <Briefcase className={isMobile ? 'w-3.5 h-3.5 text-emerald-600' : 'w-5 h-5 text-emerald-600'} />
           </div>
           <h2 className={`font-bold text-gray-900 ${
             isMobile ? 'text-lg' : 'text-3xl'
@@ -183,9 +183,10 @@ export function ProjectsSection({
                     window.location.href = `/detail/project-editor/${project.id}?mode=edit`;
                   }
                 }}
-                className={`absolute z-10 bg-white backdrop-blur-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-all text-gray-700 hover:bg-purple-600 hover:text-white border border-gray-300 ${
+                className={`absolute z-10 bg-white backdrop-blur-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:shadow-xl border-2 border-gray-300 ${
                   isMobile ? 'top-2 right-2 p-1.5' : 'top-3 right-3 p-2'
                 }`}
+                style={{ background: '#5BC64A', borderColor: '#111111', color: '#111111' }}
                 title="Edit project"
               >
                 <FileEdit className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
@@ -198,11 +199,7 @@ export function ProjectsSection({
                   alt={project.title}
                   className={`w-full object-cover ${isMobile ? 'h-40' : 'h-48'}`}
                   onError={(e) => {
-                    console.error('[ProjectsSection] 🖼️ Image load failed:', project.thumbnail);
                     (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                  onLoad={() => {
-                    console.log('[ProjectsSection] 🖼️ Image loaded successfully:', project.thumbnail);
                   }}
                 />
               ) : (
@@ -228,7 +225,7 @@ export function ProjectsSection({
                     {project.tags.map((tag, idx) => (
                       <span
                         key={idx}
-                        className={`bg-blue-100 text-blue-700 rounded-full ${
+                        className={`bg-emerald-100 text-emerald-700 rounded-full ${
                           isMobile ? 'px-2 py-0.5 text-xs' : 'px-2 py-1 text-xs'
                         }`}
                       >
@@ -270,18 +267,19 @@ export function ProjectsSection({
       {currentProjects.length === 0 ? (
         <button
           onClick={handleAdd}
-          className="w-full flex flex-col items-center justify-center gap-2 px-4 py-8 bg-white border-2 border-dashed border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all"
+          className="w-full flex flex-col items-center justify-center gap-2 px-4 py-8 bg-white border-2 border-dashed border-gray-300 text-gray-700 rounded-xl hover:bg-emerald-50 hover:border-emerald-500 hover:text-gray-900 transition-all"
         >
-          <Briefcase className="w-12 h-12 text-purple-300 mb-1" />
+          <Briefcase className="w-12 h-12 text-emerald-700 mb-1" />
           <div className="text-center">
-            <p className="font-medium">No projects yet</p>
+            <p className="font-semibold text-gray-900">No projects yet</p>
             <p className="text-sm text-gray-500">Click to add your first project</p>
           </div>
         </button>
       ) : (
         <button
           onClick={handleAdd}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-white border-2 border-dashed border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg"
+          style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
         >
           <Plus className="w-4 h-4" />
           <span>Add Project</span>

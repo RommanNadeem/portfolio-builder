@@ -121,26 +121,26 @@ export function CareerCard({
     <div 
       ref={setNodeRef}
       style={style}
-      className="border border-gray-200 rounded-lg p-3 bg-white hover:shadow-sm transition-shadow"
+      className={`thin-card ${isDragging ? 'thin-card-dragging' : ''}`}
     >
       {/* Header with drag, edit, company/role, and delete */}
-      <div className="flex items-center gap-2 mb-3">
+      <div className="thin-card-header">
         <button
           {...attributes}
           {...listeners}
-          className="p-1 text-gray-500 hover:text-gray-700 cursor-grab active:cursor-grabbing flex-shrink-0"
+          className="thin-icon-btn thin-icon-btn-ghost"
           title="Drag to reorder"
         >
-          <GripVertical className="w-4 h-4" />
+          <GripVertical className="w-4 h-4 text-gray-700" />
         </button>
         
         {/* Edit Icon - Always visible */}
         <button
           onClick={navigateToDetail}
-          className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors flex-shrink-0"
+          className="thin-icon-btn thin-icon-btn-primary"
           title="Edit career"
         >
-          <FileEdit className="w-4 h-4" />
+          <FileEdit className="w-4 h-4 text-gray-900" />
         </button>
         
         <div className="flex-1 space-y-1 min-w-0">
@@ -149,7 +149,7 @@ export function CareerCard({
             value={career.organization}
             onChange={(e) => handleUpdate('organization', e.target.value)}
             placeholder="Company (e.g., Google)"
-            className="w-full px-2 py-1 text-sm font-medium text-gray-900 border-0 bg-transparent focus:outline-none focus:ring-0 placeholder:text-gray-500"
+            className="w-full px-2 py-1 text-sm font-bold text-gray-900 border-0 bg-transparent focus:outline-none focus:ring-0 placeholder:text-gray-600"
           />
           
           {/* Role - Now second */}
@@ -157,17 +157,19 @@ export function CareerCard({
             value={career.role}
             onChange={(e) => handleUpdate('role', e.target.value)}
             placeholder="Role (e.g., Senior Product Manager)"
-            className="w-full px-2 py-1 text-xs text-gray-600 border-0 bg-transparent focus:outline-none focus:ring-0 placeholder:text-gray-500"
+            className="w-full px-2 py-1 text-xs font-medium text-gray-700 border-0 bg-transparent focus:outline-none focus:ring-0 placeholder:text-gray-600"
           />
         </div>
         
-        <button
-          onClick={() => onDelete(career.id)}
-          className="p-1 text-gray-500 hover:text-red-600 transition-colors flex-shrink-0"
-          title="Delete"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
+        <div className="thin-card-actions">
+          <button
+            onClick={() => onDelete(career.id)}
+            className="thin-icon-btn thin-icon-btn-danger"
+            title="Delete"
+          >
+            <Trash2 className="w-4 h-4 text-gray-700 hover:text-red-600" />
+          </button>
+        </div>
       </div>
 
       {/* Dates */}
@@ -182,7 +184,7 @@ export function CareerCard({
           </div>
           <span className="text-gray-400">—</span>
           {career.current ? (
-            <div className="flex-1 px-2 py-1.5 text-blue-600 font-medium bg-blue-50 border border-blue-200 rounded-lg text-center">
+            <div className="flex-1 px-2 py-1.5 text-emerald-700 font-semibold bg-emerald-50 border border-emerald-200 rounded-lg text-center text-xs">
               Present
             </div>
           ) : (
@@ -197,23 +199,23 @@ export function CareerCard({
         </div>
         
         {/* Current checkbox - below date fields */}
-        <label className="flex items-center gap-1.5 cursor-pointer px-2 py-1 hover:bg-gray-50 rounded-lg transition-colors w-fit">
+        <label className="thin-checkbox-label">
           <input
             type="checkbox"
             checked={career.current}
             onChange={(e) => handleUpdate('current', e.target.checked)}
-            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-600 cursor-pointer"
+            className="thin-checkbox"
           />
-          <span className="text-xs text-gray-700 font-medium">Currently working here</span>
+          <span className="thin-checkbox-label-text" style={{ color: '#111111' }}>Currently working here</span>
         </label>
         
         {/* Validation errors */}
         {validationErrors.length > 0 && (
-          <div className="flex items-start gap-1.5 px-2 py-1.5 bg-red-50 border border-red-200 rounded-lg">
-            <AlertCircle className="w-3.5 h-3.5 text-red-600 flex-shrink-0 mt-0.5" />
+          <div className="thin-error">
+            <AlertCircle className="thin-error-icon text-red-600" />
             <div className="flex-1">
               {validationErrors.map((error, idx) => (
-                <p key={idx} className="text-xs text-red-700">{error}</p>
+                <p key={idx}>{error}</p>
               ))}
             </div>
           </div>

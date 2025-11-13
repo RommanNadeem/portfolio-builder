@@ -64,7 +64,9 @@ export function useAutoSave<T>({
       }, 2000);
 
     } catch (error) {
-      console.error('[useAutoSave] Save failed:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[useAutoSave] Save failed:', error);
+      }
       setSaveStatus('error');
 
       // Reset error status after a delay
@@ -85,17 +87,14 @@ export function useAutoSave<T>({
     if (isInitialMount.current) {
       isInitialMount.current = false;
       previousDataStringRef.current = currentDataString;
-      console.log('[useAutoSave] 📌 Initial mount, data stored');
       return;
     }
 
     // Check if data actually changed (prevent infinite loops)
     if (currentDataString === previousDataStringRef.current) {
-      console.log('[useAutoSave] ⏭️ No changes detected, skipping save');
       return;
     }
 
-    console.log('[useAutoSave] 🔄 Data changed, scheduling save...');
     previousDataStringRef.current = currentDataString;
 
     // Clear previous timeout

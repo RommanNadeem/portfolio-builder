@@ -173,8 +173,8 @@ export function CompaniesSection({
   return (
     <div className="space-y-4">
       {/* Info box */}
-      <div className="flex items-start gap-2 text-xs text-gray-500 bg-blue-50 p-3 rounded-lg border border-blue-100">
-        <Building2 className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+      <div className="flex items-start gap-2 text-xs text-gray-500 bg-emerald-50 p-3 rounded-lg border border-emerald-100">
+        <Building2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
         <div>
           <p className="font-medium text-gray-700 mb-1">Company Slider</p>
           <p>Companies appear as a scrolling slider. Click to edit inline.</p>

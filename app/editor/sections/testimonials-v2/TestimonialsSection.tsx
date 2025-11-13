@@ -102,10 +102,10 @@ export function TestimonialsSection({
       <div id="testimonials" className={`w-full ${isMobile ? 'mb-6' : 'mb-12 sm:mb-16 lg:mb-20'}`}>
         {/* Section Header */}
         <div className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-8'}`}>
-          <div className={`rounded-lg bg-yellow-100 flex items-center justify-center ${
+          <div className={`rounded-lg bg-emerald-100 flex items-center justify-center ${
             isMobile ? 'w-6 h-6' : 'w-8 h-8'
           }`}>
-            <MessageSquare className={isMobile ? 'w-3.5 h-3.5 text-yellow-600' : 'w-5 h-5 text-yellow-600'} />
+            <MessageSquare className={isMobile ? 'w-3.5 h-3.5 text-emerald-600' : 'w-5 h-5 text-emerald-600'} />
           </div>
           <h2 className={`font-bold text-gray-900 ${
             isMobile ? 'text-lg' : 'text-3xl'
@@ -127,7 +127,7 @@ export function TestimonialsSection({
               }`}>&ldquo;{testimonial.content}&rdquo;</p>
               <div className={`flex items-center justify-between ${isMobile ? 'gap-2' : 'gap-3'}`}>
                 <div className="flex items-center gap-3">
-                  <div className={`bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold ${
+                  <div className={`bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 font-semibold ${
                     isMobile ? 'w-9 h-9 text-xs' : 'w-11 h-11 text-sm'
                   }`}>
                     {testimonial.name.charAt(0)}
@@ -150,7 +150,7 @@ export function TestimonialsSection({
                     href={testimonial.linkedinUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`flex-shrink-0 p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all ${
+                    className={`flex-shrink-0 p-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-all ${
                       isMobile ? '' : ''
                     }`}
                     title="View LinkedIn Profile"
@@ -189,18 +189,19 @@ export function TestimonialsSection({
       {currentTestimonials.length === 0 ? (
         <button
           onClick={handleAdd}
-          className="w-full flex flex-col items-center justify-center gap-2 px-4 py-8 bg-white border-2 border-dashed border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all"
+          className="w-full flex flex-col items-center justify-center gap-2 px-4 py-8 bg-white border-2 border-dashed border-gray-300 text-gray-700 rounded-xl hover:bg-emerald-50 hover:border-emerald-500 hover:text-gray-900 transition-all"
         >
-          <MessageSquare className="w-12 h-12 text-yellow-300 mb-1" />
+          <MessageSquare className="w-12 h-12 text-emerald-700 mb-1" />
           <div className="text-center">
-            <p className="font-medium">No testimonials yet</p>
+            <p className="font-semibold text-gray-900">No testimonials yet</p>
             <p className="text-sm text-gray-500">Click to add your first testimonial</p>
           </div>
         </button>
       ) : (
         <button
           onClick={handleAdd}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-white border-2 border-dashed border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg"
+          style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
         >
           <Plus className="w-4 h-4" />
           <span>Add Testimonial</span>

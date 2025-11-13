@@ -40,24 +40,6 @@ export function PublishModal({
   useEffect(() => {
     if (isOpen && userId) {
       loadPublishStatus();
-      
-      // Debug: Log what portfolio data we have
-      console.log('[PublishModal] Portfolio data received:', {
-        projects: portfolioData?.projects?.length || 0,
-        careerHighlights: portfolioData?.careerHighlights?.length || 0,
-        strengths: portfolioData?.strengths?.length || 0,
-        testimonials: portfolioData?.testimonials?.length || 0,
-        faqs: portfolioData?.faqs?.length || 0,
-        services: portfolioData?.services?.length || 0,
-        resume: portfolioData?.resume || portfolioData?.profile?.resume_url || 'none',
-      });
-      
-      if (portfolioData?.careerHighlights?.length > 0) {
-        console.log('[PublishModal] First career highlight:', portfolioData.careerHighlights[0]);
-      } else {
-        console.log('[PublishModal] ⚠️ No career highlights in portfolio data!');
-        console.log('[PublishModal] Full portfolio data:', portfolioData);
-      }
     }
   }, [isOpen, userId, portfolioData]);
 
@@ -80,7 +62,9 @@ export function PublishModal({
         }
       }
     } catch (err) {
-      console.error('Error loading status:', err);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error loading status:', err);
+      }
     } finally {
       setLoading(false);
     }
@@ -101,6 +85,9 @@ export function PublishModal({
           setLoading(false);
           return;
         }
+        
+        // Update state - we pass the slug directly to publishPortfolio() to avoid race conditions
+        setCurrentSlug(slug);
       }
 
       // Move to validation step
@@ -131,20 +118,25 @@ export function PublishModal({
     setError('');
 
     try {
-      console.log('[PublishModal] Publishing with portfolio data:', {
-        projects: portfolioData?.projects?.length || 0,
-        careerHighlights: portfolioData?.careerHighlights?.length || 0,
-        faqs: portfolioData?.faqs?.length || 0,
-        services: portfolioData?.services?.length || 0,
-        resume: Boolean(portfolioData?.resume || portfolioData?.profile?.resume_url),
-      });
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[PublishModal] Publishing portfolio');
+      }
 
       // Pass the portfolio data from editor directly to publish function
-      const result = await publishPortfolio(userId, portfolioData);
+      // Also pass the current slug to avoid race conditions
+      const result = await publishPortfolio(userId, portfolioData, currentSlug || undefined);
 
       if (!result.success) {
         setError(result.error || 'Failed to publish');
-        setStep('validation');
+        
+        // If slug is missing, redirect back to slug step
+        if (result.error?.includes('portfolio URL')) {
+          setStep('slug');
+          setHasSlug(false);
+        } else {
+          setStep('validation');
+        }
+        
         setLoading(false);
         return;
       }
@@ -236,7 +228,8 @@ export function PublishModal({
                 <button
                   onClick={handleSlugContinue}
                   disabled={!isSlugValid || loading}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  className="px-6 py-2 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg disabled:bg-gray-300 disabled:cursor-not-allowed disabled:shadow-none"
+                  style={{ background: !isSlugValid || loading ? '' : '#5BC64A', border: !isSlugValid || loading ? '' : '2px solid #111111', color: !isSlugValid || loading ? '' : '#111111' }}
                 >
                   {loading ? 'Checking...' : 'Continue'}
                 </button>
@@ -331,7 +324,8 @@ export function PublishModal({
                 <button
                   onClick={handleValidationContinue}
                   disabled={loading || (validationResult && !validationResult.canPublish)}
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-semibold"
+                  className="px-6 py-2 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg disabled:bg-gray-300 disabled:cursor-not-allowed disabled:shadow-none"
+                  style={{ background: (loading || (validationResult && !validationResult.canPublish)) ? '' : '#5BC64A', border: (loading || (validationResult && !validationResult.canPublish)) ? '' : '2px solid #111111', color: (loading || (validationResult && !validationResult.canPublish)) ? '' : '#111111' }}
                 >
                   {loading ? 'Publishing...' : 'Publish Portfolio'}
                 </button>
@@ -342,7 +336,7 @@ export function PublishModal({
           {/* Step 3: Publishing (Loading) */}
           {step === 'publishing' && (
             <div className="flex flex-col items-center justify-center py-12">
-              <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+              <div className="w-16 h-16 border-4 border-gray-200 rounded-full animate-spin mb-4" style={{ borderTopColor: '#5BC64A' }}></div>
               <p className="text-lg font-medium text-gray-900">Publishing your portfolio...</p>
               <p className="text-sm text-gray-600 mt-2">This will only take a moment</p>
             </div>
@@ -378,7 +372,8 @@ export function PublishModal({
                   />
                   <button
                     onClick={handleCopyLink}
-                    className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium"
+                    className="px-4 py-2 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg"
+                    style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
                   >
                     Copy Link
                   </button>
@@ -390,7 +385,8 @@ export function PublishModal({
                   href={publishedUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-center font-semibold"
+                  className="flex-1 px-6 py-3 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg text-center"
+                  style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
                 >
                   View Live Site →
                 </a>

@@ -47,7 +47,7 @@ export function FAQCard({
       <div className="space-y-3">
         {/* Question Input */}
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1.5">
+          <label className="thin-label">
             Question
           </label>
           <input
@@ -55,13 +55,13 @@ export function FAQCard({
             value={faq.question}
             onChange={(e) => handleUpdate('question', e.target.value)}
             placeholder="What services do you offer?"
-            className="w-full px-3 py-2 text-sm font-semibold text-gray-900 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-500"
+            className="thin-input"
           />
         </div>
 
         {/* Answer Input */}
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1.5">
+          <label className="thin-label">
             Answer
           </label>
           <textarea
@@ -69,21 +69,21 @@ export function FAQCard({
             onChange={(e) => handleUpdate('answer', e.target.value)}
             placeholder="I offer UX design, product strategy, and user research services..."
             rows={4}
-            className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder:text-gray-500"
+            className="thin-textarea"
           />
         </div>
 
         {/* Optional Category */}
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1.5">
-            Category (Optional)
+          <label className="thin-label">
+            Category <span className="text-gray-600 font-medium">(Optional)</span>
           </label>
           <input
             type="text"
             value={faq.category || ''}
             onChange={(e) => handleUpdate('category', e.target.value)}
             placeholder="General, Services, Process..."
-            className="w-full px-3 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-500"
+            className="thin-input"
           />
         </div>
       </div>

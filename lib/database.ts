@@ -12,8 +12,8 @@ import {
   PortfolioData
 } from './types';
 
-// Debug flag
-const DEBUG_DATABASE = true; // Enable for debugging template_type persistence
+// Debug flag - DISABLED IN PRODUCTION
+const DEBUG_DATABASE = process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_DEBUG_DATABASE === 'true';
 
 // ============================================
 // PROFILE OPERATIONS

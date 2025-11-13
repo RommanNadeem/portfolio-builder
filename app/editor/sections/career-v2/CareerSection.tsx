@@ -133,18 +133,19 @@ export function CareerSection({
       {currentHighlights.length === 0 ? (
         <button
           onClick={handleAdd}
-          className="w-full flex flex-col items-center justify-center gap-2 px-4 py-8 bg-white border-2 border-dashed border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all"
+          className="w-full flex flex-col items-center justify-center gap-2 px-4 py-8 bg-white border-2 border-dashed border-gray-300 text-gray-700 rounded-xl hover:bg-emerald-50 hover:border-emerald-500 hover:text-gray-900 transition-all"
         >
-          <Award className="w-12 h-12 text-blue-300 mb-1" />
+          <Award className="w-12 h-12 text-emerald-700 mb-1" />
           <div className="text-center">
-            <p className="font-medium">No career highlights yet</p>
+            <p className="font-semibold text-gray-900">No career highlights yet</p>
             <p className="text-sm text-gray-500">Click to add your first highlight</p>
           </div>
         </button>
       ) : (
         <button
           onClick={handleAdd}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-white border-2 border-dashed border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg"
+          style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
         >
           <Plus className="w-4 h-4" />
           <span>Add Career Highlight</span>

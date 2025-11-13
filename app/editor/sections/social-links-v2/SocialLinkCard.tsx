@@ -76,18 +76,18 @@ export function SocialLinkCard({
       canMoveUp={canMoveUp}
       canMoveDown={canMoveDown}
       isDraggable={true}
-      className="bg-gradient-to-br from-white to-purple-50"
+      className="bg-gradient-to-br from-white to-gray-50"
     >
       <div className="flex items-center gap-3">
         {/* Icon */}
-        <div className="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-purple-700">
+        <div className="flex-shrink-0 w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-700">
           {getIcon(link.icon)}
         </div>
 
         {/* Content - Compact Single Row */}
         <div className="flex-1 flex flex-col gap-1.5">
           {/* Platform name - small text */}
-          <div className="text-xs font-medium text-gray-600">{link.platform}</div>
+          <div className="text-xs font-semibold text-gray-900" style={{ color: '#111111' }}>{link.platform}</div>
           
           {/* URL Input - main field */}
           <input
@@ -95,7 +95,7 @@ export function SocialLinkCard({
             value={link.url}
             onChange={(e) => handleUpdate('url', e.target.value)}
             placeholder="https://..."
-            className="w-full px-2 py-1.5 text-sm text-gray-900 border border-gray-200 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-400 font-mono text-xs"
+            className="thin-input font-mono"
           />
         </div>
       </div>

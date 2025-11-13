@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Copy, ExternalLink, RefreshCw, MoreVertical, EyeOff, Link as LinkIcon, Clock, Check, Upload } from 'lucide-react';
+import { Copy, ExternalLink, RefreshCw, MoreVertical, EyeOff, Clock, Check, Upload, AlertTriangle } from 'lucide-react';
 import { getPublishStatus, unpublishPortfolio } from '@/lib/publishing';
 import { EVENTS, onPublishEvent } from '@/lib/events';
 
@@ -26,6 +26,8 @@ export function PublishingBar({ userId, onPublishClick }: PublishingBarProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false);
+  const [unpublishing, setUnpublishing] = useState(false);
 
   // Load status on mount
   useEffect(() => {
@@ -84,19 +86,16 @@ export function PublishingBar({ userId, onPublishClick }: PublishingBarProps) {
   };
 
   const handleUnpublish = async () => {
-    if (!confirm('Are you sure you want to unpublish your portfolio? It will no longer be accessible to the public.')) {
-      return;
-    }
-
-    setLoading(true);
+    setUnpublishing(true);
     const result = await unpublishPortfolio(userId);
     if (result.success) {
       await loadStatus();
+      setShowUnpublishConfirm(false);
+      setShowMenu(false);
     } else {
       alert(result.error || 'Failed to unpublish');
     }
-    setLoading(false);
-    setShowMenu(false);
+    setUnpublishing(false);
   };
 
   if (loading) {
@@ -163,7 +162,8 @@ export function PublishingBar({ userId, onPublishClick }: PublishingBarProps) {
               {/* Publish Changes Button */}
               <button
                 onClick={onPublishClick}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2"
+                className="px-4 py-2 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
               >
                 <RefreshCw className="w-4 h-4" />
                 <span className="hidden sm:inline">Publish Changes</span>
@@ -189,16 +189,6 @@ export function PublishingBar({ userId, onPublishClick }: PublishingBarProps) {
                       <button
                         onClick={() => {
                           setShowMenu(false);
-                          // TODO: Open change URL dialog
-                        }}
-                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                      >
-                        <LinkIcon className="w-4 h-4" />
-                        Change URL
-                      </button>
-                      <button
-                        onClick={() => {
-                          setShowMenu(false);
                           // TODO: Open version history
                         }}
                         className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
@@ -208,7 +198,10 @@ export function PublishingBar({ userId, onPublishClick }: PublishingBarProps) {
                       </button>
                       <div className="border-t border-gray-200 my-1"></div>
                       <button
-                        onClick={handleUnpublish}
+                        onClick={() => {
+                          setShowMenu(false);
+                          setShowUnpublishConfirm(true);
+                        }}
                         className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
                       >
                         <EyeOff className="w-4 h-4" />
@@ -222,7 +215,8 @@ export function PublishingBar({ userId, onPublishClick }: PublishingBarProps) {
           ) : (
             <button
               onClick={onPublishClick}
-              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold shadow-sm flex items-center gap-2"
+              className="px-6 py-2 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+              style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
             >
               <Upload className="w-4 h-4" />
               Publish Portfolio
@@ -230,6 +224,56 @@ export function PublishingBar({ userId, onPublishClick }: PublishingBarProps) {
           )}
         </div>
       </div>
+
+      {/* Unpublish Confirmation Modal */}
+      {showUnpublishConfirm && (
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-[200] p-4"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.18)' }}
+          onClick={() => setShowUnpublishConfirm(false)}
+        >
+          <div 
+            className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-yellow-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Unpublish Your Portfolio?</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Your portfolio will no longer be accessible at its public URL. You can republish it anytime.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
+              <p className="text-xs text-blue-800">
+                💡 <strong>Good to know:</strong> Your work won't be deleted—it'll still be safe in your editor. You can republish whenever you're ready.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowUnpublishConfirm(false)}
+                disabled={unpublishing}
+                className="flex-1 px-4 py-2.5 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              >
+                Keep Published
+              </button>
+              <button
+                onClick={handleUnpublish}
+                disabled={unpublishing}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-700 text-white font-semibold rounded-xl hover:bg-red-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <EyeOff className="w-4 h-4" />
+                {unpublishing ? 'Unpublishing...' : 'Unpublish'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

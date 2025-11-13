@@ -76,7 +76,7 @@ export function StrengthCard({
             value={strength.title}
             onChange={(e) => handleUpdate('title', e.target.value)}
             placeholder="User Research & Testing"
-            className="flex-1 px-3 py-2 text-sm font-semibold text-gray-900 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-500"
+            className="thin-input"
           />
         </div>
 
@@ -86,7 +86,7 @@ export function StrengthCard({
           onChange={(e) => handleUpdate('description', e.target.value)}
           placeholder="Expert in conducting user interviews, usability tests, and turning insights into actionable product improvements."
           rows={3}
-          className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none placeholder:text-gray-500"
+          className="thin-textarea"
         />
       </div>
     </ItemCard>

@@ -70,7 +70,6 @@ export function StrengthsSection({
     );
     
     if (hasEmptyStrength) {
-      console.log('[StrengthsSection] Empty strength already exists, not adding new one');
       return; // Don't add new one, user should fill existing
     }
     
@@ -98,10 +97,10 @@ export function StrengthsSection({
       <div id="strengths" className={`w-full ${isMobile ? 'mb-6' : 'mb-12 sm:mb-16 lg:mb-20'}`}>
         {/* Section Header */}
         <div className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-8'}`}>
-          <div className={`rounded-lg bg-orange-100 flex items-center justify-center ${
+          <div className={`rounded-lg bg-emerald-100 flex items-center justify-center ${
             isMobile ? 'w-6 h-6' : 'w-8 h-8'
           }`}>
-            <Star className={isMobile ? 'w-3.5 h-3.5 text-orange-600' : 'w-5 h-5 text-orange-600'} />
+            <Star className={isMobile ? 'w-3.5 h-3.5 text-emerald-600' : 'w-5 h-5 text-emerald-600'} />
           </div>
           <h2 className={`font-bold text-gray-900 ${
             isMobile ? 'text-lg' : 'text-3xl'
@@ -155,18 +154,19 @@ export function StrengthsSection({
       {currentStrengths.length === 0 ? (
         <button
           onClick={handleAdd}
-          className="w-full flex flex-col items-center justify-center gap-2 px-4 py-8 bg-white border-2 border-dashed border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all"
+          className="w-full flex flex-col items-center justify-center gap-2 px-4 py-8 bg-white border-2 border-dashed border-gray-300 text-gray-700 rounded-xl hover:bg-emerald-50 hover:border-emerald-500 hover:text-gray-900 transition-all"
         >
-          <Star className="w-12 h-12 text-orange-300 mb-1" />
+          <Star className="w-12 h-12 text-emerald-700 mb-1" />
           <div className="text-center">
-            <p className="font-medium">No strengths yet</p>
+            <p className="font-semibold text-gray-900">No strengths yet</p>
             <p className="text-sm text-gray-500">Click to add your first strength</p>
           </div>
         </button>
       ) : (
         <button
           onClick={handleAdd}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-white border-2 border-dashed border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg"
+          style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
         >
           <Plus className="w-4 h-4" />
           <span>Add Strength</span>

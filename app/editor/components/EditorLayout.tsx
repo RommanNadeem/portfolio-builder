@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Eye, Pencil, Monitor, Smartphone, LogOut, Settings, LayoutDashboard, ArrowLeft, Copy, ExternalLink, RefreshCw, Upload, MoreVertical, Check, EyeOff, Link as LinkIcon } from 'lucide-react';
+import { Eye, Pencil, Monitor, Smartphone, LogOut, Settings, LayoutDashboard, ArrowLeft, Copy, ExternalLink, RefreshCw, Upload, MoreVertical, Check, EyeOff, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { signOut } from '@/lib/supabase';
 import { unpublishPortfolio } from '@/lib/publishing';
@@ -44,6 +44,8 @@ export function EditorLayout({
   const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false);
+  const [unpublishing, setUnpublishing] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -60,14 +62,16 @@ export function EditorLayout({
 
   const handleUnpublish = async () => {
     if (!userId) return;
-    if (!confirm('Are you sure you want to unpublish your portfolio?')) return;
-
+    
+    setUnpublishing(true);
     const result = await unpublishPortfolio(userId);
     if (result.success) {
       setShowMenu(false);
+      setShowUnpublishConfirm(false);
     } else {
       alert(result.error || 'Failed to unpublish');
     }
+    setUnpublishing(false);
   };
 
   return (
@@ -88,7 +92,7 @@ export function EditorLayout({
 
           <div className="h-6 w-px bg-gray-300" /> {/* Divider */}
           
-          <h1 className="text-xl font-bold text-gray-900">Portfolio Builder</h1>
+          <h1 className="text-xl font-bold text-gray-900">BuildSpace</h1>
           
           {/* Save Status */}
           <div className="text-xs text-gray-500">
@@ -111,19 +115,8 @@ export function EditorLayout({
           </div>
         </div>
 
-        {/* CENTER: Publish Status */}
-        {userId && publishStatus && (
-          <>
-            <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${
-                publishStatus.isPublished ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
-              }`} />
-              <span className="text-sm font-medium text-gray-700">
-                {publishStatus.isPublished ? 'Live' : 'Draft'}
-              </span>
-            </div>
-          </>
-        )}
+        {/* CENTER: Empty (reserved for future use) */}
+        <div></div>
 
         {/* RIGHT: Controls + Publish Actions + Settings */}
         <div className="flex items-center gap-2">
@@ -215,12 +208,19 @@ export function EditorLayout({
                   {/* Publish Changes Button */}
                   <button
                     onClick={onPublishClick}
-                    className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-1.5"
+                    className="px-4 py-2 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                    style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
                   >
-                    <RefreshCw className="w-3.5 h-3.5" />
+                    <RefreshCw className="w-4 h-4" />
                     <span className="hidden lg:inline">Publish Changes</span>
                     <span className="lg:hidden">Update</span>
                   </button>
+
+                  {/* Live Indicator */}
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 rounded-lg border border-green-200">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-xs font-semibold text-green-700">Live</span>
+                  </div>
 
                   {/* More Menu */}
                   <div className="relative">
@@ -241,16 +241,8 @@ export function EditorLayout({
                           <button
                             onClick={() => {
                               setShowMenu(false);
-                              // TODO: Implement change URL
+                              setShowUnpublishConfirm(true);
                             }}
-                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                          >
-                            <LinkIcon className="w-4 h-4" />
-                            Change URL
-                          </button>
-                          <div className="border-t border-gray-200 my-1" />
-                          <button
-                            onClick={handleUnpublish}
                             className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
                           >
                             <EyeOff className="w-4 h-4" />
@@ -262,15 +254,24 @@ export function EditorLayout({
                   </div>
                 </>
               ) : (
-                /* Publish Portfolio Button */
-                <button
-                  onClick={onPublishClick}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold flex items-center gap-2"
-                >
-                  <Upload className="w-4 h-4" />
-                  <span className="hidden lg:inline">Publish Portfolio</span>
-                  <span className="lg:hidden">Publish</span>
-                </button>
+                /* Publish Portfolio Button + Unpublished Indicator */
+                <>
+                  <button
+                    onClick={onPublishClick}
+                    className="px-4 py-2 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                    style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
+                  >
+                    <Upload className="w-4 h-4" />
+                    <span className="hidden lg:inline">Publish Portfolio</span>
+                    <span className="lg:hidden">Publish</span>
+                  </button>
+
+                  {/* Not Published Indicator */}
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 rounded-lg border border-amber-200">
+                    <div className="w-2 h-2 rounded-full bg-amber-500" />
+                    <span className="text-xs font-semibold text-amber-700">Not Published</span>
+                  </div>
+                </>
               )}
             </>
           )}
@@ -306,25 +307,25 @@ export function EditorLayout({
           leftPane={
             <div className="p-4">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wide">
+                <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
                   Sections
                 </h2>
                 {/* Save Status Indicator */}
                 <div className="flex items-center gap-1">
                   {isSaving ? (
-                    <div className="flex items-center gap-1 px-2 py-1 bg-blue-50 rounded-full">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                      <span className="text-xs text-blue-700 font-medium">Saving</span>
+                    <div className="flex items-center gap-1 px-2 py-1 bg-emerald-50 rounded-full">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                      <span className="text-xs text-emerald-700 font-semibold">Saving</span>
                     </div>
                   ) : isDirty ? (
-                    <div className="flex items-center gap-1 px-2 py-1 bg-orange-50 rounded-full">
-                      <div className="w-2 h-2 bg-orange-500 rounded-full" />
-                      <span className="text-xs text-orange-700 font-medium">Unsaved</span>
+                    <div className="flex items-center gap-1 px-2 py-1 bg-amber-50 rounded-full">
+                      <div className="w-2 h-2 bg-amber-500 rounded-full" />
+                      <span className="text-xs text-amber-700 font-semibold">Unsaved</span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1 px-2 py-1 bg-green-50 rounded-full">
-                      <div className="w-2 h-2 bg-green-500 rounded-full" />
-                      <span className="text-xs text-green-700 font-medium">Saved</span>
+                    <div className="flex items-center gap-1 px-2 py-1 bg-emerald-50 rounded-full">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                      <span className="text-xs text-emerald-700 font-semibold">Saved</span>
                     </div>
                   )}
                 </div>
@@ -355,6 +356,56 @@ export function EditorLayout({
                 : 'w-full max-w-6xl mx-auto rounded-3xl overflow-hidden'
             }`}>
               {previewPanel}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Unpublish Confirmation Modal */}
+      {showUnpublishConfirm && (
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-[200] p-4"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.18)' }}
+          onClick={() => setShowUnpublishConfirm(false)}
+        >
+          <div 
+            className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-yellow-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Unpublish Your Portfolio?</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Your portfolio will no longer be accessible at its public URL. You can republish it anytime.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
+              <p className="text-xs text-blue-800">
+                💡 <strong>Good to know:</strong> Your work won't be deleted—it'll still be safe in your editor. You can republish whenever you're ready.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowUnpublishConfirm(false)}
+                disabled={unpublishing}
+                className="flex-1 px-4 py-2.5 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              >
+                Keep Published
+              </button>
+              <button
+                onClick={handleUnpublish}
+                disabled={unpublishing}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-700 text-white font-semibold rounded-xl hover:bg-red-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <EyeOff className="w-4 h-4" />
+                {unpublishing ? 'Unpublishing...' : 'Unpublish'}
+              </button>
             </div>
           </div>
         </div>

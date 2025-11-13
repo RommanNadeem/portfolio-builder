@@ -55,10 +55,12 @@ export function SocialLinksSection({
   const handleLinksChange = useCallback((newLinks: SocialLinkItem[]) => {
     const legacy = newLinks.map(convertToLegacy);
     
-    console.log('[SocialLinksSection] 🔄 Updating parent state:', {
-      prev: data.socialLinks?.length || 0,
-      new: legacy.length,
-    });
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[SocialLinksSection] Updating parent state:', {
+        prev: data.socialLinks?.length || 0,
+        new: legacy.length,
+      });
+    }
     
     // Update parent immediately - no delay, no auto-save
     onChange(prev => ({
@@ -194,12 +196,12 @@ export function SocialLinksSection({
               <button
                 key={platform}
                 onClick={() => handleAddPlatform(platform, icon)}
-                className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors text-left group"
+                className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg hover:border-emerald-500 hover:bg-emerald-50 transition-colors text-left group"
               >
-                <div className="w-8 h-8 bg-gray-50 rounded-md flex items-center justify-center text-gray-600 group-hover:bg-purple-100 group-hover:text-purple-700 transition-colors flex-shrink-0">
+                <div className="w-8 h-8 bg-gray-50 rounded-md flex items-center justify-center text-gray-600 group-hover:bg-emerald-100 group-hover:text-emerald-700 transition-colors flex-shrink-0">
                   {getIcon(icon)}
                 </div>
-                <span className="font-medium text-xs text-gray-700 group-hover:text-purple-700">{platform}</span>
+                <span className="font-medium text-xs text-gray-700 group-hover:text-emerald-700">{platform}</span>
               </button>
             ))}
           </div>

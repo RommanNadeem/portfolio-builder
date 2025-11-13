@@ -37,7 +37,8 @@ function SortableSection({
   onDelete,
   onSave,
   entityType,
-}: SortableSectionProps & { entityType?: 'project' | 'career' }) {
+  onTitleChange,
+}: SortableSectionProps & { entityType?: 'project' | 'career'; onTitleChange?: (newTitle: string) => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ 
     id: block.id,
     disabled: index === 0 // Hero can't be dragged
@@ -65,6 +66,7 @@ function SortableSection({
           onChange={(blocks) => onChange(blocks[0])}
           mode="preview"
           entityType={entityType}
+          onTitleChange={onTitleChange}
         />
       </div>
     );
@@ -130,6 +132,7 @@ function SortableSection({
           mode="edit"
           onSave={onSave}
           entityType={entityType}
+          onTitleChange={onTitleChange}
         />
       </div>
     </section>
@@ -148,6 +151,7 @@ interface TemplateEditorContentProps {
   onToggleSection: (index: number) => void;
   onSave?: () => Promise<void>; // Force immediate save (for image uploads)
   entityType?: 'project' | 'career'; // Entity type for template customization
+  onTitleChange?: (newTitle: string) => void; // For real-time navigation bar update
 }
 
 export function TemplateEditorContent({
@@ -162,6 +166,7 @@ export function TemplateEditorContent({
   onToggleSection,
   onSave,
   entityType,
+  onTitleChange,
 }: TemplateEditorContentProps) {
   const [showSlashMenu, setShowSlashMenu] = useState(false);
 
@@ -216,6 +221,7 @@ export function TemplateEditorContent({
               onDelete={() => onBlockDelete(index)}
               onSave={onSave}
               entityType={entityType}
+              onTitleChange={onTitleChange}
             />
           ))}
         </SortableContext>

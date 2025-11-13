@@ -19,9 +19,10 @@ interface TemplateRendererProps {
   mode: 'edit' | 'preview';
   entityType?: 'project' | 'career'; // Optional entity type for block customization
   onSave?: () => Promise<void>; // Force immediate save (for image uploads)
+  onTitleChange?: (newTitle: string) => void; // For real-time navigation bar update
 }
 
-export function TemplateRenderer({ blocks, onChange, mode, entityType, onSave }: TemplateRendererProps) {
+export function TemplateRenderer({ blocks, onChange, mode, entityType, onSave, onTitleChange }: TemplateRendererProps) {
   const updateBlock = (index: number, updatedBlock: TemplateBlock) => {
     const newBlocks = [...blocks];
     newBlocks[index] = updatedBlock;
@@ -36,7 +37,7 @@ export function TemplateRenderer({ blocks, onChange, mode, entityType, onSave }:
 
     switch (block.type) {
       case 'hero':
-        return <HeroBlock key={block.id} block={block} {...commonProps} entityType={entityType} onSave={onSave} />;
+        return <HeroBlock key={block.id} block={block} {...commonProps} entityType={entityType} onSave={onSave} onTitleChange={onTitleChange} />;
       case 'callout':
         return <CalloutBlock key={block.id} block={block} {...commonProps} />;
       case 'richtext':

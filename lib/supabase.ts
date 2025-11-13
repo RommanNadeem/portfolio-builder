@@ -11,7 +11,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export const getCurrentUser = async () => {
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error) {
-    console.error('Error getting user:', error);
+    // Don't log auth errors in production - they're normal (e.g., user not logged in)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error getting user:', error.message);
+    }
     return null;
   }
   return user;
@@ -25,7 +28,10 @@ export const signUp = async (email: string, password: string) => {
   });
   
   if (error) {
-    console.error('Error signing up:', error);
+    // Only log error message, not full error object (may contain sensitive data)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error signing up:', error.message);
+    }
     return { user: null, session: null, error };
   }
   
@@ -35,8 +41,8 @@ export const signUp = async (email: string, password: string) => {
 // Helper function to sign out
 export const signOut = async () => {
   const { error } = await supabase.auth.signOut();
-  if (error) {
-    console.error('Error signing out:', error);
+  if (error && process.env.NODE_ENV === 'development') {
+    console.error('Error signing out:', error.message);
   }
 };
 
@@ -53,13 +59,17 @@ export const deleteUserAccount = async () => {
     const { error } = await supabase.auth.admin.deleteUser(user.id);
     
     if (error) {
-      console.error('Error deleting user:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error deleting user:', error.message);
+      }
       return { error: error.message };
     }
     
     return { error: null };
   } catch (error: any) {
-    console.error('Error in deleteUserAccount:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error in deleteUserAccount:', error.message);
+    }
     return { error: error.message };
   }
 };

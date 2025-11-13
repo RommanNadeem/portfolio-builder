@@ -38,10 +38,7 @@ export function OnboardingLayout({
           <div className="max-w-xl mx-auto">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-white" />
-                </div>
-                <h1 className="text-sm font-bold text-gray-900">Portfolio Builder</h1>
+                <img src="/icon.svg" alt="BuildSpace" className="h-8" />
               </div>
               <span className="text-xs text-gray-600 font-medium">
                 Step {currentStep} of {totalSteps}
@@ -72,11 +69,10 @@ export function OnboardingLayout({
             {showBack && onBack ? (
               <button
                 onClick={onBack}
-                className="btn-secondary"
-                style={{ padding: '0.75rem 1.5rem', fontSize: '0.875rem' }}
+                className="inline-flex items-center gap-2 text-gray-900 hover:text-emerald-600 font-medium transition-colors group"
               >
-                <ArrowLeft className="w-4 h-4" />
-                Back
+                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                <span>back</span>
               </button>
             ) : (
               <div />
@@ -87,7 +83,7 @@ export function OnboardingLayout({
                 onClick={onNext}
                 disabled={nextDisabled}
                 className="btn-primary"
-                style={{ padding: '0.75rem 1.5rem', fontSize: '0.875rem' }}
+                style={{ padding: '0.75rem 1.5rem', fontSize: '0.875rem', color: '#111111' }}
               >
                 {nextLabel}
               </button>

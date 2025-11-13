@@ -59,25 +59,28 @@ export default function SignInPage() {
         {/* Back to Home Link */}
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-gray-400 hover:text-black mb-8 transition-colors text-sm"
+          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-8 transition-colors text-sm font-medium"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Home</span>
         </Link>
 
         <div className="mb-12 text-center">
-          <h1 className="text-3xl font-medium text-black mb-2">
-            Welcome back
+          <div className="flex items-center gap-2 justify-center mb-6">
+            <img src="/icon.svg" alt="BuildSpace" className="h-8" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Welcome Back
           </h1>
-          <p className="text-sm text-gray-500">
-            Sign in to your Portfolio Builder account
+          <p className="text-base text-gray-800">
+            Sign in to your BuildSpace account
           </p>
         </div>
 
         <form onSubmit={handleSignIn} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
-              Email
+            <label htmlFor="email" className="block text-sm font-bold text-gray-900 mb-2">
+              Email Address
             </label>
             <input
               id="email"
@@ -87,15 +90,16 @@ export default function SignInPage() {
                 setEmail(e.target.value);
                 setError('');
               }}
-              placeholder="your@email.com"
-              className="w-full px-4 py-3 text-base border border-gray-200 focus:border-black focus:outline-none transition-colors placeholder:text-gray-400"
+              placeholder="you@example.com"
+              className="onboarding-input"
+              style={{ color: '#111111' }}
               disabled={loading}
               autoFocus
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
+            <label htmlFor="password" className="block text-sm font-bold text-gray-900 mb-2">
               Password
             </label>
             <input
@@ -106,32 +110,34 @@ export default function SignInPage() {
                 setPassword(e.target.value);
                 setError('');
               }}
-              placeholder="••••••••"
-              className="w-full px-4 py-3 text-base border border-gray-200 focus:border-black focus:outline-none transition-colors placeholder:text-gray-400"
+              placeholder="Enter your password"
+              className="onboarding-input"
+              style={{ color: '#111111' }}
               disabled={loading}
             />
           </div>
 
           {error && (
-            <div className="p-4 border border-red-200 bg-red-50">
-              <p className="text-xs text-red-600">{error}</p>
+            <div className="p-4 border-2 border-red-200 bg-red-50 rounded-xl">
+              <p className="text-sm font-semibold text-gray-900">{error}</p>
             </div>
           )}
 
           <button
             type="submit"
             disabled={loading || !email.trim() || !password.trim()}
-            className="w-full py-3 bg-black text-white text-sm font-medium hover:bg-gray-800 disabled:bg-gray-100 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
+            className="btn-primary w-full"
+            style={{ color: '#111111' }}
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
 
           <div className="text-center pt-4">
-            <p className="text-xs text-gray-500">
+            <p className="text-sm text-gray-800">
               Don't have an account?{' '}
               <Link
                 href="/onboarding-v2/start"
-                className="text-black hover:underline transition-colors"
+                className="text-gray-900 font-semibold hover:text-emerald-600 transition-colors"
               >
                 Create one now
               </Link>

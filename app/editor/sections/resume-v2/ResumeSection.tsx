@@ -105,10 +105,10 @@ export function ResumeSection({
         <div id="resume" className={`w-full ${isMobile ? 'mb-6' : 'mb-12 sm:mb-16 lg:mb-20'}`}>
           {/* Section Header */}
           <div className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-8'}`}>
-            <div className={`rounded-lg bg-green-100 flex items-center justify-center ${
+            <div className={`rounded-lg bg-emerald-100 flex items-center justify-center ${
               isMobile ? 'w-6 h-6' : 'w-8 h-8'
             }`}>
-              <FileText className={isMobile ? 'w-3.5 h-3.5 text-green-600' : 'w-5 h-5 text-green-600'} />
+              <FileText className={isMobile ? 'w-3.5 h-3.5 text-emerald-600' : 'w-5 h-5 text-emerald-600'} />
             </div>
             <h2 className={`font-bold text-gray-900 ${
               isMobile ? 'text-lg' : 'text-3xl'
@@ -116,10 +116,10 @@ export function ResumeSection({
           </div>
           
           {/* Empty State */}
-          <div className={`bg-green-50 border-2 border-dashed border-green-200 rounded-xl flex flex-col items-center justify-center ${
+          <div className={`bg-emerald-50 border-2 border-dashed border-emerald-200 rounded-xl flex flex-col items-center justify-center ${
             isMobile ? 'p-6' : 'p-8'
           }`}>
-            <FileText className={`text-green-300 ${isMobile ? 'w-10 h-10 mb-2' : 'w-12 h-12 mb-3'}`} />
+            <FileText className={`text-emerald-600 ${isMobile ? 'w-10 h-10 mb-2' : 'w-12 h-12 mb-3'}`} />
             <p className={`text-gray-600 text-center ${isMobile ? 'text-sm' : 'text-base'}`}>
               No resume uploaded yet
             </p>
@@ -136,10 +136,10 @@ export function ResumeSection({
         <div id="resume" className={`w-full ${isMobile ? 'mb-6' : 'mb-12 sm:mb-16 lg:mb-20'}`}>
           {/* Section Header */}
           <div className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-8'}`}>
-            <div className={`rounded-lg bg-green-100 flex items-center justify-center ${
+            <div className={`rounded-lg bg-emerald-100 flex items-center justify-center ${
               isMobile ? 'w-6 h-6' : 'w-8 h-8'
             }`}>
-              <FileText className={isMobile ? 'w-3.5 h-3.5 text-green-600' : 'w-5 h-5 text-green-600'} />
+              <FileText className={isMobile ? 'w-3.5 h-3.5 text-emerald-600' : 'w-5 h-5 text-emerald-600'} />
             </div>
             <h2 className={`font-bold text-gray-900 ${
               isMobile ? 'text-lg' : 'text-3xl'
@@ -152,10 +152,10 @@ export function ResumeSection({
           }`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className={`rounded-lg bg-green-100 flex items-center justify-center ${
+                <div className={`rounded-lg bg-emerald-100 flex items-center justify-center ${
                   isMobile ? 'w-10 h-10' : 'w-12 h-12'
                 }`}>
-                  <FileText className={isMobile ? 'w-5 h-5 text-green-600' : 'w-6 h-6 text-green-600'} />
+                  <FileText className={isMobile ? 'w-5 h-5 text-emerald-600' : 'w-6 h-6 text-emerald-600'} />
                 </div>
                 <div>
                   <h3 className={`font-semibold text-gray-900 ${
@@ -209,13 +209,13 @@ export function ResumeSection({
       {hasResume ? (
         <>
           {/* Resume Display with Embedded Preview */}
-          <div className="bg-gradient-to-br from-white to-green-50 rounded-lg border-2 border-green-200 overflow-hidden">
+          <div className="bg-gradient-to-br from-white to-green-50 rounded-lg border-2 border-emerald-200 overflow-hidden">
             {/* Header */}
-            <div className="p-4 border-b border-green-200 bg-green-50">
+            <div className="p-4 border-b border-emerald-200 bg-emerald-50">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-green-100 flex items-center justify-center w-10 h-10">
-                    <FileText className="w-5 h-5 text-green-600" />
+                  <div className="rounded-lg bg-emerald-100 flex items-center justify-center w-10 h-10">
+                    <FileText className="w-5 h-5 text-emerald-600" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 text-sm">Resume Uploaded</h3>

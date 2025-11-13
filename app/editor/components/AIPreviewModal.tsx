@@ -85,8 +85,8 @@ export function AIPreviewModal({
               <p className="text-sm font-medium text-blue-900 mb-2">💡 AI Suggestions:</p>
               <ul className="space-y-1">
                 {suggestions.map((suggestion, index) => (
-                  <li key={index} className="text-sm text-blue-700 flex items-start gap-2">
-                    <span className="text-blue-400 mt-0.5">•</span>
+                  <li key={index} className="text-sm text-emerald-700 flex items-start gap-2">
+                    <span className="text-emerald-600 mt-0.5">•</span>
                     <span>{suggestion}</span>
                   </li>
                 ))}
@@ -149,7 +149,8 @@ export function AIPreviewModal({
           </div>
           <button
             onClick={onAccept}
-            className="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-medium rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all flex items-center gap-2"
+            className="px-6 py-2 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+            style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
           >
             <CheckCircle2 className="w-4 h-4" />
             Use This Case Study

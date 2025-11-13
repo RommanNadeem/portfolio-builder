@@ -4,6 +4,7 @@
  */
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_RAILWAY_BACKEND_URL || 'https://portfoliobuilder-backend-production.up.railway.app'
+const IS_DEV = process.env.NODE_ENV === 'development';
 
 interface APIResponse<T> {
   data: T | null
@@ -22,7 +23,9 @@ async function callAPI<T = any>(
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      console.log(`[Railway API] Calling ${endpoint}`, attempt > 0 ? `(retry ${attempt})` : '')
+      if (IS_DEV) {
+        console.log(`[Railway API] Calling ${endpoint}`, attempt > 0 ? `(retry ${attempt})` : '')
+      }
       
       const response = await fetch(`${BACKEND_URL}${endpoint}`, {
         ...options,
@@ -41,14 +44,21 @@ async function callAPI<T = any>(
         throw new Error(data.error || 'Request failed')
       }
 
-      console.log(`[Railway API] Success:`, endpoint)
+      if (IS_DEV) {
+        console.log(`[Railway API] Success:`, endpoint)
+      }
 
       return {
         data: data.data || data,
         error: null
       }
     } catch (error) {
-      console.error(`[Railway API] Error on ${endpoint}:`, error)
+      // Always log errors, but only full details in development
+      if (IS_DEV) {
+        console.error(`[Railway API] Error on ${endpoint}:`, error)
+      } else {
+        console.error(`[Railway API] Request failed: ${endpoint}`)
+      }
       lastError = error instanceof Error ? error : new Error('Unknown error occurred')
       
       // Don't retry on client errors (4xx)
@@ -641,11 +651,13 @@ export interface GenerateCaseStudyResponse {
 export async function generateCaseStudy(
   request: GenerateCaseStudyRequest
 ): Promise<APIResponse<GenerateCaseStudyResponse>> {
-  console.log('[Railway API] Generating case study:', {
-    template: request.template_schema.template_type,
-    files: request.files.length,
-    notes_length: request.user_notes.length,
-  })
+  if (IS_DEV) {
+    console.log('[Railway API] Generating case study:', {
+      template: request.template_schema.template_type,
+      files: request.files.length,
+      notes_length: request.user_notes.length,
+    })
+  }
 
   try {
     const response = await fetch(`${BACKEND_URL}/api/generate-case-study`, {
@@ -659,11 +671,15 @@ export async function generateCaseStudy(
     const data = await response.json()
 
     if (!response.ok) {
-      console.error('[Railway API] Error response:', data)
+      if (IS_DEV) {
+        console.error('[Railway API] Error response:', data)
+      }
       throw new Error(data.error || data.detail || `HTTP ${response.status}`)
     }
 
-    console.log('[Railway API] Success: Case study generated')
+    if (IS_DEV) {
+      console.log('[Railway API] Success: Case study generated')
+    }
 
     // Backend returns data directly (not wrapped in success object)
     return {
@@ -671,7 +687,7 @@ export async function generateCaseStudy(
       error: null
     }
   } catch (error) {
-    console.error('[Railway API] Case study generation failed:', error)
+    console.error('[Railway API] Case study generation failed')
     return {
       data: null,
       error: error instanceof Error ? error : new Error('Unknown error occurred')
@@ -713,7 +729,9 @@ export async function prepareFilesForUpload(files: File[]): Promise<UploadedFile
         file_data: base64,
       })
     } catch (error) {
-      console.error(`Failed to process file ${file.name}:`, error)
+      if (IS_DEV) {
+        console.error(`Failed to process file ${file.name}:`, error)
+      }
     }
   }
 
@@ -803,14 +821,18 @@ export interface CustomCaseStudyResponse {
 export async function generateCustomCaseStudy(
   request: GenerateCustomCaseStudyRequest
 ): Promise<APIResponse<CustomCaseStudyResponse>> {
-  console.log('[Railway API] Generating custom AI-designed case study:', {
-    available_blocks: request.available_blocks.length,
-    files: request.content.files.length,
-    notes_length: request.content.user_notes.length,
-  })
+  if (IS_DEV) {
+    console.log('[Railway API] Generating custom AI-designed case study:', {
+      available_blocks: request.available_blocks.length,
+      files: request.content.files.length,
+      notes_length: request.content.user_notes.length,
+    })
+  }
 
   try {
-    console.log('[Railway API] Request payload size:', JSON.stringify(request).length, 'bytes')
+    if (IS_DEV) {
+      console.log('[Railway API] Request payload size:', JSON.stringify(request).length, 'bytes')
+    }
     
     const response = await fetch(`${BACKEND_URL}/api/generate-custom-case-study`, {
       method: 'POST',
@@ -820,23 +842,24 @@ export async function generateCustomCaseStudy(
       body: JSON.stringify(request)
     })
 
-    console.log('[Railway API] Response status:', response.status)
+    if (IS_DEV) {
+      console.log('[Railway API] Response status:', response.status)
+    }
 
     // Try to parse response
     let data;
     try {
       data = await response.json()
     } catch (parseError) {
-      console.error('[Railway API] Failed to parse response as JSON')
       throw new Error(`Backend returned invalid JSON (HTTP ${response.status})`)
     }
 
     if (!response.ok) {
-      console.error('[Railway API] Error response:', data)
-      
       // Handle FastAPI validation errors (422)
       if (response.status === 422 && Array.isArray(data.detail)) {
-        console.error('[Railway API] Validation errors:', data.detail)
+        if (IS_DEV) {
+          console.error('[Railway API] Validation errors:', data.detail)
+        }
         
         // Format validation errors nicely
         const validationErrors = data.detail.map((err: any) => {
@@ -857,10 +880,12 @@ export async function generateCustomCaseStudy(
       throw new Error(errorMessage)
     }
 
-    console.log('[Railway API] Success: Custom case study generated')
-    console.log('[Railway API] Blocks generated:', data.blocks?.length || 0)
-    if (data.structure_info) {
-      console.log('[Railway API] Structure:', data.structure_info)
+    if (IS_DEV) {
+      console.log('[Railway API] Success: Custom case study generated')
+      console.log('[Railway API] Blocks generated:', data.blocks?.length || 0)
+      if (data.structure_info) {
+        console.log('[Railway API] Structure:', data.structure_info)
+      }
     }
 
     return {
@@ -868,7 +893,7 @@ export async function generateCustomCaseStudy(
       error: null
     }
   } catch (error) {
-    console.error('[Railway API] Custom case study generation failed:', error)
+    console.error('[Railway API] Custom case study generation failed')
     
     // Better error handling
     const errorMessage = error instanceof Error 

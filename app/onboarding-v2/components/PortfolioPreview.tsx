@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Mail, Phone, Linkedin, Github, Twitter, Instagram, Globe, Calendar } from 'lucide-react';
 
 // Updated layout: horizontal with profile on left, content on right
@@ -46,7 +46,10 @@ export function PortfolioPreview({ data, focusSection = null }: PortfolioPreview
   const careerRef = useRef<HTMLDivElement | null>(null);
   const linksRef = useRef<HTMLDivElement | null>(null);
 
-  // Scroll to focused section
+  // Track which section is currently highlighted (for one-time animation)
+  const [highlightedSection, setHighlightedSection] = useState<string | null>(null);
+
+  // Scroll to focused section and trigger highlight animation
   useEffect(() => {
     if (!focusSection) return;
 
@@ -75,6 +78,9 @@ export function PortfolioPreview({ data, focusSection = null }: PortfolioPreview
     }
 
     if (targetRef?.current) {
+      // Trigger highlight animation
+      setHighlightedSection(focusSection);
+      
       // Small delay to ensure rendering is complete
       setTimeout(() => {
         targetRef.current?.scrollIntoView({
@@ -83,6 +89,11 @@ export function PortfolioPreview({ data, focusSection = null }: PortfolioPreview
           inline: 'nearest'
         });
       }, 100);
+
+      // Remove highlight after animation completes (2 seconds)
+      setTimeout(() => {
+        setHighlightedSection(null);
+      }, 2000);
     }
   }, [focusSection]);
 
@@ -112,11 +123,39 @@ export function PortfolioPreview({ data, focusSection = null }: PortfolioPreview
 
   return (
     <div className="bg-white space-y-8">
+      <style jsx>{`
+        @keyframes gentlePulse {
+          0% {
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+            background-color: rgba(16, 185, 129, 0.05);
+          }
+          50% {
+            box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+            background-color: rgba(16, 185, 129, 0.1);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            background-color: transparent;
+          }
+        }
+        
+        .highlight-pulse {
+          animation: gentlePulse 2s ease-out;
+          border-radius: 12px;
+          padding: 12px;
+          margin: -12px;
+        }
+
+        .highlight-pulse-image {
+          animation: gentlePulse 2s ease-out;
+        }
+      `}</style>
+
       {/* Profile Image */}
       <div 
         ref={imageRef}
         className={`w-32 h-32 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center transition-all duration-300 ${
-          focusSection === 'image' ? 'ring-4 ring-black ring-opacity-20 scale-105' : ''
+          highlightedSection === 'image' ? 'highlight-pulse-image ring-4 ring-emerald-500 ring-opacity-30' : ''
         }`}
       >
         {data.profileImage ? (
@@ -130,9 +169,7 @@ export function PortfolioPreview({ data, focusSection = null }: PortfolioPreview
       {data.heading && (
         <div 
           ref={headingRef}
-          className={`transition-all duration-300 ${
-            focusSection === 'heading' ? 'bg-yellow-50 -mx-4 px-4 py-3 rounded-lg border-2 border-yellow-200' : ''
-          }`}
+          className={highlightedSection === 'heading' ? 'highlight-pulse' : ''}
         >
           <h1 className="text-3xl font-medium text-black leading-tight">
             {data.heading}
@@ -144,9 +181,7 @@ export function PortfolioPreview({ data, focusSection = null }: PortfolioPreview
       {data.tagline && (
         <div 
           ref={taglineRef}
-          className={`transition-all duration-300 ${
-            focusSection === 'tagline' ? 'bg-yellow-50 -mx-4 px-4 py-3 rounded-lg border-2 border-yellow-200' : ''
-          }`}
+          className={highlightedSection === 'tagline' ? 'highlight-pulse' : ''}
         >
           <p className="text-base text-gray-600 leading-relaxed">
             {data.tagline}
@@ -158,9 +193,7 @@ export function PortfolioPreview({ data, focusSection = null }: PortfolioPreview
       {data.socialLinks && data.socialLinks.length > 0 && (
         <div 
           ref={linksRef}
-          className={`transition-all duration-300 ${
-            focusSection === 'links' || focusSection === 'contact' ? 'bg-yellow-50 -mx-4 px-4 py-3 rounded-lg border-2 border-yellow-200' : ''
-          }`}
+          className={highlightedSection === 'links' || highlightedSection === 'contact' ? 'highlight-pulse' : ''}
         >
           <div className="flex flex-wrap gap-3">
             {/* Social Links (including Email/Phone) */}
@@ -181,9 +214,7 @@ export function PortfolioPreview({ data, focusSection = null }: PortfolioPreview
       {data.whoAreYou && (
         <div 
           ref={aboutRef}
-          className={`mt-8 transition-all duration-300 ${
-            focusSection === 'about' ? 'bg-yellow-50 -mx-4 px-4 py-3 rounded-lg border-2 border-yellow-200' : ''
-          }`}
+          className={`mt-8 ${highlightedSection === 'about' ? 'highlight-pulse' : ''}`}
         >
           <p className="text-base text-gray-600 leading-relaxed">
             {data.whoAreYou}
@@ -195,9 +226,7 @@ export function PortfolioPreview({ data, focusSection = null }: PortfolioPreview
       {data.careerHighlights && data.careerHighlights.length > 0 && (
         <div 
           ref={careerRef}
-          className={`mt-10 transition-all duration-300 ${
-            focusSection === 'career' ? 'bg-yellow-50 -mx-4 px-4 py-3 rounded-lg border-2 border-yellow-200' : ''
-          }`}
+          className={`mt-10 ${highlightedSection === 'career' ? 'highlight-pulse' : ''}`}
         >
           <div className="space-y-6">
             {data.careerHighlights.map((highlight) => (

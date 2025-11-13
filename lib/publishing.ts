@@ -11,7 +11,7 @@ import type {
   PublishedPortfolio 
 } from './types';
 
-const DEBUG = true;
+const DEBUG = process.env.NODE_ENV === 'development';
 
 // ============================================
 // SLUG MANAGEMENT
@@ -53,7 +53,9 @@ export async function checkSlugAvailability(
       .maybeSingle();
 
     if (error) {
-      console.error('Slug availability check error:', error);
+      if (DEBUG) {
+        console.error('Slug availability check error:', error.message);
+      }
       return { available: false, error: error.message };
     }
 
@@ -273,10 +275,15 @@ function isValidEmail(email: string): boolean {
  * Publish a portfolio (creates snapshot in published_portfolios)
  * @param userId - User ID
  * @param portfolioData - Optional: Use provided data instead of fetching from DB
+ * @param expectedSlug - Optional: Use this slug instead of querying DB (prevents race conditions)
  */
-export async function publishPortfolio(userId: string, portfolioData?: any): Promise<PublishResult> {
+export async function publishPortfolio(
+  userId: string, 
+  portfolioData?: any,
+  expectedSlug?: string
+): Promise<PublishResult> {
   try {
-    if (DEBUG) console.log(`[Publishing] Starting publish for user: ${userId}`);
+    if (DEBUG) console.log(`[Publishing] Starting publish for user: ${userId}`, { expectedSlug });
 
     // Step 1: Check if user has claimed a slug
     const { data: profile } = await supabase
@@ -285,11 +292,19 @@ export async function publishPortfolio(userId: string, portfolioData?: any): Pro
       .eq('id', userId)
       .single();
 
-    if (!profile?.portfolio_slug) {
+    // If expectedSlug is provided, use it (trust the caller - prevents race conditions)
+    // Otherwise, check the database
+    const effectiveSlug = expectedSlug || profile?.portfolio_slug;
+    
+    if (!effectiveSlug) {
       return {
         success: false,
         error: 'Please choose your portfolio URL first',
       };
+    }
+    
+    if (DEBUG && expectedSlug && expectedSlug !== profile?.portfolio_slug) {
+      console.log(`[Publishing] ⚠️ Using expectedSlug "${expectedSlug}" (DB has: "${profile?.portfolio_slug || 'null'}")`);
     }
 
     let snapshotData: any;
@@ -422,11 +437,11 @@ export async function publishPortfolio(userId: string, portfolioData?: any): Pro
       .upsert(
         {
           user_id: userId,
-          portfolio_slug: profile.portfolio_slug,
+          portfolio_slug: effectiveSlug,
           published_data: snapshotData,
           is_active: true,
           published_at: new Date().toISOString(),
-          version: profile.is_portfolio_published ? undefined : 1, // Only set version on first publish
+          version: profile?.is_portfolio_published ? undefined : 1, // Only set version on first publish
         },
         {
           onConflict: 'user_id',
@@ -454,19 +469,19 @@ export async function publishPortfolio(userId: string, portfolioData?: any): Pro
 
     if (DEBUG) console.log(`[Publishing] ✅ Portfolio published successfully`);
 
-    const publishedUrl = getPortfolioUrl(profile.portfolio_slug);
+    const publishedUrl = getPortfolioUrl(effectiveSlug);
 
     // Emit publish event
     emitPublishEvent(EVENTS.PORTFOLIO_PUBLISHED, {
       userId,
       url: publishedUrl,
-      slug: profile.portfolio_slug,
+      slug: effectiveSlug,
     });
 
     return {
       success: true,
       url: publishedUrl,
-      slug: profile.portfolio_slug,
+      slug: effectiveSlug,
     };
   } catch (error: any) {
     console.error('[Publishing] Publish failed:', error);

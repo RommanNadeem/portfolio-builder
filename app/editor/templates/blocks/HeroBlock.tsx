@@ -13,22 +13,17 @@ interface HeroBlockProps {
   mode: 'edit' | 'preview';
   entityType?: 'project' | 'career'; // Optional entity type for context
   onSave?: () => Promise<void>; // Force immediate save (for image uploads)
+  onTitleChange?: (newTitle: string) => void; // For real-time navigation bar update
 }
 
-export function HeroBlock({ block, onChange, mode, entityType, onSave }: HeroBlockProps) {
+export function HeroBlock({ block, onChange, mode, entityType, onSave, onTitleChange }: HeroBlockProps) {
   const { data } = block;
   const isEmpty = !data.title || data.title.trim().length === 0;
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [imageUrlInput, setImageUrlInput] = useState(data.imageUrl || '');
   const isCareerTemplate = entityType === 'career';
   
   // For career templates, display role from meta in preview
   const displaySubtitle = isCareerTemplate ? (data.meta?.role || data.subtitle) : data.subtitle;
-
-  // Sync input when imageUrl changes externally (e.g., from upload or load)
-  useEffect(() => {
-    setImageUrlInput(data.imageUrl || '');
-  }, [data.imageUrl]);
 
   const handleApplySuggestion = (field: string, value: string) => {
     if (field === 'role') {
@@ -185,7 +180,14 @@ export function HeroBlock({ block, onChange, mode, entityType, onSave }: HeroBlo
       <input
         type="text"
         value={data.title}
-        onChange={(e) => onChange({ ...block, data: { ...data, title: e.target.value } })}
+        onChange={(e) => {
+          const newTitle = e.target.value;
+          onChange({ ...block, data: { ...data, title: newTitle } });
+          // Update navigation bar in real-time for projects only
+          if (!isCareerTemplate && onTitleChange) {
+            onTitleChange(newTitle);
+          }
+        }}
         placeholder={isCareerTemplate ? "Company Name" : "Untitled"}
         className="w-full text-[40px] leading-tight font-semibold tracking-[0.2px] text-gray-900 border-0 bg-transparent focus:outline-none placeholder-italic px-0 py-0 focus:ring-0"
       />
@@ -270,69 +272,28 @@ export function HeroBlock({ block, onChange, mode, entityType, onSave }: HeroBlo
             </button>
           </div>
         ) : (
-          <div className="space-y-3">
-            {/* File Upload Option */}
-            <label className="w-full h-80 rounded-lg border-2 border-dashed border-gray-300 bg-white flex flex-col items-center justify-center gap-3 hover:border-purple-400 hover:bg-purple-50 transition-colors cursor-pointer group">
-              <Upload className="w-10 h-10 text-gray-400 group-hover:text-purple-600 transition-colors" />
-              <div className="text-center">
-                <p className="text-sm font-medium text-gray-700 group-hover:text-purple-700 transition-colors">
-                  Click to upload or drag and drop
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  PNG, JPG, WebP up to 5MB
-                </p>
-              </div>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    handleImageUpload(file);
-                  }
-                }}
-                className="hidden"
-              />
-            </label>
-            
-            {/* URL Input Alternative */}
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-white px-3 text-gray-500">or paste image URL</span>
-              </div>
+          <label className="w-full h-80 rounded-lg border-2 border-dashed border-gray-300 bg-white flex flex-col items-center justify-center gap-3 hover:border-purple-400 hover:bg-purple-50 transition-colors cursor-pointer group">
+            <Upload className="w-10 h-10 text-gray-400 group-hover:text-purple-600 transition-colors" />
+            <div className="text-center">
+              <p className="text-sm font-medium text-gray-700 group-hover:text-purple-700 transition-colors">
+                Click to upload or drag and drop
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                PNG, JPG, WebP up to 5MB
+              </p>
             </div>
-            
             <input
-              type="url"
-              value={imageUrlInput}
+              type="file"
+              accept="image/*"
               onChange={(e) => {
-                // Update local state for smooth typing
-                setImageUrlInput(e.target.value);
-              }}
-              onBlur={(e) => {
-                // Only update block when user finishes typing
-                const url = e.target.value.trim();
-                if (url !== data.imageUrl) {
-                  onChange({ ...block, data: { ...data, imageUrl: url } });
+                const file = e.target.files?.[0];
+                if (file) {
+                  handleImageUpload(file);
                 }
               }}
-              onKeyDown={(e) => {
-                // Also update on Enter key
-                if (e.key === 'Enter') {
-                  const url = (e.target as HTMLInputElement).value.trim();
-                  if (url !== data.imageUrl) {
-                    onChange({ ...block, data: { ...data, imageUrl: url } });
-                  }
-                  (e.target as HTMLInputElement).blur();
-                }
-              }}
-              placeholder="https://example.com/image.jpg"
-              className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-purple-600 placeholder:text-gray-400"
+              className="hidden"
             />
-          </div>
+          </label>
         )}
         </div>
       )}

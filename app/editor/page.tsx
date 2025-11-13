@@ -1,5 +1,6 @@
 'use client';
 
+import '@/app/onboarding-v2/onboarding.css';
 import { useState, useEffect, useMemo } from 'react';
 import { usePortfolioData } from './hooks/usePortfolioData';
 import { useAutoSave } from './hooks/useAutoSave';

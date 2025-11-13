@@ -81,20 +81,20 @@ export function CompaniesSection({
             <Building2 className="w-4 h-4 text-gray-600" />
           </div>
           <div className="text-left">
-            <h3 className="text-sm font-semibold text-gray-900">Companies Slider</h3>
-            <p className="text-xs text-gray-500">Show trusted companies</p>
+            <h3 className="text-sm font-bold text-gray-900">Companies Slider</h3>
+            <p className="text-xs text-gray-600">Show trusted companies</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {!isExpanded && (
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-gray-700 font-medium">
               {companiesArray.length} {companiesArray.length === 1 ? 'company' : 'companies'}
             </span>
           )}
           {isExpanded ? (
-            <ChevronUp className="w-5 h-5 text-gray-400" />
+            <ChevronUp className="w-5 h-5 text-gray-500" />
           ) : (
-            <ChevronDown className="w-5 h-5 text-gray-400" />
+            <ChevronDown className="w-5 h-5 text-gray-500" />
           )}
         </div>
       </button>
