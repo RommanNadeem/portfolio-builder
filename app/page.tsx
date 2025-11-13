@@ -37,13 +37,13 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <img src="/icon.svg" alt="BuildSpace Icon" className="h-6 sm:h-8" />
-            <img src="/logo.svg" alt="BuildSpace" className="h-6 sm:h-8" />
-          </div>
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+              <img src="/icon.svg" alt="BuildSpace Icon" className="h-8" />
+            <img src="/logo.svg" alt="BuildSpace" className="h-8" />
+      </div>
 
-          <div className="hidden md:flex items-center gap-4 lg:gap-6 text-sm font-medium">
+          <div className="hidden md:flex items-center gap-6 text-sm font-medium">
             <a href="#story" className="hover:opacity-70 transition-opacity" style={{ color: '#111111' }}>Your Story</a>
             <a href="#templates" className="hover:opacity-70 transition-opacity" style={{ color: '#111111' }}>Templates</a>
             <a href="#examples" className="hover:opacity-70 transition-opacity" style={{ color: '#111111' }}>Examples</a>
@@ -51,41 +51,32 @@ export default function LandingPage() {
             <a href="#faq" className="hover:opacity-70 transition-opacity" style={{ color: '#111111' }}>FAQ</a>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/signin"
-              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold rounded-full transition-all hover:bg-gray-100 whitespace-nowrap"
-              style={{ color: '#111111' }}
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/onboarding-v2/start"
-              className="px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg whitespace-nowrap"
-              style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
-            >
-              Build Your Story
-            </Link>
-          </div>
+          <Link
+            href="/onboarding-v2/start"
+            className="px-5 py-2.5 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg"
+            style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
+          >
+            Build Your Story
+          </Link>
         </div>
       </nav>
 
       {/* Hero Section - Centered with Scroll Animation */}
-      <section ref={heroRef} className="relative min-h-[150vh] pt-20 sm:pt-32 pb-32 sm:pb-64 overflow-hidden">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
+      <section ref={heroRef} className="relative min-h-[150vh] pt-32 pb-64 overflow-hidden">
+        <div className="max-w-6xl mx-auto px-6 text-center">
           {/* Main headline - centered */}
-          <motion.div
+              <motion.div
             initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
+                animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="mb-8 sm:mb-12"
+            className="mb-12"
           >
-            <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-4 sm:mb-6 leading-none tracking-tight max-w-5xl mx-auto" style={{ color: '#111111' }}>
+            <h1 className="text-7xl md:text-8xl font-black mb-6 leading-none tracking-tight max-w-5xl mx-auto" style={{ color: '#111111' }}>
               Turn your experience<br />
               Into Story
-            </h1>
+                </h1>
                 
-            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-medium mb-6 sm:mb-8 leading-tight px-4" style={{ color: '#111111' }}>
+            <p className="text-2xl md:text-3xl font-medium mb-8 leading-tight" style={{ color: '#111111' }}>
               Upload your work history.<br />
               Get a narrative portfolio in 60 seconds.
             </p>
@@ -93,21 +84,31 @@ export default function LandingPage() {
             {/* CTA */}
             <Link
               href="/onboarding-v2/start"
-              className="inline-flex items-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-5 text-base sm:text-lg font-semibold rounded-full transition-all shadow-xl hover:shadow-2xl hover:scale-105 mb-3 sm:mb-4"
+              className="inline-flex items-center gap-3 px-8 py-5 text-lg font-semibold rounded-full transition-all shadow-xl hover:shadow-2xl hover:scale-105 mb-4"
               style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
             >
               Build Your Story
             </Link>
 
-            <div className="text-xs sm:text-sm mb-12 sm:mb-16 px-4" style={{ color: '#666666' }}>
+            <div className="text-sm mb-16" style={{ color: '#666666' }}>
               PDF or DOCX. We extract roles, outcomes, and dates.
-            </div>
+                        </div>
           </motion.div>
-        </div>
+                        </div>
 
         {/* Scroll Animation: Resume → Portfolio */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="relative w-full max-w-2xl">
+            {/* Scroll indicator above resume */}
+            <motion.div
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="absolute top-32 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2"
+            >
+              <div className="text-xs font-medium" style={{ color: '#666666' }}>Scroll</div>
+              <ArrowDown className="w-6 h-6" style={{ color: '#111111' }} />
+            </motion.div>
+
             {/* Resume falling */}
                       <motion.div
               style={{ y: resumeY, rotate: resumeRotate, scale: resumeScale }}
@@ -166,22 +167,22 @@ export default function LandingPage() {
         </section>
 
       {/* How It Works Section */}
-      <section id="story" className="relative py-16 sm:py-24 lg:py-32 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto">
+      <section id="story" className="relative py-32 px-6">
+          <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-12 sm:mb-16 lg:mb-20"
+            className="text-center mb-20"
           >
-            <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-4 sm:mb-6 leading-tight" style={{ color: '#111111' }}>
+            <h2 className="text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
               How It Works
             </h2>
           </motion.div>
 
           {/* 3 Steps */}
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto mb-8 sm:mb-12">
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12">
             {[
               {
                 step: '1',
@@ -207,34 +208,34 @@ export default function LandingPage() {
             ].map((item, idx) => {
               const Icon = item.icon;
               return (
-                <motion.div
+            <motion.div
                   key={idx}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
+              viewport={{ once: true }}
                   transition={{ delay: idx * 0.15 }}
-                  className="rounded-2xl sm:rounded-3xl p-6 sm:p-8 border-2"
+                  className="rounded-3xl p-8 border-2"
                   style={{ background: item.bg, borderColor: item.bg }}
                 >
-                  <div className="flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-white mb-4 sm:mb-6 mx-auto border-2 border-gray-200">
-                    <Icon className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: '#111111' }} />
+                  <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-white mb-6 mx-auto border-2 border-gray-200">
+                    <Icon className="w-8 h-8" style={{ color: '#111111' }} />
                   </div>
-                  <h3 className="text-lg sm:text-xl lg:text-2xl font-black mb-3 sm:mb-4 text-center" style={{ color: '#111111' }}>
+                  <h3 className="text-2xl font-black mb-4 text-center" style={{ color: '#111111' }}>
                     {item.title}
                   </h3>
-                  <p className="text-center text-sm sm:text-base lg:text-lg" style={{ color: '#111111' }}>
+                  <p className="text-center text-lg" style={{ color: '#111111' }}>
                     {item.desc}
                   </p>
                 </motion.div>
               );
             })}
-          </div>
+              </div>
 
           {/* Inline CTA */}
           <div className="text-center">
             <Link
               href="/onboarding-v2/start"
-              className="inline-flex items-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-full transition-all shadow-xl hover:shadow-2xl hover:scale-105"
+              className="inline-flex items-center gap-3 px-8 py-4 text-lg font-semibold rounded-full transition-all shadow-xl hover:shadow-2xl hover:scale-105"
               style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
             >
               Build Your Story
@@ -244,19 +245,19 @@ export default function LandingPage() {
       </section>
 
       {/* Live Builder Preview Section */}
-      <section className="relative py-16 sm:py-24 lg:py-32 px-4 sm:px-6" style={{ background: '#F5F5F5' }}>
+      <section className="relative py-32 px-6" style={{ background: '#F5F5F5' }}>
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-12 sm:mb-16 lg:mb-20"
+            className="text-center mb-20"
           >
-            <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-4 sm:mb-6 leading-tight" style={{ color: '#111111' }}>
+            <h2 className="text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
               See It Build In Real Time
             </h2>
-            <p className="text-lg sm:text-xl lg:text-2xl max-w-3xl mx-auto px-4" style={{ color: '#111111' }}>
+            <p className="text-2xl max-w-3xl mx-auto" style={{ color: '#111111' }}>
               Watch your sections assemble as you upload.
             </p>
           </motion.div>
@@ -315,7 +316,7 @@ export default function LandingPage() {
       </section>
 
       {/* Before To After Section */}
-      <section id="examples" className="py-16 sm:py-24 lg:py-32 px-4 sm:px-6" style={{ background: '#FEE7EB' }}>
+      <section id="examples" className="py-32 px-6" style={{ background: '#FEE7EB' }}>
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -371,7 +372,7 @@ export default function LandingPage() {
       </section>
 
       {/* Templates For Your Role Section */}
-      <section id="templates" className="py-16 sm:py-24 lg:py-32 px-4 sm:px-6">
+      <section id="templates" className="py-32 px-6">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -447,7 +448,7 @@ export default function LandingPage() {
         </section>
 
       {/* Everything You Need */}
-      <section className="py-16 sm:py-24 lg:py-32 px-4 sm:px-6" style={{ background: '#F5F5F5' }}>
+      <section className="py-32 px-6" style={{ background: '#F5F5F5' }}>
           <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
@@ -508,7 +509,7 @@ export default function LandingPage() {
         </section>
 
       {/* Results That Matter */}
-      <section className="py-16 sm:py-24 lg:py-32 px-4 sm:px-6" style={{ background: '#E5F8D6' }}>
+      <section className="py-32 px-6" style={{ background: '#E5F8D6' }}>
           <div className="max-w-7xl mx-auto">
           <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -556,7 +557,7 @@ export default function LandingPage() {
         </section>
 
       {/* Domain And SEO */}
-      <section className="py-16 sm:py-24 lg:py-32 px-4 sm:px-6">
+      <section className="py-32 px-6">
         <div className="max-w-7xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -614,7 +615,7 @@ export default function LandingPage() {
         </section>
 
       {/* Privacy And Control */}
-      <section className="py-16 sm:py-24 lg:py-32 px-4 sm:px-6" style={{ background: '#F5F5F5' }}>
+      <section className="py-32 px-6" style={{ background: '#F5F5F5' }}>
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -635,7 +636,7 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-16 sm:py-24 lg:py-32 px-4 sm:px-6">
+      <section id="pricing" className="py-32 px-6">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -726,7 +727,7 @@ export default function LandingPage() {
         </section>
 
       {/* FAQ */}
-      <section id="faq" className="py-16 sm:py-24 lg:py-32 px-4 sm:px-6" style={{ background: '#F5F5F5' }}>
+      <section id="faq" className="py-32 px-6" style={{ background: '#F5F5F5' }}>
           <div className="max-w-3xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-6xl md:text-7xl font-black mb-4 leading-tight" style={{ color: '#111111' }}>
@@ -764,7 +765,7 @@ export default function LandingPage() {
         </section>
 
       {/* Final CTA */}
-      <section className="py-16 sm:py-24 lg:py-32 px-4 sm:px-6" style={{ background: '#DDEAFF' }}>
+      <section className="py-32 px-6" style={{ background: '#DDEAFF' }}>
         <div className="max-w-4xl mx-auto text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -786,7 +787,7 @@ export default function LandingPage() {
         </section>
 
       {/* Footer */}
-      <footer className="py-12 sm:py-16 px-4 sm:px-6 bg-white border-t border-gray-200">
+      <footer className="py-16 px-6 bg-white border-t border-gray-200">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-12 mb-12">
             <div>
