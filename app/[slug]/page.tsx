@@ -3,6 +3,8 @@ import { getPublishedPortfolio } from '@/lib/publishing';
 import { getBaseUrl } from '@/lib/url-utils';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { SocialLinksClient } from './components/SocialLinksClient';
+import { ResumeSectionClient } from './components/ResumeSectionClient';
 import { 
   User, 
   Award, 
@@ -10,23 +12,9 @@ import {
   Zap, 
   MessageSquare, 
   ExternalLink,
-  Linkedin,
-  Github,
-  Twitter,
-  Instagram,
-  Globe,
-  Calendar,
-  Mail,
-  Phone,
-  Youtube,
-  Palette,
-  Edit3,
   ArrowRight,
   HelpCircle,
   ChevronDown,
-  FileText,
-  Download,
-  Eye,
   Star,
   Package,
 } from 'lucide-react';
@@ -174,26 +162,6 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
   // Render sections in order
   const orderedSections = sectionOrder || ['career', 'projects', 'strengths', 'services', 'testimonials', 'faqs', 'resume'];
 
-  // Helper to get social icon component
-  const getSocialIcon = (iconName: string) => {
-    const className = "w-5 h-5";
-    switch (iconName) {
-      case 'linkedin': return <Linkedin className={className} />;
-      case 'github': return <Github className={className} />;
-      case 'twitter': return <Twitter className={className} />;
-      case 'instagram': return <Instagram className={className} />;
-      case 'globe': return <Globe className={className} />;
-      case 'calendar': return <Calendar className={className} />;
-      case 'mail': return <Mail className={className} />;
-      case 'phone': return <Phone className={className} />;
-      case 'youtube': return <Youtube className={className} />;
-      case 'behance': return <Palette className={className} />;
-      case 'dribbble': return <Palette className={className} />;
-      case 'medium': return <Edit3 className={className} />;
-      default: return <Globe className={className} />;
-    }
-  };
-
   // Define visible sections for navigation
   const ALL_SECTIONS = [
     { id: 'overview', label: 'Overview', hasData: true },
@@ -316,23 +284,7 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
               )}
 
               {/* Social Links - Bold pill design */}
-              {socialLinks && socialLinks.length > 0 && (
-                <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                  {socialLinks.map((link: any) => (
-                    <a
-                      key={link.id}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 sm:gap-2 border-2 border-gray-300 rounded-full bg-white hover:bg-gray-50 transition-all shadow-sm hover:shadow-md text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2"
-                      style={{ color: '#111111' }}
-                    >
-                      {getSocialIcon(link.icon)}
-                      <span className="font-medium">{link.platform}</span>
-                    </a>
-                  ))}
-                </div>
-              )}
+              <SocialLinksClient socialLinks={socialLinks} />
             </div>
           </div>
         </div>
@@ -720,50 +672,11 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
               if (!profile.resume_url) return null;
               const resumeFileName = profile.resume_file_name || 'resume.pdf';
               return (
-                <section key="resume" id="resume" className="w-full">
-                  {/* Section Header */}
-                  <div className="flex items-center gap-2 sm:gap-3 mb-6 sm:mb-8">
-                    <div className="rounded-lg bg-green-100 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8">
-                      <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
-                    </div>
-                    <h2 className="font-bold text-gray-900 text-2xl sm:text-3xl">Resume</h2>
-                  </div>
-                  
-                  {/* Resume Card */}
-                  <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                      <div className="flex items-center gap-3 sm:gap-4">
-                        <div className="rounded-lg bg-green-100 flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0">
-                          <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-900 text-sm sm:text-base">View My Resume</h3>
-                          <p className="text-gray-600 text-xs sm:text-sm">Download or view in browser</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <a
-                          href={profile.resume_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-green-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
-                        >
-                          <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                          <span>View</span>
-                        </a>
-                        <a
-                          href={profile.resume_url}
-                          download={resumeFileName}
-                          className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 text-gray-700 text-xs sm:text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
-                          title={`Download ${resumeFileName}`}
-                        >
-                          <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                          <span>Download</span>
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </section>
+                <ResumeSectionClient
+                  key="resume"
+                  resumeUrl={profile.resume_url}
+                  resumeFileName={resumeFileName}
+                />
               );
 
             default:
