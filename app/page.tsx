@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { 
@@ -11,11 +11,14 @@ import {
   RefreshCw,
   Globe,
   Check,
-  Upload
+  Upload,
+  Menu,
+  X
 } from 'lucide-react';
 
 export default function LandingPage() {
   const heroRef = useRef(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -33,7 +36,7 @@ export default function LandingPage() {
   const containerOpacity = useTransform(scrollYProgress, [0.3, 0.5], [0, 1]);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -41,6 +44,7 @@ export default function LandingPage() {
             <img src="/logo.svg" alt="BuildSpace" className="h-8" />
           </div>
 
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6 text-sm font-medium">
             <a href="#story" className="hover:opacity-70 transition-opacity" style={{ color: '#111111' }}>Your Story</a>
             <a href="#templates" className="hover:opacity-70 transition-opacity" style={{ color: '#111111' }}>Templates</a>
@@ -49,7 +53,8 @@ export default function LandingPage() {
             <a href="#faq" className="hover:opacity-70 transition-opacity" style={{ color: '#111111' }}>FAQ</a>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Desktop CTA */}
+          <div className="hidden md:flex items-center gap-3">
             <Link
               href="/signin"
               className="px-4 py-2 text-sm font-semibold rounded-full transition-all hover:bg-gray-100"
@@ -65,7 +70,92 @@ export default function LandingPage() {
               Build Your Story
             </Link>
           </div>
+
+          {/* Mobile Hamburger Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? (
+              <X className="w-6 h-6" style={{ color: '#111111' }} />
+            ) : (
+              <Menu className="w-6 h-6" style={{ color: '#111111' }} />
+            )}
+          </button>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden border-t border-gray-200 bg-white"
+          >
+            <div className="px-6 py-4 space-y-4">
+              <a 
+                href="#story" 
+                className="block py-2 text-base font-medium hover:opacity-70 transition-opacity" 
+                style={{ color: '#111111' }}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Your Story
+              </a>
+              <a 
+                href="#templates" 
+                className="block py-2 text-base font-medium hover:opacity-70 transition-opacity" 
+                style={{ color: '#111111' }}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Templates
+              </a>
+              <a 
+                href="#examples" 
+                className="block py-2 text-base font-medium hover:opacity-70 transition-opacity" 
+                style={{ color: '#111111' }}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Examples
+              </a>
+              <a 
+                href="#pricing" 
+                className="block py-2 text-base font-medium hover:opacity-70 transition-opacity" 
+                style={{ color: '#111111' }}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Pricing
+              </a>
+              <a 
+                href="#faq" 
+                className="block py-2 text-base font-medium hover:opacity-70 transition-opacity" 
+                style={{ color: '#111111' }}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                FAQ
+              </a>
+              
+              <div className="pt-4 space-y-3 border-t border-gray-200">
+                <Link
+                  href="/signin"
+                  className="block text-center px-4 py-3 text-base font-semibold rounded-full transition-all hover:bg-gray-100"
+                  style={{ color: '#111111' }}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/onboarding-v2/start"
+                  className="block text-center px-5 py-3 text-base font-semibold rounded-full transition-all shadow-md"
+                  style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Build Your Story
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </nav>
 
       {/* Hero Section - Centered with Scroll Animation */}
@@ -78,12 +168,12 @@ export default function LandingPage() {
             transition={{ duration: 0.8 }}
             className="mb-12"
           >
-            <h1 className="text-7xl md:text-8xl font-black mb-6 leading-none tracking-tight max-w-5xl mx-auto" style={{ color: '#111111' }}>
+            <h1 className="text-5xl sm:text-7xl md:text-8xl font-black mb-6 leading-none tracking-tight max-w-5xl mx-auto" style={{ color: '#111111' }}>
               Turn your experience<br />
               Into Story
                 </h1>
                 
-            <p className="text-2xl md:text-3xl font-medium mb-8 leading-tight" style={{ color: '#111111' }}>
+            <p className="text-xl sm:text-2xl md:text-3xl font-medium mb-8 leading-tight" style={{ color: '#111111' }}>
               Upload your work history.<br />
               Get a narrative portfolio in 60 seconds.
             </p>
@@ -104,14 +194,14 @@ export default function LandingPage() {
                         </div>
 
         {/* Scroll Animation: Resume → Portfolio */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden px-4">
           <div className="relative w-full max-w-2xl">
             {/* Resume falling */}
                       <motion.div
               style={{ y: resumeY, rotate: resumeRotate, scale: resumeScale }}
               className="absolute top-0 left-1/2 -translate-x-1/2"
             >
-              <div className="w-64 h-80 bg-white rounded-2xl shadow-2xl border-2 border-gray-200 p-8">
+              <div className="w-48 sm:w-64 h-64 sm:h-80 bg-white rounded-2xl shadow-2xl border-2 border-gray-200 p-6 sm:p-8">
                 <div className="flex items-center gap-3 mb-4">
                   <FileText className="w-8 h-8" style={{ color: '#5BC64A' }} />
                   <div className="text-sm font-bold" style={{ color: '#111111' }}>updated-resume-final(2).pdf</div>
@@ -130,9 +220,9 @@ export default function LandingPage() {
             {/* Portfolio container appearing */}
               <motion.div
               style={{ y: containerY, opacity: containerOpacity }}
-              className="absolute top-96 left-1/2 -translate-x-1/2"
+              className="absolute top-96 left-1/2 -translate-x-1/2 w-[90vw] sm:w-96 max-w-96"
             >
-              <div className="bg-white rounded-3xl shadow-2xl border-2 border-gray-200 overflow-hidden w-96">
+              <div className="bg-white rounded-3xl shadow-2xl border-2 border-gray-200 overflow-hidden w-full">
                   {/* Browser chrome */}
                 <div className="px-4 py-3 flex items-center gap-2" style={{ background: '#F5F5F5' }}>
                     <div className="flex gap-1.5">
@@ -173,7 +263,7 @@ export default function LandingPage() {
             transition={{ duration: 0.8 }}
             className="text-center mb-20"
           >
-            <h2 className="text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
+            <h2 className="text-4xl sm:text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
               How It Works
             </h2>
           </motion.div>
@@ -251,10 +341,10 @@ export default function LandingPage() {
             transition={{ duration: 0.8 }}
             className="text-center mb-20"
           >
-            <h2 className="text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
+            <h2 className="text-4xl sm:text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
               See It Build In Real Time
             </h2>
-            <p className="text-2xl max-w-3xl mx-auto" style={{ color: '#111111' }}>
+            <p className="text-lg sm:text-2xl max-w-3xl mx-auto" style={{ color: '#111111' }}>
               Watch your sections assemble as you upload.
             </p>
           </motion.div>
@@ -322,10 +412,10 @@ export default function LandingPage() {
             transition={{ duration: 0.8 }}
             className="text-center mb-20"
           >
-            <h2 className="text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
+            <h2 className="text-4xl sm:text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
               From Bullets To Case Studies
             </h2>
-            <p className="text-2xl max-w-3xl mx-auto" style={{ color: '#111111' }}>
+            <p className="text-lg sm:text-2xl max-w-3xl mx-auto" style={{ color: '#111111' }}>
               We turn raw bullets into clear stories with proof.
             </p>
           </motion.div>
@@ -378,10 +468,10 @@ export default function LandingPage() {
             transition={{ duration: 0.8 }}
             className="text-center mb-12"
           >
-            <h2 className="text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
+            <h2 className="text-4xl sm:text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
               Templates For Your Role
             </h2>
-            <p className="text-2xl max-w-3xl mx-auto mb-8" style={{ color: '#111111' }}>
+            <p className="text-lg sm:text-2xl max-w-3xl mx-auto mb-8" style={{ color: '#111111' }}>
               Pick a starting point. Customize every block.
             </p>
           </motion.div>
@@ -448,7 +538,7 @@ export default function LandingPage() {
       <section className="py-32 px-6" style={{ background: '#F5F5F5' }}>
           <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
+            <h2 className="text-4xl sm:text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
               Everything You Need
               </h2>
           </div>
@@ -514,7 +604,7 @@ export default function LandingPage() {
               viewport={{ once: true }}
             className="text-center mb-20"
           >
-            <h2 className="text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
+            <h2 className="text-4xl sm:text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
               Results That Matter
             </h2>
           </motion.div>
@@ -562,10 +652,10 @@ export default function LandingPage() {
               viewport={{ once: true }}
               className="text-center mb-20"
           >
-            <h2 className="text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
+            <h2 className="text-4xl sm:text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
               Your Domain From Day One
               </h2>
-              <p className="text-2xl max-w-3xl mx-auto mb-8" style={{ color: '#111111' }}>
+              <p className="text-lg sm:text-2xl max-w-3xl mx-auto mb-8" style={{ color: '#111111' }}>
                 Share a clean link with your own slug. No random words.
               </p>
               <p className="text-lg max-w-2xl mx-auto" style={{ color: '#666666' }}>
@@ -619,10 +709,10 @@ export default function LandingPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-5xl md:text-6xl font-black mb-6" style={{ color: '#111111' }}>
+            <h2 className="text-3xl sm:text-5xl md:text-6xl font-black mb-6" style={{ color: '#111111' }}>
               Your Data, Your Control
             </h2>
-            <p className="text-2xl mb-6" style={{ color: '#111111' }}>
+            <p className="text-lg sm:text-2xl mb-6" style={{ color: '#111111' }}>
               You choose what to store. Delete any time.
             </p>
             <a href="#" className="text-lg font-semibold underline hover:opacity-70 transition-opacity" style={{ color: '#111111' }}>
@@ -642,7 +732,7 @@ export default function LandingPage() {
             transition={{ duration: 0.8 }}
             className="text-center mb-20"
           >
-            <h2 className="text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
+            <h2 className="text-4xl sm:text-6xl md:text-7xl font-black mb-6 leading-tight" style={{ color: '#111111' }}>
               Simple Plans Built For You
             </h2>
           </motion.div>
@@ -727,7 +817,7 @@ export default function LandingPage() {
       <section id="faq" className="py-32 px-6" style={{ background: '#F5F5F5' }}>
           <div className="max-w-3xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-6xl md:text-7xl font-black mb-4 leading-tight" style={{ color: '#111111' }}>
+            <h2 className="text-4xl sm:text-6xl md:text-7xl font-black mb-4 leading-tight" style={{ color: '#111111' }}>
               FAQ
               </h2>
           </div>
@@ -769,7 +859,7 @@ export default function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-7xl md:text-9xl font-black mb-12 leading-none" style={{ color: '#111111' }}>
+              <h2 className="text-5xl sm:text-7xl md:text-9xl font-black mb-12 leading-none" style={{ color: '#111111' }}>
               Your Story
               </h2>
                 <Link
