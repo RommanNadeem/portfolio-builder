@@ -95,11 +95,7 @@ export default function LandingPage() {
               className="inline-flex items-center gap-3 px-8 py-5 text-white text-lg font-semibold rounded-full transition-all shadow-xl hover:shadow-2xl hover:scale-105 mb-8"
               style={{ background: '#0A7C61' }}
             >
-              <div className="flex -space-x-2">
-                <div className="w-6 h-6 rounded-full border-2 border-white" style={{ background: '#DDEAFF' }} />
-                <div className="w-6 h-6 rounded-full border-2 border-white" style={{ background: '#FEE7EB' }} />
-                <div className="w-6 h-6 rounded-full border-2 border-white" style={{ background: '#FFF5B8' }} />
-              </div>
+              <Upload className="w-5 h-5" />
               Upload Resume
             </Link>
 
@@ -526,16 +522,12 @@ export default function LandingPage() {
             <h2 className="text-7xl md:text-9xl font-black mb-12 leading-none" style={{ color: '#111111' }}>
               Your Story<span className="text-6xl">.</span>
               </h2>
-                <Link
-                  href="/onboarding-v2/start"
+            <Link
+              href="/onboarding-v2/start"
               className="inline-flex items-center gap-3 px-10 py-6 text-white text-xl font-semibold rounded-full transition-all shadow-xl hover:shadow-2xl hover:scale-105"
               style={{ background: '#0A7C61' }}
             >
-              <div className="flex -space-x-2">
-                <div className="w-7 h-7 rounded-full border-2 border-white" style={{ background: '#DDEAFF' }} />
-                <div className="w-7 h-7 rounded-full border-2 border-white" style={{ background: '#FEE7EB' }} />
-                <div className="w-7 h-7 rounded-full border-2 border-white" style={{ background: '#FFF5B8' }} />
-              </div>
+              <Upload className="w-6 h-6" />
               Upload Resume
             </Link>
             </motion.div>
