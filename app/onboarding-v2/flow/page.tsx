@@ -542,6 +542,65 @@ export default function OnboardingFlowPage() {
   const [isSigningUp, setIsSigningUp] = useState(false);
   const [signupError, setSignupError] = useState('');
 
+  // Async resume upload (happens in background after user is redirected to editor)
+  const uploadResumeAsync = async (userId: string, resumeFile: File) => {
+    try {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Background] Uploading resume file');
+      }
+      
+      const { uploadFile } = await import('@/lib/storage');
+      const { supabase } = await import('@/lib/supabase');
+      
+      const uploadResult = await uploadFile({
+        userId: userId,
+        file: resumeFile,
+        type: 'resume',
+        isPublic: true,
+      });
+
+      if (uploadResult.error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[Background] Resume upload failed:', uploadResult.error);
+        }
+        return;
+      }
+
+      // Update profile with resume URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ resume_url: uploadResult.publicUrl })
+        .eq('id', userId);
+
+      if (updateError) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[Background] Failed to update resume URL:', updateError);
+        }
+      } else {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Background] Resume uploaded successfully');
+        }
+        
+        // Update localStorage so editor has the resume URL
+        const cached = localStorage.getItem('portfolioData');
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached);
+            parsed.resume = uploadResult.publicUrl;
+            localStorage.setItem('portfolioData', JSON.stringify(parsed));
+          } catch (e) {
+            // Ignore
+          }
+        }
+      }
+    } catch (err) {
+      // Silently fail - this is background operation
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[Background] Resume upload exception:', err);
+      }
+    }
+  };
+
   // Step 10: Signup
   const handleSignup = async () => {
     if (!signupEmail.trim() || !signupPassword.trim()) {
@@ -560,7 +619,6 @@ export default function OnboardingFlowPage() {
     try {
       const { supabase } = await import('@/lib/supabase');
       const { saveCompletePortfolio } = await import('@/lib/database');
-      const { uploadFile } = await import('@/lib/storage');
 
       // 1. Sign up the user
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
@@ -581,51 +639,15 @@ export default function OnboardingFlowPage() {
         throw new Error('No session created. Please try signing in instead.');
       }
 
-      // Wait for the user record to propagate in the database and RLS to be ready
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
       track({
         kind: 'signup_completed',
         payload: { source: data.source } as any
       });
 
-      // 2. Upload resume file if exists (non-blocking - don't fail signup if this fails)
-      let resumeUrl: string | null = null;
-      if (data.resumeFile) {
-        try {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('[Signup] Uploading resume file');
-          }
-          
-          const uploadResult = await uploadFile({
-            userId: authData.user.id,
-            file: data.resumeFile,
-            type: 'resume',
-            isPublic: true,
-          });
-
-          if (!uploadResult.error && uploadResult.publicUrl) {
-            resumeUrl = uploadResult.publicUrl;
-            if (process.env.NODE_ENV === 'development') {
-              console.log('[Signup] Resume uploaded successfully');
-            }
-          } else {
-            if (process.env.NODE_ENV === 'development') {
-              console.warn('[Signup] Resume upload failed:', uploadResult.error);
-            }
-          }
-        } catch (uploadErr) {
-          // Silently fail resume upload - don't block signup
-          if (process.env.NODE_ENV === 'development') {
-            console.warn('[Signup] Resume upload exception (continuing):', uploadErr);
-          }
-          resumeUrl = null;
-        }
-      }
-
-      // 3. Save portfolio data to Supabase
+      // BATCH SAVE: Save complete portfolio data immediately (no resume upload blocking)
+      // Resume will be uploaded asynchronously in the background
       if (process.env.NODE_ENV === 'development') {
-        console.log('[Signup] Saving portfolio to Supabase');
+        console.log('[Signup] Batch saving portfolio to Supabase');
       }
       
       // Extract profession from first career highlight role if available
@@ -672,8 +694,8 @@ export default function OnboardingFlowPage() {
         companies: companies,
         sliderCompanies: companies,
         profileImage: data.profileImage,
-        resume: resumeUrl, // Include uploaded resume URL
-        resumeFileName: data.resumeFileName, // Include original filename
+        resume: null, // Will be updated async
+        resumeFileName: data.resumeFile?.name || null,
         socialLinks: allSocialLinks,
         careerHighlights: data.careerHighlights,
       };
@@ -703,8 +725,14 @@ export default function OnboardingFlowPage() {
         }
       } as any);
 
-      // Navigate directly to editor
+      // Navigate to editor immediately - don't wait for resume upload
       router.push('/editor');
+
+      // ASYNC: Upload resume in background after user is redirected
+      if (data.resumeFile) {
+        // Fire and forget - don't await
+        uploadResumeAsync(authData.user.id, data.resumeFile);
+      }
 
     } catch (err: any) {
       if (process.env.NODE_ENV === 'development') {

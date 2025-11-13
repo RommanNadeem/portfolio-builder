@@ -334,7 +334,7 @@ export async function saveCompletePortfolio(
     if (DEBUG_DATABASE) console.log('[Database Debug] Career highlights count:', portfolioData.careerHighlights?.length || 0);
     
     // 1. Save profile FIRST and check for errors
-    const profileData = {
+    const profileData: any = {
       id: userId,
       full_name: portfolioData.fullName,
       heading: portfolioData.heading,
@@ -345,7 +345,6 @@ export async function saveCompletePortfolio(
       who_are_you: portfolioData.whoAreYou,
       profile_image_url: portfolioData.profileImage,
       resume_url: portfolioData.resume,
-      resume_file_name: portfolioData.resumeFileName,
       companies: portfolioData.companies,
       slider_companies: portfolioData.sliderCompanies,
       section_order: portfolioData.sectionOrder || ['career', 'projects', 'strengths', 'services', 'testimonials', 'faqs', 'resume'],
@@ -354,7 +353,11 @@ export async function saveCompletePortfolio(
       footer_signature: portfolioData.footerSignature || null
     };
     
-    if (DEBUG_DATABASE) console.log('[Database Debug] Attempting to save profile:', profileData);
+    // Note: resume_file_name column may not exist in all databases
+    // We store the filename but don't fail if column doesn't exist
+    // The filename is stored in file_attachments table instead
+    
+    if (DEBUG_DATABASE) console.log('[Database Debug] Attempting to save profile (batch save)');
     if (DEBUG_DATABASE) console.log('[Database Debug] Resume URL being saved:', profileData.resume_url);
     
     let profileResult;
