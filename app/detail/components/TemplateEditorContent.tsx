@@ -52,13 +52,19 @@ function SortableSection({
 
   const [hovering, setHovering] = useState(false);
 
-  // Preview mode: hide empty sections
-  if (viewMode === 'preview' && !isSaved) {
-    return null;
-  }
+  // Import the content checker
+  const { hasBlockContent } = require('@/app/editor/templates/shared-utils');
 
-  // Preview mode: render without wrapper
+  // Preview mode: hide sections WITHOUT content (check actual data, not saved state)
   if (viewMode === 'preview') {
+    const hasContent = hasBlockContent(block);
+    
+    // Hide if no content (but always show hero)
+    if (!hasContent && index !== 0) {
+      return null;
+    }
+    
+    // Render without wrapper
     return (
       <div ref={setNodeRef} style={style} className="mt-12 first:mt-8">
         <TemplateRenderer
