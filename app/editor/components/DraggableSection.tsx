@@ -35,18 +35,16 @@ export function DraggableSection({ id, children, isDraggable = true }: Draggable
     <div 
       ref={setNodeRef} 
       style={style} 
-      className={`relative group ${isDragging ? 'z-50' : ''}`}
+      className={`relative ${isDragging ? 'z-50' : ''}`}
     >
-      {/* Drag Handle */}
+      {/* Drag Handle Overlay - appears on section header */}
       <div
         {...attributes}
         {...listeners}
-        className="absolute -left-10 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-grab active:cursor-grabbing z-10"
+        className="absolute left-2 top-3 cursor-grab active:cursor-grabbing z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
         title="Drag to reorder section"
       >
-        <div className="bg-white hover:bg-blue-50 border border-gray-200 hover:border-blue-300 shadow-sm hover:shadow-md rounded-lg p-2 transition-all">
-          <GripVertical className="w-5 h-5 text-gray-400 hover:text-blue-600 transition-colors" />
-        </div>
+        <GripVertical className="w-5 h-5 text-gray-400 hover:text-blue-600 transition-colors" />
       </div>
       
       {/* Visual feedback during drag */}
@@ -54,7 +52,9 @@ export function DraggableSection({ id, children, isDraggable = true }: Draggable
         <div className="absolute inset-0 bg-blue-50 border-2 border-blue-300 border-dashed rounded-lg pointer-events-none" />
       )}
       
-      {children}
+      <div className="group">
+        {children}
+      </div>
     </div>
   );
 }
