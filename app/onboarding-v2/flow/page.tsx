@@ -576,35 +576,50 @@ export default function OnboardingFlowPage() {
         throw new Error('Failed to create user');
       }
 
+      // Ensure we have a valid session before proceeding
+      if (!authData.session) {
+        throw new Error('No session created. Please try signing in instead.');
+      }
+
+      // Wait for the user record to propagate in the database and RLS to be ready
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       track({
         kind: 'signup_completed',
         payload: { source: data.source } as any
       });
 
-      // 2. Upload resume file if exists
+      // 2. Upload resume file if exists (non-blocking - don't fail signup if this fails)
       let resumeUrl: string | null = null;
       if (data.resumeFile) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[Signup] Uploading resume file');
-        }
-        
-        const uploadResult = await uploadFile({
-          userId: authData.user.id,
-          file: data.resumeFile,
-          type: 'resume',
-          isPublic: true,
-        });
+        try {
+          if (process.env.NODE_ENV === 'development') {
+            console.log('[Signup] Uploading resume file');
+          }
+          
+          const uploadResult = await uploadFile({
+            userId: authData.user.id,
+            file: data.resumeFile,
+            type: 'resume',
+            isPublic: true,
+          });
 
-        if (uploadResult.error) {
-          if (process.env.NODE_ENV === 'development') {
-            console.error('[Signup] Resume upload failed');
+          if (!uploadResult.error && uploadResult.publicUrl) {
+            resumeUrl = uploadResult.publicUrl;
+            if (process.env.NODE_ENV === 'development') {
+              console.log('[Signup] Resume uploaded successfully');
+            }
+          } else {
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('[Signup] Resume upload failed:', uploadResult.error);
+            }
           }
-          // Continue anyway - don't fail signup if resume upload fails
-        } else {
-          resumeUrl = uploadResult.publicUrl || null;
+        } catch (uploadErr) {
+          // Silently fail resume upload - don't block signup
           if (process.env.NODE_ENV === 'development') {
-            console.log('[Signup] Resume uploaded successfully');
+            console.warn('[Signup] Resume upload exception (continuing):', uploadErr);
           }
+          resumeUrl = null;
         }
       }
 
@@ -666,7 +681,9 @@ export default function OnboardingFlowPage() {
       const { error: saveError } = await saveCompletePortfolio(authData.user.id, portfolioToSave);
       
       if (saveError) {
-        console.error('[Signup] Failed to save portfolio');
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[Signup] Failed to save portfolio:', saveError);
+        }
         throw new Error('Failed to save your portfolio data. Please try again.');
       }
       
@@ -690,7 +707,9 @@ export default function OnboardingFlowPage() {
       router.push('/editor');
 
     } catch (err: any) {
-      console.error('Signup error');
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Signup error:', err);
+      }
       setSignupError(err.message || 'That did not work. Sorry about that. Try again or contact support');
       setIsSigningUp(false);
     }

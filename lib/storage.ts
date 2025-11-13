@@ -159,15 +159,18 @@ export async function uploadFile(options: UploadOptions): Promise<UploadResult> 
   
   try {
     // Upload to Supabase Storage
+    // Use upsert for resumes to handle retry scenarios
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from(bucket)
       .upload(filePath, file, {
         cacheControl: '3600',
-        upsert: false
+        upsert: type === 'resume' // Allow resume re-uploads on retry
       });
     
     if (uploadError) {
-      console.error('Upload error:', uploadError);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Upload error:', uploadError.message);
+      }
       return { data: null, error: uploadError.message };
     }
     
@@ -193,7 +196,7 @@ export async function uploadFile(options: UploadOptions): Promise<UploadResult> 
         metadata.width = dimensions.width;
         metadata.height = dimensions.height;
       } catch (e) {
-        console.warn('Could not extract image dimensions');
+        // Ignore dimension extraction errors
       }
     }
     
@@ -219,8 +222,33 @@ export async function uploadFile(options: UploadOptions): Promise<UploadResult> 
       .single();
     
     if (dbError) {
+      // Check if it's a duplicate error (409 conflict on unique constraint)
+      if (dbError.code === '23505') {
+        // Duplicate file - try to find existing record
+        const { data: existing } = await supabase
+          .from('file_attachments')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('file_path', filePath)
+          .maybeSingle();
+        
+        if (existing) {
+          // Return existing record instead of error
+          return {
+            data: existing as FileAttachment,
+            publicUrl,
+            error: null
+          };
+        }
+      }
+      
       // Rollback: delete uploaded file
       await supabase.storage.from(bucket).remove([filePath]);
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Database insert error:', dbError.message);
+      }
+      
       return { data: null, error: dbError.message };
     }
     
@@ -256,8 +284,7 @@ export async function deleteFile(fileId: string): Promise<{ error: string | null
       .remove([fileRecord.file_path]);
     
     if (storageError) {
-      console.error('Storage delete error:', storageError);
-      // Continue anyway - delete from DB
+      // Continue anyway - delete from DB even if storage delete fails
     }
     
     // Delete from database

@@ -37,8 +37,6 @@ export async function uploadProjectImage(options: ImageUploadOptions): Promise<I
     const random = Math.random().toString(36).substring(7);
     const fileName = `${userId}/${folder}/${projectId || 'temp'}-${timestamp}-${random}.${fileExt}`;
 
-    console.log('[ImageUpload] 📤 Uploading to Supabase Storage:', fileName);
-
     // Upload to Supabase Storage
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('project-files')
@@ -48,7 +46,6 @@ export async function uploadProjectImage(options: ImageUploadOptions): Promise<I
       });
 
     if (uploadError) {
-      console.error('[ImageUpload] ❌ Upload failed:', uploadError);
       return { url: null, error: uploadError.message };
     }
 
@@ -58,11 +55,9 @@ export async function uploadProjectImage(options: ImageUploadOptions): Promise<I
       .getPublicUrl(fileName);
 
     const publicUrl = urlData.publicUrl;
-    console.log('[ImageUpload] ✅ Upload successful:', publicUrl);
 
     return { url: publicUrl, error: null };
   } catch (error: any) {
-    console.error('[ImageUpload] ❌ Exception:', error);
     return { url: null, error: error.message || 'Upload failed' };
   }
 }

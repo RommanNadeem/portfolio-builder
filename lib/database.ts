@@ -359,7 +359,13 @@ export async function saveCompletePortfolio(
     
     let profileResult;
     try {
-      profileResult = await supabase.from('profiles').upsert(profileData);
+      // Use upsert with onConflict to handle existing profile
+      profileResult = await supabase
+        .from('profiles')
+        .upsert(profileData, {
+          onConflict: 'id',
+          ignoreDuplicates: false
+        });
     } catch (err: any) {
       if (DEBUG_DATABASE) console.error('[Database Debug] Exception during profile upsert:', err);
       throw new Error('Failed to save profile: ' + err.message);
@@ -377,9 +383,13 @@ export async function saveCompletePortfolio(
     });
     
     if (profileResult.error) {
-      if (DEBUG_DATABASE) console.error('[Database Debug] Profile upsert failed:', profileResult.error);
-      if (DEBUG_DATABASE) console.error('[Database Debug] Error keys:', Object.keys(profileResult.error));
-      if (DEBUG_DATABASE) console.error('[Database Debug] Full error object:', JSON.stringify(profileResult.error, null, 2));
+      if (DEBUG_DATABASE) {
+        console.error('[Database Debug] Profile upsert failed:', profileResult.error);
+        console.error('[Database Debug] Error code:', profileResult.error.code);
+        console.error('[Database Debug] Error message:', profileResult.error.message);
+        console.error('[Database Debug] Error hint:', profileResult.error.hint);
+        console.error('[Database Debug] Error details:', profileResult.error.details);
+      }
       
       // Try to extract any error info
       const errorMsg = profileResult.error.message 
