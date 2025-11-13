@@ -723,7 +723,15 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
             {/* Signature */}
             <p className="text-gray-400 text-xs sm:text-sm text-center sm:text-left">
-              {profile.footer_signature || `Built with 🤍 by ${profile.full_name || 'You'}`}
+              Join thousands building their story on{' '}
+              <a 
+                href="https://buildspace.me" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-300 hover:text-white transition-colors underline decoration-gray-500 hover:decoration-white"
+              >
+                BuildSpace
+              </a>
             </p>
 
             {/* Links */}

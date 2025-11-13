@@ -33,17 +33,18 @@ export function FooterEditor({ data, fullName, onChange, isExpanded }: FooterEdi
         <p className="mt-1 text-xs text-gray-500">Main CTA text in footer</p>
       </div>
 
-      {/* Footer Signature */}
+      {/* Footer Signature - Hardcoded */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Footer Signature</label>
-        <input
-          type="text"
-          value={data.footerSignature || `Built with 🤍 by ${fullName || 'You'}`}
-          onChange={(e) => onChange({ footerSignature: e.target.value })}
-          placeholder={`Built with 🤍 by ${fullName}`}
-          className="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 placeholder:text-gray-600"
-        />
-        <p className="mt-1 text-xs text-gray-500">Small text shown at bottom</p>
+        <label className="block text-xs font-medium text-gray-700 mb-1">
+          Footer Signature
+          <span className="ml-2 text-xs font-normal text-gray-500">(Powered by BuildSpace)</span>
+        </label>
+        <div className="w-full px-3 py-2 text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed">
+          Join thousands building their story on <span className="text-gray-700 font-medium">BuildSpace</span>
+        </div>
+        <p className="mt-1 text-xs text-gray-500">
+          This attribution helps us grow and keep BuildSpace free for everyone 🚀
+        </p>
       </div>
     </div>
   );

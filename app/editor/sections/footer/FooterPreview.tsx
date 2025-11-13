@@ -33,9 +33,10 @@ export function FooterPreview({ data, fullName, previewMode }: FooterPreviewProp
 
         {/* Footer Bottom */}
         <div className={`flex ${isMobile ? 'flex-col items-center gap-3 px-4' : 'items-center justify-between px-6'}`}>
-          {/* Signature */}
+          {/* Signature - Hardcoded BuildSpace Attribution */}
           <p className={`text-gray-400 ${isMobile ? 'text-xs text-center' : 'text-sm'}`}>
-            {data.footerSignature || `Built with 🤍 by ${fullName || 'You'}`}
+            Join thousands building their story on{' '}
+            <span className="text-gray-300 underline decoration-gray-500">BuildSpace</span>
           </p>
 
           {/* Links */}

@@ -69,18 +69,21 @@ export default async function ProjectDetailPage({ params }: PageProps) {
       </div>
 
       {/* Footer */}
-      {(footerData?.footerText || footerData?.footerSignature) && (
-        <footer className="border-t border-gray-200 bg-gray-50 py-6 sm:py-8 mt-12 sm:mt-16">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center">
-            {footerData.footerText && (
-              <p className="text-gray-600 mb-2">{footerData.footerText}</p>
-            )}
-            {footerData.footerSignature && (
-              <p className="text-sm text-gray-500">{footerData.footerSignature}</p>
-            )}
-          </div>
-        </footer>
-      )}
+      <footer className="border-t border-gray-200 bg-gray-50 py-6 sm:py-8 mt-12 sm:mt-16">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center">
+          <p className="text-sm text-gray-500">
+            Join thousands building their story on{' '}
+            <a 
+              href="https://buildspace.me" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-600 hover:text-gray-900 transition-colors underline"
+            >
+              BuildSpace
+            </a>
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
