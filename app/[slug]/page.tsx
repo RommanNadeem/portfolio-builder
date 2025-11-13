@@ -159,6 +159,37 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
   const socialLinks = (portfolio as any).socialLinks || [];
   const sectionOrder = (portfolio as any).sectionOrder;
 
+  // Helper function to generate contact URL with email pre-fill
+  const getContactUrl = (navigation: any, email: string, fullName: string) => {
+    // If custom URL is provided, use that
+    if (navigation?.ctaUrl) {
+      return {
+        href: navigation.ctaUrl,
+        target: "_blank" as const,
+        rel: "noopener noreferrer"
+      };
+    }
+    
+    // Otherwise, use email with pre-filled content
+    if (email) {
+      const name = fullName || 'there';
+      const subject = encodeURIComponent("Saw your buildspace profile.");
+      const body = encodeURIComponent(
+        `Hi ${name},\n\nI came across your portfolio and I'm impressed by your work. I'd love to connect and explore potential collaboration opportunities.\n\nLooking forward to hearing from you!\n\nBest regards,`
+      );
+      
+      return {
+        href: `mailto:${email}?subject=${subject}&body=${body}`,
+        target: undefined,
+        rel: undefined
+      };
+    }
+    
+    return null;
+  };
+
+  // Get contact link for CTAs
+  const contactLink = getContactUrl(profile.navigation, profile.email, profile.full_name);
 
   // Render sections in order
   const orderedSections = sectionOrder || ['career', 'projects', 'strengths', 'services', 'testimonials', 'faqs', 'resume'];
@@ -203,11 +234,11 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
             </div>
 
             {/* CTA Button */}
-            {(profile.navigation?.ctaUrl || profile.email) && (
+            {contactLink && (
               <a
-                href={profile.navigation?.ctaUrl || `mailto:${profile.email}`}
-                target={profile.navigation?.ctaUrl ? "_blank" : undefined}
-                rel={profile.navigation?.ctaUrl ? "noopener noreferrer" : undefined}
+                href={contactLink.href}
+                target={contactLink.target}
+                rel={contactLink.rel}
                 className="px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg whitespace-nowrap flex-shrink-0"
                 style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
               >
@@ -694,11 +725,11 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
             <h2 className="font-bold mb-4 text-2xl sm:text-3xl lg:text-4xl">
               {profile.footer_text || "Let's build something meaningful."}
             </h2>
-            {(profile.navigation?.ctaUrl || profile.email) && (
+            {contactLink && (
               <a
-                href={profile.navigation?.ctaUrl || `mailto:${profile.email}`}
-                target={profile.navigation?.ctaUrl ? "_blank" : undefined}
-                rel={profile.navigation?.ctaUrl ? "noopener noreferrer" : undefined}
+                href={contactLink.href}
+                target={contactLink.target}
+                rel={contactLink.rel}
                 className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-white text-gray-900 font-semibold rounded-lg hover:bg-gray-100 transition-all text-sm sm:text-base"
               >
                 <span>Get in Touch</span>
