@@ -202,18 +202,27 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
               ))}
             </div>
 
-            {/* CTA Button */}
-            {profile.navigation?.ctaUrl && (
-              <a
-                href={profile.navigation.ctaUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg whitespace-nowrap flex-shrink-0"
-                style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Link
+                href="/signin"
+                className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-full transition-all hover:bg-gray-100 whitespace-nowrap"
+                style={{ color: '#111111' }}
               >
-                Contact
-              </a>
-            )}
+                Sign In
+              </Link>
+              {profile.navigation?.ctaUrl && (
+                <a
+                  href={profile.navigation.ctaUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg whitespace-nowrap"
+                  style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
+                >
+                  Contact
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </nav>

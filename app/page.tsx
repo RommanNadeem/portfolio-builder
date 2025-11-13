@@ -51,13 +51,22 @@ export default function LandingPage() {
             <a href="#faq" className="hover:opacity-70 transition-opacity" style={{ color: '#111111' }}>FAQ</a>
           </div>
 
-          <Link
-            href="/onboarding-v2/start"
-            className="px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg whitespace-nowrap"
-            style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
-          >
-            Build Your Story
-          </Link>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/signin"
+              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold rounded-full transition-all hover:bg-gray-100 whitespace-nowrap"
+              style={{ color: '#111111' }}
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/onboarding-v2/start"
+              className="px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg whitespace-nowrap"
+              style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
+            >
+              Build Your Story
+            </Link>
+          </div>
         </div>
       </nav>
 
