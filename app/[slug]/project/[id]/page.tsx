@@ -29,12 +29,12 @@ export default async function ProjectDetailPage({ params }: PageProps) {
     <div className="min-h-screen bg-white">
       {/* Navigation Breadcrumb */}
       <nav className="border-b border-gray-200 bg-white sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-6 py-4">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
           <Link
             href={`/${slug}`}
-            className="text-sm text-gray-600 hover:text-gray-900 transition-colors inline-flex items-center gap-2"
+            className="text-xs sm:text-sm text-gray-600 hover:text-gray-900 transition-colors inline-flex items-center gap-1.5 sm:gap-2 font-medium cursor-pointer"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Back to Portfolio
@@ -43,7 +43,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
       </nav>
 
       {/* Project Content */}
-      <div className="max-w-5xl mx-auto px-6 py-12">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="space-y-8">
           {/* Render template blocks in preview mode */}
           <TemplateRendererClient
@@ -53,12 +53,12 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         </div>
 
         {/* Back to portfolio button */}
-        <div className="mt-16 pt-8 border-t border-gray-200">
+        <div className="mt-12 sm:mt-16 pt-6 sm:pt-8 border-t border-gray-200">
           <Link
             href={`/${slug}`}
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors font-medium"
+            className="inline-flex items-center gap-1.5 sm:gap-2 text-blue-600 hover:text-blue-700 transition-colors font-medium text-sm sm:text-base cursor-pointer"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Back to {portfolioName}
@@ -68,8 +68,8 @@ export default async function ProjectDetailPage({ params }: PageProps) {
 
       {/* Footer */}
       {(footerData?.footerText || footerData?.footerSignature) && (
-        <footer className="border-t border-gray-200 bg-gray-50 py-8 mt-16">
-          <div className="max-w-5xl mx-auto px-6 text-center">
+        <footer className="border-t border-gray-200 bg-gray-50 py-6 sm:py-8 mt-12 sm:mt-16">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center">
             {footerData.footerText && (
               <p className="text-gray-600 mb-2">{footerData.footerText}</p>
             )}
