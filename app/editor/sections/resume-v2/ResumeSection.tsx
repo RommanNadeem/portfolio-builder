@@ -178,11 +178,12 @@ export function ResumeSection({
                 </button>
                 <a
                   href={resumeUrl}
-                  download={resumeFileName}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className={`flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors ${
                     isMobile ? 'text-xs' : 'text-sm'
                   }`}
-                  title={`Download ${resumeFileName}`}
+                  title="Open resume in new tab"
                 >
                   <Download className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
                   <span>Download</span>
@@ -232,9 +233,10 @@ export function ResumeSection({
               </button>
               <a
                 href={resumeUrl}
-                download={resumeFileName}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center gap-2 px-3 py-2 bg-white text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-100 transition-colors border border-gray-300"
-                title={`Download ${resumeFileName}`}
+                title="Open resume in new tab"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Download</span>
