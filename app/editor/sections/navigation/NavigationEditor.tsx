@@ -67,7 +67,7 @@ export function NavigationEditor({ isExpanded, data, onChange }: NavigationEdito
               />
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              Add a custom link (e.g., Calendly, contact form, email). Leave empty to scroll to overview section.
+              Add a custom link (e.g., Calendly, contact form). Leave empty to use your email address by default.
             </p>
           </div>
         </div>

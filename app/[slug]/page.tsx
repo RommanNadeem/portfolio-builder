@@ -202,27 +202,18 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
               ))}
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <Link
-                href="/signin"
-                className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-full transition-all hover:bg-gray-100 whitespace-nowrap"
-                style={{ color: '#111111' }}
+            {/* CTA Button */}
+            {(profile.navigation?.ctaUrl || profile.email) && (
+              <a
+                href={profile.navigation?.ctaUrl || `mailto:${profile.email}`}
+                target={profile.navigation?.ctaUrl ? "_blank" : undefined}
+                rel={profile.navigation?.ctaUrl ? "noopener noreferrer" : undefined}
+                className="px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg whitespace-nowrap flex-shrink-0"
+                style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
               >
-                Sign In
-              </Link>
-              {profile.navigation?.ctaUrl && (
-                <a
-                  href={profile.navigation.ctaUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg whitespace-nowrap"
-                  style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
-                >
-                  Contact
-                </a>
-              )}
-            </div>
+                Get in Touch
+              </a>
+            )}
           </div>
         </div>
       </nav>
@@ -703,11 +694,11 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
             <h2 className="font-bold mb-4 text-2xl sm:text-3xl lg:text-4xl">
               {profile.footer_text || "Let's build something meaningful."}
             </h2>
-            {profile.navigation?.ctaUrl && (
+            {(profile.navigation?.ctaUrl || profile.email) && (
               <a
-                href={profile.navigation.ctaUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={profile.navigation?.ctaUrl || `mailto:${profile.email}`}
+                target={profile.navigation?.ctaUrl ? "_blank" : undefined}
+                rel={profile.navigation?.ctaUrl ? "noopener noreferrer" : undefined}
                 className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-white text-gray-900 font-semibold rounded-lg hover:bg-gray-100 transition-all text-sm sm:text-base"
               >
                 <span>Get in Touch</span>
