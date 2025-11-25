@@ -7,6 +7,7 @@ interface CalloutBlockProps {
   block: CalloutBlockType;
   onChange: (block: CalloutBlockType) => void;
   mode: 'edit' | 'preview';
+  deviceMode?: 'desktop' | 'mobile';
 }
 
 export function CalloutBlock({ block, onChange, mode }: CalloutBlockProps) {

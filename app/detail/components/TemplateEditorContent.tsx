@@ -20,6 +20,7 @@ interface SortableSectionProps {
   isExpanded: boolean;
   isSaved: boolean;
   viewMode: 'edit' | 'preview';
+  deviceMode: 'desktop' | 'mobile';
   onToggle: () => void;
   onChange: (block: TemplateBlock) => void;
   onDelete: () => void;
@@ -32,6 +33,7 @@ function SortableSection({
   isExpanded,
   isSaved,
   viewMode,
+  deviceMode,
   onToggle,
   onChange,
   onDelete,
@@ -71,6 +73,7 @@ function SortableSection({
           blocks={[block]}
           onChange={(blocks) => onChange(blocks[0])}
           mode="preview"
+          deviceMode={deviceMode}
           entityType={entityType}
           onTitleChange={onTitleChange}
         />
@@ -136,6 +139,7 @@ function SortableSection({
           blocks={[block]}
           onChange={(blocks) => onChange(blocks[0])}
           mode="edit"
+          deviceMode={deviceMode}
           onSave={onSave}
           entityType={entityType}
           onTitleChange={onTitleChange}
@@ -222,6 +226,7 @@ export function TemplateEditorContent({
               isExpanded={expandedSections.has(index)}
               isSaved={savedBlockIds.has(block.id)}
               viewMode={viewMode}
+              deviceMode={deviceMode}
               onToggle={() => onToggleSection(index)}
               onChange={(updatedBlock) => onBlockChange(index, updatedBlock)}
               onDelete={() => onBlockDelete(index)}

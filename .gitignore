@@ -43,3 +43,7 @@ next-env.d.ts
 # Supabase Edge Functions Environment
 supabase/functions/.env
 supabase/functions/.env.local
+
+# Test and Demo Pages
+/app/test-wysiwyg/
+/app/preview-editor-demo/

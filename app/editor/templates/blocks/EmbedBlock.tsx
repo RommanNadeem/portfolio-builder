@@ -8,6 +8,7 @@ interface EmbedBlockProps {
   block: EmbedBlockType;
   onChange: (block: EmbedBlockType) => void;
   mode: 'edit' | 'preview';
+  deviceMode?: 'desktop' | 'mobile';
 }
 
 // Auto-detect embed type from URL

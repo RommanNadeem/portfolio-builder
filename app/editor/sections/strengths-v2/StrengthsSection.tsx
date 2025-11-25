@@ -86,16 +86,59 @@ export function StrengthsSection({
     const validStrengths = currentStrengths.filter(s => 
       s.title.trim().length > 0
     );
-    
+    const isMobile = previewMode === 'mobile';
+
+    // Show empty state only in Edit mode (right preview), hide in full Preview mode
     if (validStrengths.length === 0) {
-      return null; // Don't show empty section
+      if (viewMode === 'preview') {
+        return null;
+      }
+
+      return (
+        <div id="strengths" className={`w-full ${isMobile ? 'mb-6' : 'mb-12 sm:mb-16 lg:mb-20'}`}>
+          {/* Section Header - match Projects section */}
+          <div className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-8'}`}>
+            <div className={`rounded-lg bg-emerald-100 flex items-center justify-center ${
+              isMobile ? 'w-6 h-6' : 'w-8 h-8'
+            }`}>
+              <Star className={isMobile ? 'w-3.5 h-3.5 text-emerald-600' : 'w-5 h-5 text-emerald-600'} />
+            </div>
+            <h2 className={`font-bold text-gray-900 ${
+              isMobile ? 'text-lg' : 'text-3xl'
+            }`}>Strengths</h2>
+          </div>
+
+          {/* Empty State - consistent with Projects section */}
+          <div
+            className={`bg-emerald-50 border-2 border-dashed border-emerald-200 rounded-xl flex flex-col items-center justify-center ${
+              isMobile ? 'p-6' : 'p-8'
+            }`}
+          >
+            <Star className={`text-emerald-600 ${isMobile ? 'w-10 h-10 mb-2' : 'w-12 h-12 mb-3'}`} />
+            <p className={`text-gray-600 mb-3 text-center ${isMobile ? 'text-sm' : 'text-base'}`}>
+              No strengths added yet
+            </p>
+            <button
+              onClick={() => {
+                handleAdd();
+                onScrollToSection?.('strengths');
+              }}
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg ${
+                isMobile ? 'text-xs' : 'text-sm'
+              }`}
+              style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
+            >
+              <Plus className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
+              <span>Add Your First Strength</span>
+            </button>
+          </div>
+        </div>
+      );
     }
 
-    const isMobile = previewMode === 'mobile';
-    
     return (
       <div id="strengths" className={`w-full ${isMobile ? 'mb-6' : 'mb-12 sm:mb-16 lg:mb-20'}`}>
-        {/* Section Header */}
+        {/* Section Header - match Projects section */}
         <div className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-8'}`}>
           <div className={`rounded-lg bg-emerald-100 flex items-center justify-center ${
             isMobile ? 'w-6 h-6' : 'w-8 h-8'
@@ -106,7 +149,7 @@ export function StrengthsSection({
             isMobile ? 'text-lg' : 'text-3xl'
           }`}>Strengths</h2>
         </div>
-        
+
         <div className={`grid gap-4 ${
           isMobile ? 'grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-3 gap-6'
         }`}>

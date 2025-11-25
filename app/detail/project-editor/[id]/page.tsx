@@ -109,6 +109,27 @@ export default function ProjectEditor() {
     }
   }, [loading, document]); // ← Run only on initial load, not when blocks change
 
+  // Sync title from document or hero block
+  useEffect(() => {
+    if (document) {
+      const docTitle = (document.entity_data as any)?.title;
+      if (docTitle) {
+        setDisplayTitle(docTitle);
+      }
+    }
+  }, [document]);
+
+  // Sync title from hero block when it changes
+  useEffect(() => {
+    const heroBlock = blocks.find(b => b.type === 'hero');
+    if (heroBlock && heroBlock.data) {
+      const heroTitle = (heroBlock.data as any)?.title;
+      if (heroTitle) {
+        setDisplayTitle(heroTitle);
+      }
+    }
+  }, [blocks]);
+
   // Handle template selection (for initial setup)
   const handleTemplateSelect = useCallback(async (template: TemplateType | 'ai') => {
     if (template === 'ai') {

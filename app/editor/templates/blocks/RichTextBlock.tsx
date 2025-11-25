@@ -8,6 +8,7 @@ interface RichTextBlockProps {
   onChange: (block: RichTextBlockType) => void;
   mode: 'edit' | 'preview';
   context?: string; // 'problem', 'solution', etc.
+  deviceMode?: 'desktop' | 'mobile';
 }
 
 export function RichTextBlock({ block, onChange, mode, context }: RichTextBlockProps) {

@@ -7,6 +7,7 @@ interface StepsBlockProps {
   block: StepsBlockType;
   onChange: (block: StepsBlockType) => void;
   mode: 'edit' | 'preview';
+  deviceMode?: 'desktop' | 'mobile';
 }
 
 export function StepsBlock({ block, onChange, mode }: StepsBlockProps) {

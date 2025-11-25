@@ -11,7 +11,10 @@ export default function SignInPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const [error, setError] = useState('');
+  const [statusMessage, setStatusMessage] = useState('');
+  const [view, setView] = useState<'signin' | 'reset'>('signin');
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,6 +26,7 @@ export default function SignInPage() {
 
     setLoading(true);
     setError('');
+    setStatusMessage('');
 
     const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email,
@@ -53,6 +57,43 @@ export default function SignInPage() {
     }
   };
 
+  const handlePasswordResetRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!email.trim()) {
+      setError('Please enter the email associated with your account.');
+      return;
+    }
+
+    setResetLoading(true);
+    setError('');
+    setStatusMessage('');
+
+    const redirectTo =
+      typeof window !== 'undefined'
+        ? `${window.location.origin}/reset-password`
+        : `${process.env.NEXT_PUBLIC_SITE_URL || ''}/reset-password`;
+
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo,
+    });
+
+    setResetLoading(false);
+
+    if (resetError) {
+      setError(resetError.message);
+      return;
+    }
+
+    setStatusMessage('Password reset link sent! Please check your email.');
+  };
+
+  const toggleView = (nextView: 'signin' | 'reset') => {
+    setView(nextView);
+    setError('');
+    setStatusMessage('');
+  };
+
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-8">
       <div className="w-full max-w-md">
@@ -77,7 +118,10 @@ export default function SignInPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSignIn} className="space-y-6">
+        <form
+          onSubmit={view === 'signin' ? handleSignIn : handlePasswordResetRequest}
+          className="space-y-6"
+        >
           <div>
             <label htmlFor="email" className="block text-sm font-bold mb-2" style={{ color: '#111111' }}>
               Email Address
@@ -89,33 +133,59 @@ export default function SignInPage() {
               onChange={(e) => {
                 setEmail(e.target.value);
                 setError('');
+                setStatusMessage('');
               }}
               placeholder="you@example.com"
               className="w-full px-5 py-3.5 text-base bg-white border-2 border-gray-200 rounded-xl transition-all outline-none focus:border-emerald-700 focus:shadow-[0_0_0_3px_rgba(5,150,105,0.15)] disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ color: '#111111' }}
-              disabled={loading}
+              disabled={loading || resetLoading}
               autoFocus
             />
           </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-bold mb-2" style={{ color: '#111111' }}>
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setError('');
-              }}
-              placeholder="Enter your password"
-              className="w-full px-5 py-3.5 text-base bg-white border-2 border-gray-200 rounded-xl transition-all outline-none focus:border-emerald-700 focus:shadow-[0_0_0_3px_rgba(5,150,105,0.15)] disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ color: '#111111' }}
-              disabled={loading}
-            />
-          </div>
+          {view === 'signin' && (
+            <div>
+              <label htmlFor="password" className="block text-sm font-bold mb-2" style={{ color: '#111111' }}>
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setError('');
+                }}
+                placeholder="Enter your password"
+                className="w-full px-5 py-3.5 text-base bg-white border-2 border-gray-200 rounded-xl transition-all outline-none focus:border-emerald-700 focus:shadow-[0_0_0_3px_rgba(5,150,105,0.15)] disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ color: '#111111' }}
+                disabled={loading}
+              />
+              <button
+                type="button"
+                onClick={() => toggleView('reset')}
+                className="mt-3 text-sm font-semibold text-gray-900 hover:text-emerald-600 transition-colors"
+              >
+                Forgot your password?
+              </button>
+            </div>
+          )}
+
+          {view === 'reset' && (
+            <div className="p-4 border-2 border-gray-200 rounded-xl bg-gray-50">
+              <p className="text-sm text-gray-800 font-semibold">
+                We'll send you a secure link to reset your password. Make sure you have access to the email address
+                above.
+              </p>
+              <button
+                type="button"
+                onClick={() => toggleView('signin')}
+                className="mt-4 text-sm font-semibold text-gray-900 hover:text-emerald-600 transition-colors"
+              >
+                Back to sign in
+              </button>
+            </div>
+          )}
 
           {error && (
             <div className="p-4 border-2 border-red-200 bg-red-50 rounded-xl">
@@ -123,13 +193,28 @@ export default function SignInPage() {
             </div>
           )}
 
+          {statusMessage && (
+            <div className="p-4 border-2 border-emerald-200 bg-emerald-50 rounded-xl">
+              <p className="text-sm font-semibold" style={{ color: '#111111' }}>{statusMessage}</p>
+            </div>
+          )}
+
           <button
             type="submit"
-            disabled={loading || !email.trim() || !password.trim()}
+            disabled={
+              (view === 'signin' && (loading || !email.trim() || !password.trim())) ||
+              (view === 'reset' && (resetLoading || !email.trim()))
+            }
             className="w-full inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold rounded-full transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
             style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {view === 'signin'
+              ? loading
+                ? 'Signing in...'
+                : 'Sign In'
+              : resetLoading
+                ? 'Sending reset link...'
+                : 'Send reset link'}
           </button>
 
           <div className="text-center pt-4">

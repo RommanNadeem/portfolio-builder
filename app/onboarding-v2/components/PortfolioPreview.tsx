@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { Mail, Phone, Linkedin, Github, Twitter, Instagram, Globe, Calendar } from 'lucide-react';
 
 // Updated layout: horizontal with profile on left, content on right
@@ -46,10 +46,10 @@ export function PortfolioPreview({ data, focusSection = null }: PortfolioPreview
   const careerRef = useRef<HTMLDivElement | null>(null);
   const linksRef = useRef<HTMLDivElement | null>(null);
 
-  // Track which section is currently highlighted (for one-time animation)
-  const [highlightedSection, setHighlightedSection] = useState<string | null>(null);
+  // Track which section is currently highlighted - persists while on that step
+  const highlightedSection = focusSection;
 
-  // Scroll to focused section and trigger highlight animation
+  // Scroll to focused section when it changes
   useEffect(() => {
     if (!focusSection) return;
 
@@ -78,10 +78,7 @@ export function PortfolioPreview({ data, focusSection = null }: PortfolioPreview
     }
 
     if (targetRef?.current) {
-      // Trigger highlight animation
-      setHighlightedSection(focusSection);
-      
-      // Small delay to ensure rendering is complete
+      // Small delay to ensure rendering is complete before scrolling
       setTimeout(() => {
         targetRef.current?.scrollIntoView({
           behavior: 'smooth',
@@ -89,11 +86,6 @@ export function PortfolioPreview({ data, focusSection = null }: PortfolioPreview
           inline: 'nearest'
         });
       }, 100);
-
-      // Remove highlight after animation completes (2 seconds)
-      setTimeout(() => {
-        setHighlightedSection(null);
-      }, 2000);
     }
   }, [focusSection]);
 
@@ -126,28 +118,32 @@ export function PortfolioPreview({ data, focusSection = null }: PortfolioPreview
       <style jsx>{`
         @keyframes gentlePulse {
           0% {
-            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+            box-shadow: inset 0 0 0 2px rgba(16, 185, 129, 0.4), 0 0 0 0 rgba(16, 185, 129, 0.4);
             background-color: rgba(16, 185, 129, 0.05);
           }
           50% {
-            box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+            box-shadow: inset 0 0 0 2px rgba(16, 185, 129, 0.4), 0 0 0 8px rgba(16, 185, 129, 0);
             background-color: rgba(16, 185, 129, 0.1);
           }
           100% {
-            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
-            background-color: transparent;
+            box-shadow: inset 0 0 0 2px rgba(16, 185, 129, 0.3), 0 0 0 0 rgba(16, 185, 129, 0);
+            background-color: rgba(16, 185, 129, 0.08);
           }
         }
         
         .highlight-pulse {
-          animation: gentlePulse 2s ease-out;
+          animation: gentlePulse 1.5s ease-out;
           border-radius: 12px;
           padding: 12px;
-          margin: -12px;
+          box-shadow: inset 0 0 0 2px rgba(16, 185, 129, 0.3);
+          background-color: rgba(16, 185, 129, 0.08);
+          transition: all 0.3s ease;
         }
 
         .highlight-pulse-image {
-          animation: gentlePulse 2s ease-out;
+          animation: gentlePulse 1.5s ease-out;
+          border: 3px solid rgba(16, 185, 129, 0.4) !important;
+          box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
         }
       `}</style>
 
@@ -155,7 +151,7 @@ export function PortfolioPreview({ data, focusSection = null }: PortfolioPreview
       <div 
         ref={imageRef}
         className={`w-32 h-32 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center transition-all duration-300 ${
-          highlightedSection === 'image' ? 'highlight-pulse-image ring-4 ring-emerald-500 ring-opacity-30' : ''
+          highlightedSection === 'image' ? 'highlight-pulse-image' : ''
         }`}
       >
         {data.profileImage ? (

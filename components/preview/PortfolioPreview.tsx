@@ -81,7 +81,7 @@ export default function PortfolioPreview({ data, showPlaceholders = false }: Por
 
   return (
     <div className={`${themeClasses[theme]} min-h-screen`}>
-      <div className="max-w-4xl mx-auto px-6 py-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {/* Header */}
         <header className="mb-12">
           <div className="flex items-start gap-6 mb-6">
@@ -219,7 +219,13 @@ export default function PortfolioPreview({ data, showPlaceholders = false }: Por
         {displayProjects && displayProjects.length > 0 && (
           <section className="mb-12">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Projects</h2>
-            <div className={`grid ${theme === 'grid' ? 'grid-cols-2' : 'grid-cols-1'} gap-6`}>
+            <div
+              className={`grid ${
+                theme === 'grid'
+                  ? 'grid-cols-1 sm:grid-cols-2'
+                  : 'grid-cols-1'
+              } gap-6`}
+            >
               {displayProjects.map((project: any) => {
                 // Support both old and new field names
                 const projectName = project.title || project.name || '';

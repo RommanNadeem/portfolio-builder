@@ -11,6 +11,7 @@ import {
   CustomSection,
   PortfolioData
 } from './types';
+import { reconcileSectionOrder } from './section-reconciliation';
 
 // Debug flag - DISABLED IN PRODUCTION
 const DEBUG_DATABASE = process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_DEBUG_DATABASE === 'true';
@@ -347,7 +348,7 @@ export async function saveCompletePortfolio(
       resume_url: portfolioData.resume,
       companies: portfolioData.companies,
       slider_companies: portfolioData.sliderCompanies,
-      section_order: portfolioData.sectionOrder || ['career', 'projects', 'strengths', 'services', 'testimonials', 'faqs', 'resume'],
+      section_order: reconcileSectionOrder(portfolioData.sectionOrder),
       navigation: portfolioData.navigation || null,
       footer_text: portfolioData.footerText || null,
       footer_signature: portfolioData.footerSignature || null
@@ -811,6 +812,21 @@ export function convertToLegacyFormat(portfolioData: PortfolioData): any {
   if (DEBUG_DATABASE) console.log('[Database Debug] Career highlights from DB:', portfolioData.careerHighlights);
   if (DEBUG_DATABASE) console.log('[Database Debug] Resume URL from DB:', portfolioData.profile.resume_url);
   
+  // Reconcile section order with master list to ensure all sections are available
+  const reconciledSectionOrder = reconcileSectionOrder(portfolioData.profile.section_order);
+  
+  if (DEBUG_DATABASE && portfolioData.profile.section_order) {
+    const originalLength = portfolioData.profile.section_order.length;
+    const newLength = reconciledSectionOrder.length;
+    if (originalLength !== newLength) {
+      console.log('[Database Debug] ✨ Reconciled section order for user:', {
+        original: portfolioData.profile.section_order,
+        reconciled: reconciledSectionOrder,
+        added: reconciledSectionOrder.filter(s => !portfolioData.profile.section_order?.includes(s))
+      });
+    }
+  }
+  
   const converted = {
     fullName: portfolioData.profile.full_name,
     heading: portfolioData.profile.heading,
@@ -824,7 +840,7 @@ export function convertToLegacyFormat(portfolioData: PortfolioData): any {
     resumeFileName: portfolioData.profile.resume_file_name,
     companies: portfolioData.profile.companies,
     sliderCompanies: portfolioData.profile.slider_companies,
-    sectionOrder: portfolioData.profile.section_order || ['career', 'projects', 'strengths', 'services', 'testimonials', 'faqs', 'resume'],
+    sectionOrder: reconciledSectionOrder,
     navigation: portfolioData.profile.navigation || undefined,
     footerText: portfolioData.profile.footer_text || undefined,
     footerSignature: portfolioData.profile.footer_signature || undefined,

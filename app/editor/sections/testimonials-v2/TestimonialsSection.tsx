@@ -86,21 +86,80 @@ export function TestimonialsSection({
   };
 
   // In preview renderMode, render the preview component
-  if (renderMode === 'preview' || viewMode === 'preview') {
+  const isPurePreview = renderMode === 'preview';
+  const isPreviewView = viewMode === 'preview';
+
+  if (isPurePreview || isPreviewView) {
     // Filter out empty testimonials (name and content required)
     const validTestimonials = currentTestimonials.filter(t => 
       t.name.trim().length > 0 && t.content.trim().length > 0
     );
-    
+    const isMobile = previewMode === 'mobile';
+
+    // Hide entire section if there are no testimonials in pure preview
     if (validTestimonials.length === 0) {
-      return null; // Don't show empty section
+      if (isPurePreview) {
+        return null;
+      }
+
+      return (
+        <div
+          id="testimonials"
+          className={`w-full ${isMobile ? 'mb-6' : 'mb-12 sm:mb-16 lg:mb-20'}`}
+        >
+          <div
+            className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-8'}`}
+          >
+            <div
+              className={`rounded-lg bg-emerald-100 flex items-center justify-center ${
+                isMobile ? 'w-6 h-6' : 'w-8 h-8'
+              }`}
+            >
+              <MessageSquare
+                className={
+                  isMobile
+                    ? 'w-3.5 h-3.5 text-emerald-600'
+                    : 'w-5 h-5 text-emerald-600'
+                }
+              />
+            </div>
+            <h2
+              className={`font-bold text-gray-900 ${
+                isMobile ? 'text-lg' : 'text-3xl'
+              }`}
+            >
+              Testimonials
+            </h2>
+          </div>
+
+          <div
+            className={`bg-emerald-50 border-2 border-dashed border-emerald-200 rounded-xl flex flex-col items-center justify-center ${
+              isMobile ? 'p-6' : 'p-8'
+            }`}
+          >
+            <MessageSquare
+              className={`text-emerald-600 ${
+                isMobile ? 'w-10 h-10 mb-2' : 'w-12 h-12 mb-3'
+              }`}
+            />
+            <p
+              className={`text-gray-600 mb-3 text-center ${
+                isMobile ? 'text-sm' : 'text-base'
+              }`}
+            >
+              No testimonials added yet
+            </p>
+            <p className="text-xs text-gray-500 text-center">
+              Add testimonials from the editor panel to see them here.
+            </p>
+          </div>
+        </div>
+      );
     }
 
-    const isMobile = previewMode === 'mobile';
-    
     return (
       <div id="testimonials" className={`w-full ${isMobile ? 'mb-6' : 'mb-12 sm:mb-16 lg:mb-20'}`}>
-        {/* Section Header */}
+        {/* Section Header - match Projects section */}
         <div className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-8'}`}>
           <div className={`rounded-lg bg-emerald-100 flex items-center justify-center ${
             isMobile ? 'w-6 h-6' : 'w-8 h-8'
@@ -111,7 +170,7 @@ export function TestimonialsSection({
             isMobile ? 'text-lg' : 'text-3xl'
           }`}>Testimonials</h2>
         </div>
-        
+
         <div className={`grid gap-4 ${
           isMobile ? 'grid-cols-1' : 'md:grid-cols-2 gap-6'
         }`}>
@@ -127,9 +186,15 @@ export function TestimonialsSection({
               }`}>&ldquo;{testimonial.content}&rdquo;</p>
               <div className={`flex items-center justify-between ${isMobile ? 'gap-2' : 'gap-3'}`}>
                 <div className="flex items-center gap-3">
-                  <div className={`bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 font-semibold ${
-                    isMobile ? 'w-9 h-9 text-xs' : 'w-11 h-11 text-sm'
-                  }`}>
+                  <div
+                    className={`rounded-full flex items-center justify-center font-semibold ${
+                      isMobile ? 'w-9 h-9 text-xs' : 'w-11 h-11 text-sm'
+                    }`}
+                    style={{
+                      backgroundColor: 'var(--pastel-green)',
+                      color: 'var(--text-primary)',
+                    }}
+                  >
                     {testimonial.name.charAt(0)}
                   </div>
                   <div>
@@ -150,9 +215,11 @@ export function TestimonialsSection({
                     href={testimonial.linkedinUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`flex-shrink-0 p-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-all ${
-                      isMobile ? '' : ''
-                    }`}
+                    className="flex-shrink-0 p-2 rounded-lg transition-all"
+                    style={{
+                      color: 'var(--cta-green)',
+                      backgroundColor: 'rgba(91, 198, 74, 0.08)',
+                    }}
                     title="View LinkedIn Profile"
                   >
                     <Linkedin className={isMobile ? 'w-4 h-4' : 'w-5 h-5'} />

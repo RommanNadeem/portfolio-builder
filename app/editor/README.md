@@ -119,6 +119,31 @@ app/editor/
 
 ## 🎨 Component Patterns
 
+### Section Visual Pattern (Icons, Headers, Empty States)
+
+To keep the editor consistent, **all sections** (projects, services, strengths, testimonials, FAQs, and any future ones) should follow these patterns:
+
+- **Left navigation / wrapper header icon**
+  - Container: `w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center`
+  - Icon: `text-emerald-600` (e.g. `Briefcase`, `Package`, `Star`, `MessageSquare`, `HelpCircle`)
+
+- **Preview section header**
+  - Layout: `flex items-center gap-3 mb-4` (or `mb-8` on desktop)
+  - Icon container: `rounded-lg bg-emerald-100 flex items-center justify-center` with size `w-6 h-6` / `w-8 h-8`
+  - Icon: `text-emerald-600` with size `w-3.5 h-3.5` / `w-5 h-5`
+  - Title: `h2` with `font-bold text-gray-900` and `text-lg` (mobile) or `text-3xl` (desktop)
+
+- **Preview empty state (edit view only)**
+  - Wrapper: `bg-emerald-50 border-2 border-dashed border-emerald-200 rounded-xl flex flex-col items-center justify-center p-6` (mobile) / `p-8` (desktop)
+  - Icon: section-appropriate icon in `text-emerald-600`, `w-10 h-10` (mobile) / `w-12 h-12` (desktop)
+  - Text: `text-gray-600 mb-3 text-center` with `text-sm` (mobile) / `text-base` (desktop)
+  - CTA button:
+    - Classes: `flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg`
+    - Inline style: `style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}`
+    - Label pattern: `"Add Your First {SectionName}"` (e.g. `"Add Your First Project"`, `"Add Your First Service"`, etc.)
+
+Following this pattern ensures any **future sections** automatically match the existing design language used by Projects, Services, Strengths, Testimonials, and FAQs.
+
 ### Section Component Structure
 ```typescript
 export function MySection({ data, onChange, viewMode, previewMode, renderMode }) {

@@ -11,6 +11,7 @@ interface HeroBlockProps {
   block: HeroBlockType;
   onChange: (block: HeroBlockType) => void;
   mode: 'edit' | 'preview';
+  deviceMode?: 'desktop' | 'mobile';
   entityType?: 'project' | 'career'; // Optional entity type for context
   onSave?: () => Promise<void>; // Force immediate save (for image uploads)
   onTitleChange?: (newTitle: string) => void; // For real-time navigation bar update

@@ -73,7 +73,6 @@ export function PersonalSection({ data, onChange, viewMode, previewMode, renderM
     <PersonalPreview
       data={personalData}
       socialLinks={socialLinks}
-      viewMode={viewMode}
       previewMode={previewMode}
     />
   );

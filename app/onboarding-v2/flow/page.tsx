@@ -423,16 +423,22 @@ export default function OnboardingFlowPage() {
     setCurrentStep(5);
   };
 
-  // Step 5: About Section
-  const handleAboutNext = () => {
+  // Step 5: Social Links + Contact (moved from step 7)
+  const handleLinksNext = () => {
     setActiveFocusSection(null);
     setCurrentStep(6);
   };
 
-  // Step 6: Career Highlights
-  const handleCareerNext = () => {
+  // Step 6: About Section (moved from step 5)
+  const handleAboutNext = () => {
     setActiveFocusSection(null);
     setCurrentStep(7);
+  };
+
+  // Step 7: Career Highlights (moved from step 6)
+  const handleCareerNext = () => {
+    setActiveFocusSection(null);
+    setCurrentStep(8);
   };
 
   const handleDeleteCareer = (id: string) => {
@@ -537,7 +543,7 @@ export default function OnboardingFlowPage() {
     }));
   };
 
-  // Step 7: Social Links
+  // Add Link handler
   const handleAddLink = () => {
     if (newLinkUrl.trim()) {
       setData(prev => ({
@@ -566,10 +572,6 @@ export default function OnboardingFlowPage() {
     }));
   };
 
-  const handleLinksNext = () => {
-    setActiveFocusSection(null);
-    setCurrentStep(8);
-  };
 
   // Step 8: Profile Picture
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1041,14 +1043,173 @@ export default function OnboardingFlowPage() {
     );
   }
 
-  // Step 5: About Section
+  // Step 5: Social Links + Contact (moved from step 7)
   if (currentStep === 5) {
+    const availablePlatforms = AVAILABLE_PLATFORMS.filter(
+      ({ platform }) => !data.socialLinks.some(link => link.platform === platform)
+    );
+
     return (
       <OnboardingLayout
         currentStep={5}
         totalSteps={totalSteps}
-        onNext={handleAboutNext}
+        onNext={handleLinksNext}
         onBack={() => setCurrentStep(4)}
+        nextLabel="Continue"
+        preview={<PortfolioPreview data={previewData} focusSection={activeFocusSection || "links"} />}
+      >
+        <div className="space-y-8">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Links and Contact</h2>
+            <p className="text-base text-gray-800">
+              Add your contact info and social profiles
+            </p>
+          </div>
+
+          {/* Email & Phone */}
+          <div className="space-y-4 pb-6 border-b border-gray-100">
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-2">
+                <Mail className="w-4 h-4 inline mr-2" />
+                Email Address
+              </label>
+                <input
+                  type="email"
+                  value={data.email}
+                  onChange={(e) => setData(prev => ({ ...prev, email: e.target.value }))}
+                  onFocus={() => setActiveFocusSection('contact')}
+                  placeholder="you@example.com"
+                  className="onboarding-input"
+                  style={{ color: '#111111' }}
+                />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-2">
+                <Phone className="w-4 h-4 inline mr-2" />
+                Phone Number <span className="text-gray-600 font-medium">(Optional)</span>
+              </label>
+                <input
+                  type="tel"
+                  value={data.phone}
+                  onChange={(e) => setData(prev => ({ ...prev, phone: e.target.value }))}
+                  onFocus={() => setActiveFocusSection('contact')}
+                  placeholder="+1 (555) 000-0000"
+                  className="onboarding-input"
+                  style={{ color: '#111111' }}
+                />
+            </div>
+          </div>
+
+          {/* Existing Links */}
+          {data.socialLinks.length > 0 && (
+            <div className="space-y-2">
+              {data.socialLinks.map((link) => (
+                <div key={link.id} className="border-2 border-gray-200 rounded-xl p-4 flex items-center justify-between hover:border-gray-300 transition-colors">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="flex-shrink-0 text-gray-700">
+                      {getIcon(link.icon)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-gray-900">{link.platform}</p>
+                      <p className="text-sm text-gray-800 truncate">{link.url}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteLink(link.id)}
+                    className="text-gray-600 hover:text-red-600 flex-shrink-0 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add New Link */}
+          {isAddingLink ? (
+            <div className="border-2 border-emerald-500 rounded-2xl p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="text-emerald-600">
+                  {getIcon(newLinkIcon)}
+                </div>
+                <p className="text-base font-bold text-gray-900">{newLinkPlatform}</p>
+              </div>
+                <input
+                  type="url"
+                  value={newLinkUrl}
+                  onChange={(e) => setNewLinkUrl(e.target.value)}
+                  onFocus={() => setActiveFocusSection('links')}
+                  placeholder="https://"
+                  autoFocus
+                  className="onboarding-input"
+                  style={{ color: '#111111' }}
+                />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setIsAddingLink(false)}
+                  className="btn-secondary flex-1"
+                  style={{ color: '#111111' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddLink}
+                  disabled={!newLinkUrl.trim()}
+                  className="btn-primary flex-1"
+                  style={{ color: '#111111' }}
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {availablePlatforms.length > 0 && (
+                <div>
+                  <label className="block text-sm font-bold text-gray-900 mb-3">
+                    Add Social Link
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {availablePlatforms.map(({ platform, icon }) => (
+                      <button
+                        key={platform}
+                        onClick={() => {
+                          setNewLinkPlatform(platform);
+                          setNewLinkIcon(icon);
+                          setIsAddingLink(true);
+                        }}
+                        className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-900 border-2 border-gray-200 hover:border-emerald-500 hover:text-emerald-600 transition-colors rounded-xl"
+                      >
+                        {getIcon(icon)}
+                        <span>{platform}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          <button
+            onClick={handleLinksNext}
+            className="text-gray-900 hover:text-emerald-600 font-medium transition-colors"
+          >
+            skip for now
+          </button>
+        </div>
+      </OnboardingLayout>
+    );
+  }
+
+  // Step 6: About Section (moved from step 5)
+  if (currentStep === 6) {
+    return (
+      <OnboardingLayout
+        currentStep={6}
+        totalSteps={totalSteps}
+        onNext={handleAboutNext}
+        onBack={() => setCurrentStep(5)}
         nextLabel="Continue"
         preview={<PortfolioPreview data={previewData} focusSection={activeFocusSection || "about"} />}
       >
@@ -1086,14 +1247,14 @@ export default function OnboardingFlowPage() {
     );
   }
 
-  // Step 6: Career Highlights
-  if (currentStep === 6) {
+  // Step 7: Career Highlights (moved from step 6)
+  if (currentStep === 7) {
     return (
       <OnboardingLayout
-        currentStep={6}
+        currentStep={7}
         totalSteps={totalSteps}
         onNext={handleCareerNext}
-        onBack={() => setCurrentStep(5)}
+        onBack={() => setCurrentStep(6)}
         nextLabel="Continue"
         preview={<PortfolioPreview data={previewData} focusSection={activeFocusSection || "career"} />}
       >
@@ -1369,164 +1530,6 @@ export default function OnboardingFlowPage() {
     );
   }
 
-  // Step 7: Social Links + Contact
-  if (currentStep === 7) {
-    const availablePlatforms = AVAILABLE_PLATFORMS.filter(
-      ({ platform }) => !data.socialLinks.some(link => link.platform === platform)
-    );
-
-    return (
-      <OnboardingLayout
-        currentStep={7}
-        totalSteps={totalSteps}
-        onNext={handleLinksNext}
-        onBack={() => setCurrentStep(6)}
-        nextLabel="Continue"
-        preview={<PortfolioPreview data={previewData} focusSection={activeFocusSection || "links"} />}
-      >
-        <div className="space-y-8">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Links and Contact</h2>
-            <p className="text-base text-gray-800">
-              Add your contact info and social profiles
-            </p>
-          </div>
-
-          {/* Email & Phone */}
-          <div className="space-y-4 pb-6 border-b border-gray-100">
-            <div>
-              <label className="block text-sm font-bold text-gray-900 mb-2">
-                <Mail className="w-4 h-4 inline mr-2" />
-                Email Address
-              </label>
-                <input
-                  type="email"
-                  value={data.email}
-                  onChange={(e) => setData(prev => ({ ...prev, email: e.target.value }))}
-                  onFocus={() => setActiveFocusSection('contact')}
-                  placeholder="you@example.com"
-                  className="onboarding-input"
-                  style={{ color: '#111111' }}
-                />
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-900 mb-2">
-                <Phone className="w-4 h-4 inline mr-2" />
-                Phone Number <span className="text-gray-600 font-medium">(Optional)</span>
-              </label>
-                <input
-                  type="tel"
-                  value={data.phone}
-                  onChange={(e) => setData(prev => ({ ...prev, phone: e.target.value }))}
-                  onFocus={() => setActiveFocusSection('contact')}
-                  placeholder="+1 (555) 000-0000"
-                  className="onboarding-input"
-                  style={{ color: '#111111' }}
-                />
-            </div>
-          </div>
-
-          {/* Existing Links */}
-          {data.socialLinks.length > 0 && (
-            <div className="space-y-2">
-              {data.socialLinks.map((link) => (
-                <div key={link.id} className="border-2 border-gray-200 rounded-xl p-4 flex items-center justify-between hover:border-gray-300 transition-colors">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="flex-shrink-0 text-gray-700">
-                      {getIcon(link.icon)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-gray-900">{link.platform}</p>
-                      <p className="text-sm text-gray-800 truncate">{link.url}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleDeleteLink(link.id)}
-                    className="text-gray-600 hover:text-red-600 flex-shrink-0 transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Add New Link */}
-          {isAddingLink ? (
-            <div className="border-2 border-emerald-500 rounded-2xl p-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="text-emerald-600">
-                  {getIcon(newLinkIcon)}
-                </div>
-                <p className="text-base font-bold text-gray-900">{newLinkPlatform}</p>
-              </div>
-                <input
-                  type="url"
-                  value={newLinkUrl}
-                  onChange={(e) => setNewLinkUrl(e.target.value)}
-                  onFocus={() => setActiveFocusSection('links')}
-                  placeholder="https://"
-                  autoFocus
-                  className="onboarding-input"
-                  style={{ color: '#111111' }}
-                />
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setIsAddingLink(false)}
-                  className="btn-secondary flex-1"
-                  style={{ color: '#111111' }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAddLink}
-                  disabled={!newLinkUrl.trim()}
-                  className="btn-primary flex-1"
-                  style={{ color: '#111111' }}
-                >
-                  Add
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              {availablePlatforms.length > 0 && (
-                <div>
-                  <label className="block text-sm font-bold text-gray-900 mb-3">
-                    Add Social Link
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {availablePlatforms.map(({ platform, icon }) => (
-                      <button
-                        key={platform}
-                        onClick={() => {
-                          setNewLinkPlatform(platform);
-                          setNewLinkIcon(icon);
-                          setIsAddingLink(true);
-                        }}
-                        className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-900 border-2 border-gray-200 hover:border-emerald-500 hover:text-emerald-600 transition-colors rounded-xl"
-                      >
-                        {getIcon(icon)}
-                        <span>{platform}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-
-          <button
-            onClick={handleLinksNext}
-            className="text-gray-900 hover:text-emerald-600 font-medium transition-colors"
-          >
-            skip for now
-          </button>
-        </div>
-      </OnboardingLayout>
-    );
-  }
 
   // Step 8: Profile Picture
   if (currentStep === 8) {

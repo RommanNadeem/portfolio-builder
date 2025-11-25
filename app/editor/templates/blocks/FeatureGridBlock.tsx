@@ -7,11 +7,12 @@ interface FeatureGridBlockProps {
   block: FeatureGridBlockType;
   onChange: (block: FeatureGridBlockType) => void;
   mode: 'edit' | 'preview';
+  deviceMode?: 'desktop' | 'mobile';
 }
 
 const ICON_OPTIONS = ['✨', '🚀', '💡', '🎯', '⚡', '🔥', '💪', '🎨', '📊', '🔍', '⚙️', '🌟'];
 
-export function FeatureGridBlock({ block, onChange, mode }: FeatureGridBlockProps) {
+export function FeatureGridBlock({ block, onChange, mode, deviceMode }: FeatureGridBlockProps) {
   const { data } = block;
 
   const addItem = () => {
@@ -43,12 +44,17 @@ export function FeatureGridBlock({ block, onChange, mode }: FeatureGridBlockProp
       return null;
     }
     
+    const gridColsClass =
+      deviceMode === 'mobile'
+        ? 'grid-cols-1'
+        : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+
     return (
       <div>
         {displayTitle && (
           <h2 className="text-3xl font-bold text-gray-900 mb-8">{displayTitle}</h2>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className={`grid ${gridColsClass} gap-6`}>
           {data.items.filter(item => item.title).map((item, index) => (
             <div key={index} className="p-6 bg-white border border-gray-200 rounded-xl hover:shadow-lg transition-shadow">
               {item.assetUrl && (

@@ -7,6 +7,7 @@ interface BulletsBlockProps {
   block: BulletsBlockType;
   onChange: (block: BulletsBlockType) => void;
   mode: 'edit' | 'preview';
+  deviceMode?: 'desktop' | 'mobile';
 }
 
 export function BulletsBlock({ block, onChange, mode }: BulletsBlockProps) {

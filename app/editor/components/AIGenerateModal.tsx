@@ -127,11 +127,6 @@ export function AIGenerateModal({
   }, []);
 
   const handleGenerate = async () => {
-    if (files.length === 0 && !userNotes.trim()) {
-      setError('Please upload files or add notes to generate content');
-      return;
-    }
-
     try {
       await onGenerate(files, userNotes, options);
     } catch (err: any) {
@@ -409,9 +404,8 @@ export function AIGenerateModal({
           </button>
           <button
             onClick={handleGenerate}
-            disabled={files.length === 0 && !userNotes.trim()}
-            className="px-6 py-2 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg disabled:bg-gray-300 disabled:cursor-not-allowed disabled:shadow-none flex items-center gap-2"
-            style={{ background: (files.length === 0 && !userNotes.trim()) ? '' : '#5BC64A', border: (files.length === 0 && !userNotes.trim()) ? '' : '2px solid #111111', color: (files.length === 0 && !userNotes.trim()) ? '' : '#111111' }}
+            className="px-6 py-2 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+            style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
           >
             <Sparkles className="w-4 h-4" />
             Generate Case Study

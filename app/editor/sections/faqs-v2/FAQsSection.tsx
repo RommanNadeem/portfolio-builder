@@ -112,11 +112,11 @@ export function FAQsSection({
             }`}>FAQs</h2>
           </div>
           
-          {/* Empty State */}
+          {/* Empty State – consistent with Projects section */}
           <div className={`bg-emerald-50 border-2 border-dashed border-emerald-200 rounded-xl flex flex-col items-center justify-center ${
             isMobile ? 'p-6' : 'p-8'
           }`}>
-            <HelpCircle className={`text-emerald-700 ${isMobile ? 'w-10 h-10 mb-2' : 'w-12 h-12 mb-3'}`} />
+            <HelpCircle className={`text-emerald-600 ${isMobile ? 'w-10 h-10 mb-2' : 'w-12 h-12 mb-3'}`} />
             <p className={`text-gray-600 mb-3 text-center ${isMobile ? 'text-sm' : 'text-base'}`}>
               No FAQs added yet
             </p>
@@ -125,9 +125,10 @@ export function FAQsSection({
                 handleAdd();
                 onScrollToSection?.('faqs');
               }}
-              className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg" style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' transition-colors ${
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg ${
                 isMobile ? 'text-xs' : 'text-sm'
               }`}
+              style={{ background: '#5BC64A', border: '2px solid #111111', color: '#111111' }}
             >
               <Plus className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
               <span>Add Your First FAQ</span>

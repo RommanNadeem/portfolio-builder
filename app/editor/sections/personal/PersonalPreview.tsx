@@ -13,11 +13,10 @@ interface SocialLink {
 interface PersonalPreviewProps {
   data: PersonalData;
   socialLinks?: SocialLink[];
-  viewMode: 'edit' | 'preview';
   previewMode: 'desktop' | 'mobile';
 }
 
-export function PersonalPreview({ data, socialLinks = [], viewMode, previewMode }: PersonalPreviewProps) {
+export function PersonalPreview({ data, socialLinks = [], previewMode }: PersonalPreviewProps) {
   const isMobile = previewMode === 'mobile';
 
   const getIcon = (iconName: string) => {
@@ -66,12 +65,11 @@ export function PersonalPreview({ data, socialLinks = [], viewMode, previewMode 
           <div className={`flex-1 ${isMobile ? 'w-full' : ''}`}>
             {/* Main Heading - Blue/Purple Gradient */}
             {data.heading && (
-              <h1 className={`font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent ${
-                isMobile ? 'text-2xl mb-3' : 'text-5xl mb-4'
-              }`}
-              style={{
-                lineHeight: isMobile ? '1.2' : '1.1',
-              }}
+              <h1
+                className={`font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent ${
+                  isMobile ? 'text-2xl mb-3' : 'text-5xl mb-4'
+                }`}
+                style={{ lineHeight: isMobile ? '1.2' : '1.1' }}
               >
                 {data.heading}
               </h1>
@@ -117,8 +115,9 @@ export function PersonalPreview({ data, socialLinks = [], viewMode, previewMode 
         <div className={`w-full ${isMobile ? 'pb-8' : 'pb-12'}`}>
           <div className={`bg-gray-50 rounded-2xl ${isMobile ? 'px-6 py-8' : 'px-12 py-10'}`}>
             <div className="max-w-6xl mx-auto">
-              <p className={`text-gray-700 ${isMobile ? 'text-sm leading-relaxed' : 'text-base leading-relaxed'}`}
-              style={{ lineHeight: isMobile ? '1.6' : '1.7' }}
+              <p
+                className={`text-gray-700 ${isMobile ? 'text-sm leading-relaxed' : 'text-base leading-relaxed'}`}
+                style={{ lineHeight: isMobile ? '1.6' : '1.7' }}
               >
                 {data.whoAreYou}
               </p>

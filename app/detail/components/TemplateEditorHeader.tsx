@@ -155,55 +155,56 @@ export function TemplateEditorHeader({
 
           {/* Right: View Mode Toggle */}
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => onViewModeChange('edit')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                viewMode === 'edit'
-                  ? 'bg-gray-900 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <Pencil className="w-4 h-4" />
-              Edit
-            </button>
-            <button
-              onClick={() => onViewModeChange('preview')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                viewMode === 'preview'
-                  ? 'bg-gray-900 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <Eye className="w-4 h-4" />
-              Preview
-            </button>
+            <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => onViewModeChange('edit')}
+                className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded transition-all ${
+                  viewMode === 'edit'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <Pencil className="w-4 h-4" />
+                Edit
+              </button>
+              <button
+                onClick={() => onViewModeChange('preview')}
+                className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded transition-all ${
+                  viewMode === 'preview'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <Eye className="w-4 h-4" />
+                Preview
+              </button>
+            </div>
 
             {viewMode === 'preview' && (
-              <>
-                <div className="w-px h-6 bg-gray-200 mx-2" />
+              <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
                 <button
                   onClick={() => onDeviceModeChange('desktop')}
-                  className={`p-2 rounded-lg transition-colors ${
+                  className={`p-2 rounded transition-all ${
                     deviceMode === 'desktop'
-                      ? 'bg-gray-100 text-gray-900'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
                   }`}
-                  title="Desktop preview"
+                  title="Desktop view"
                 >
                   <Monitor className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => onDeviceModeChange('mobile')}
-                  className={`p-2 rounded-lg transition-colors ${
+                  className={`p-2 rounded transition-all ${
                     deviceMode === 'mobile'
-                      ? 'bg-gray-100 text-gray-900'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
                   }`}
-                  title="Mobile preview"
+                  title="Mobile view"
                 >
                   <Smartphone className="w-4 h-4" />
                 </button>
-              </>
+              </div>
             )}
           </div>
         </div>

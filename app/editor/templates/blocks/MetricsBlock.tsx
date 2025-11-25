@@ -7,9 +7,10 @@ interface MetricsBlockProps {
   block: MetricsBlockType;
   onChange: (block: MetricsBlockType) => void;
   mode: 'edit' | 'preview';
+  deviceMode?: 'desktop' | 'mobile';
 }
 
-export function MetricsBlock({ block, onChange, mode }: MetricsBlockProps) {
+export function MetricsBlock({ block, onChange, mode, deviceMode }: MetricsBlockProps) {
   const { data } = block;
 
   const addMetric = () => {
@@ -41,12 +42,17 @@ export function MetricsBlock({ block, onChange, mode }: MetricsBlockProps) {
       return null;
     }
     
+    const gridColsClass =
+      deviceMode === 'mobile'
+        ? 'grid-cols-1'
+        : 'grid-cols-1 md:grid-cols-3';
+
     return (
       <div>
         {displayTitle && (
           <h2 className="text-3xl font-bold text-gray-900 mb-8">{displayTitle}</h2>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className={`grid ${gridColsClass} gap-8`}>
           {data.metrics.filter(m => m.label && m.value).map((metric, index) => (
             <div key={index} className="text-center p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl">
               <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-2">

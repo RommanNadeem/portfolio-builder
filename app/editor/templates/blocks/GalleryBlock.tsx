@@ -9,9 +9,10 @@ interface GalleryBlockProps {
   block: GalleryBlockType;
   onChange: (block: GalleryBlockType) => void;
   mode: 'edit' | 'preview';
+  deviceMode?: 'desktop' | 'mobile';
 }
 
-export function GalleryBlock({ block, onChange, mode }: GalleryBlockProps) {
+export function GalleryBlock({ block, onChange, mode, deviceMode }: GalleryBlockProps) {
   const { data } = block;
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -50,6 +51,11 @@ export function GalleryBlock({ block, onChange, mode }: GalleryBlockProps) {
     if (validImages.length === 0) {
       return null;
     }
+
+    const gridColsClass =
+      deviceMode === 'mobile'
+        ? 'grid-cols-2'
+        : 'grid-cols-2 md:grid-cols-3';
 
     return (
       <div>
@@ -100,7 +106,7 @@ export function GalleryBlock({ block, onChange, mode }: GalleryBlockProps) {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className={`grid ${gridColsClass} gap-4`}>
             {validImages.map((image, index) => (
               <div key={index} className="group relative aspect-square">
                 <img 
