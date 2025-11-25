@@ -165,7 +165,7 @@ export function RichEditableText({
 
   const divProps = {
     ref: editableRef,
-    contentEditable: enabled ? 'true' : 'false',
+    contentEditable: enabled,
     suppressContentEditableWarning: true,
     onClick: handleClick,
     onInput: handleInput,
